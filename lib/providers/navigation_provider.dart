@@ -1,0 +1,116 @@
+// lib/providers/navigation_provider.dart
+// Unified navigation state for BOTH Admin and Farmer roles.
+
+import 'package:flutter/foundation.dart';
+
+enum FarmerPage {
+  welcome,
+  plantDisease,
+  animalWeight,
+  cropRecommendation,
+  soilAnalysis,
+  fruitQuality,
+  chatbot,
+  reports,
+  settings,
+}
+
+enum AdminPage {
+  dashboard,
+  userManagement,
+  systemManagement,
+  systemReports,
+  settings,
+}
+
+class FarmerPageMeta {
+  const FarmerPageMeta({
+    required this.page,
+    required this.label,
+    required this.icon,
+    this.svgAsset,
+  });
+  final FarmerPage page;
+  final String label;
+  final String icon;
+  final String? svgAsset;
+}
+
+class AdminPageMeta {
+  const AdminPageMeta({
+    required this.page,
+    required this.label,
+    required this.icon,
+    this.isAdminOnly = false,
+  });
+  final AdminPage page;
+  final String label;
+  final String icon;
+  final bool isAdminOnly;
+}
+
+class NavigationProvider extends ChangeNotifier {
+  // ── Farmer state ──────────────────────────────────────────────────────────
+  FarmerPage _farmerPage = FarmerPage.welcome;
+  FarmerPage get farmerPage  => _farmerPage;
+  int        get farmerIndex => FarmerPage.values.indexOf(_farmerPage);
+
+  void goToFarmerPage(FarmerPage page) {
+    if (_farmerPage == page) return;
+    _farmerPage = page;
+    notifyListeners();
+  }
+
+  void goToFarmerIndex(int index) {
+    if (index < 0 || index >= FarmerPage.values.length) return;
+    goToFarmerPage(FarmerPage.values[index]);
+  }
+
+  // ── Admin state ────────────────────────────────────────────────────────────
+  AdminPage _adminPage = AdminPage.dashboard;
+  AdminPage get adminPage  => _adminPage;
+  int       get adminIndex => AdminPage.values.indexOf(_adminPage);
+
+  void goToAdminPage(AdminPage page) {
+    if (_adminPage == page) return;
+    _adminPage = page;
+    notifyListeners();
+  }
+
+  void goToAdminIndex(int index) {
+    if (index < 0 || index >= AdminPage.values.length) return;
+    goToAdminPage(AdminPage.values[index]);
+  }
+
+  // ── Reset on logout ────────────────────────────────────────────────────────
+  void reset() {
+    _farmerPage = FarmerPage.welcome;
+    _adminPage  = AdminPage.dashboard;
+    notifyListeners();
+  }
+
+  // ── Farmer metadata ────────────────────────────────────────────────────────
+  static const List<FarmerPageMeta> farmerPages = [
+    FarmerPageMeta(page: FarmerPage.welcome,            label: 'Welcome',                  icon: 'home_outlined'),
+    FarmerPageMeta(page: FarmerPage.plantDisease,       label: 'Plant Disease Detection',   icon: 'local_florist_outlined',        svgAsset: 'assets/images/icons/plant_icon.svg'),
+    FarmerPageMeta(page: FarmerPage.animalWeight,       label: 'Animal Weight Estimation',  icon: 'monitor_weight_outlined',       svgAsset: 'assets/images/icons/animal_icon.svg'),
+    FarmerPageMeta(page: FarmerPage.cropRecommendation, label: 'Crop Recommendation',       icon: 'grass_outlined',                svgAsset: 'assets/images/icons/crop_icon.svg'),
+    FarmerPageMeta(page: FarmerPage.soilAnalysis,       label: 'Soil Type Analysis',        icon: 'layers_outlined',               svgAsset: 'assets/images/icons/soil_icon.svg'),
+    FarmerPageMeta(page: FarmerPage.fruitQuality,       label: 'Fruit Quality Analysis',    icon: 'apple_outlined',                svgAsset: 'assets/images/icons/fruit_icon.svg'),
+    FarmerPageMeta(page: FarmerPage.chatbot,            label: 'Smart Farm Chatbot',        icon: 'chat_bubble_outline',           svgAsset: 'assets/images/icons/chat_icon.svg'),
+    FarmerPageMeta(page: FarmerPage.reports,            label: 'Reports',                   icon: 'bar_chart_outlined'),
+    FarmerPageMeta(page: FarmerPage.settings,           label: 'Settings',                  icon: 'settings_outlined'),
+  ];
+
+  // ── Admin metadata ─────────────────────────────────────────────────────────
+  static const List<AdminPageMeta> adminPages = [
+    AdminPageMeta(page: AdminPage.dashboard,        label: 'Admin Dashboard',    icon: 'dashboard_outlined'),
+    AdminPageMeta(page: AdminPage.userManagement,   label: 'User Management',    icon: 'people_outline'),
+    AdminPageMeta(page: AdminPage.systemManagement, label: 'System Management',  icon: 'settings_applications_outlined', isAdminOnly: true),
+    AdminPageMeta(page: AdminPage.systemReports,    label: 'System Reports',     icon: 'bar_chart_outlined'),
+    AdminPageMeta(page: AdminPage.settings,         label: 'Settings',           icon: 'tune_outlined'),
+  ];
+
+  String get currentFarmerLabel => farmerPages[farmerIndex].label;
+  String get currentAdminLabel  => adminPages[adminIndex].label;
+}

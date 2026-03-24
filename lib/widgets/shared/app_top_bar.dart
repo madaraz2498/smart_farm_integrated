@@ -1,0 +1,92 @@
+// lib/widgets/shared/app_top_bar.dart
+// Persistent top bar shared by both Admin and Farmer shells.
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../features/auth/providers/auth_provider.dart';
+import '../../providers/navigation_provider.dart';
+import '../../shared/theme/app_theme.dart';
+
+class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
+  const AppTopBar({super.key, required this.showBurger});
+  final bool showBurger;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(AppSizes.topBarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    final auth     = context.watch<AuthProvider>();
+    final nav      = context.watch<NavigationProvider>();
+    final isAdmin  = auth.isAdmin;
+    final userName = auth.displayName;
+
+    return Container(
+      height: AppSizes.topBarHeight,
+      decoration: const BoxDecoration(
+        color:  AppColors.surface,
+        border: Border(bottom: BorderSide(color: AppColors.cardBorder, width: 1.33)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(children: [
+        if (showBurger)
+          Builder(builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: AppColors.textDark, size: 22),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          )),
+        Expanded(
+          child: isAdmin
+              ? Center(child: Text(nav.currentAdminLabel,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
+                      color: AppColors.textDark)))
+              : const Text('Smart Farm AI',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
+                      color: AppColors.primary)),
+        ),
+        Stack(clipBehavior: Clip.none, children: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: AppColors.textDark, size: 22),
+            onPressed: () {},
+          ),
+          Positioned(right: 6, top: 6, child: Container(
+            width: 8, height: 8,
+            decoration: const BoxDecoration(color: AppColors.notifRed, shape: BoxShape.circle),
+          )),
+        ]),
+        const SizedBox(width: 4),
+        _AvatarChip(userName: userName, isAdmin: isAdmin),
+        const SizedBox(width: 4),
+      ]),
+    );
+  }
+}
+
+class _AvatarChip extends StatelessWidget {
+  const _AvatarChip({required this.userName, required this.isAdmin});
+  final String userName;
+  final bool   isAdmin;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Container(
+        width: 34, height: 34,
+        decoration: BoxDecoration(
+          color: isAdmin ? AppColors.adminAccent : AppColors.primary,
+          shape: BoxShape.circle,
+        ),
+        child: Center(child: isAdmin
+            ? const Text('A', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+            : const Icon(Icons.person_rounded, color: Colors.white, size: 18)),
+      ),
+      const SizedBox(width: 8),
+      ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 120),
+        child: Text(userName, overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500,
+                color: AppColors.textDark)),
+      ),
+    ]);
+  }
+}
