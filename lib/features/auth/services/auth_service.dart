@@ -20,9 +20,14 @@ class AuthResult {
 
 // ── AuthService ───────────────────────────────────────────────────────────────
 // Confirmed endpoints (Swagger):
-//   POST /register  JSON: { "username": "...", "email": "...", "password": "..." }
-//   POST /login     JSON: { "email": "...", "password": "..." }
+//   POST /register  Form: { "name": "...", "email": "...", "password": "..." }
+//   POST /login     Form: { "email": "...", "password": "..." }
 //   POST /logout/{user_id}
+//
+// Login/register response shape:
+//   { "access_token": "...", "token_type": "bearer",
+//     "user": { "id": 3, "name": "...", "email": "...", "role": "farmer", ... },
+//     "message": "..." }
 
 class AuthService {
   AuthService._();
@@ -39,13 +44,13 @@ class AuthService {
   }) async {
     debugPrint('[AuthService] register  email=$email');
     try {
-      final reqBody = RegisterRequest(
-        username: name.trim(),
-        email:    email.trim(),
-        password: password.trim(),
-      ).toJson();
-      debugPrint('[AuthService] register body: $reqBody');
-      final raw = await _c.post('/register', body: reqBody);
+      final formFields = {
+        'name':     name.trim(),
+        'email':    email.trim(),
+        'password': password.trim(),
+      };
+      debugPrint('[AuthService] register body: $formFields');
+      final raw = await _c.postForm('/register', formFields);
 
       final resp = _parse(raw, fallbackName: name.trim(), fallbackEmail: email.trim());
 
@@ -71,9 +76,12 @@ class AuthService {
   }) async {
     debugPrint('[AuthService] login  email=$email');
     try {
-      final reqBody = LoginRequest(email: email.trim(), password: password.trim()).toJson();
-      debugPrint('[AuthService] login body: $reqBody');
-      final raw = await _c.post('/login', body: reqBody);
+      final formFields = {
+        'email':    email.trim(),
+        'password': password.trim(),
+      };
+      debugPrint('[AuthService] login body: $formFields');
+      final raw = await _c.postForm('/login', formFields);
 
       final resp = _parse(raw, fallbackEmail: email.trim());
       return _persist(resp, fallbackEmail: email.trim());
@@ -111,13 +119,21 @@ class AuthService {
       final email  = stored['email'] ?? '';
       final id     = stored['id']    ?? '';
 
+      // Guard: if cached data is corrupted (id missing or "0"), force re-login.
+      // This cleans up stale cache written before the _parse() fix.
       if (name.isEmpty && email.isEmpty) {
+        debugPrint('[AuthService] restoreSession: empty name+email → clearing');
+        await _clear();
+        return null;
+      }
+      if (id.isEmpty || id == '0') {
+        debugPrint('[AuthService] restoreSession: invalid id="$id" → clearing corrupted cache');
         await _clear();
         return null;
       }
 
       _c.setToken(token);
-      debugPrint('[AuthService] session restored for $name');
+      debugPrint('[AuthService] session restored for $name (id=$id)');
       return UserModel(id: id, name: name.isNotEmpty ? name : email.split('@').first, email: email);
     } catch (_) {
       await _clear();
@@ -127,31 +143,56 @@ class AuthService {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
+  /// Parses the raw API response into an [AuthResponse].
+  ///
+  /// The backend returns a wrapper shape:
+  ///   { "access_token": "...", "user": { "id": 3, "name": "...", "email": "..." }, ... }
+  ///
+  /// The nested "user" key MUST be checked before the generic Map branch,
+  /// otherwise the top-level map (which has no id/name/email) is passed to
+  /// fromJson and userId comes out as "0".
   AuthResponse _parse(dynamic raw, {String fallbackName = '', String fallbackEmail = ''}) {
     if (raw == null) {
       return AuthResponse(
           accessToken: '', userId: '', username: fallbackName, email: fallbackEmail);
     }
-    Map<String, dynamic> j;
-    if (raw is Map<String, dynamic>) {
-      j = raw;
-    } else if (raw is Map && raw['user'] is Map) {
-      j = {
-        ...raw['user'] as Map<String, dynamic>,
-        if (raw['access_token'] != null) 'access_token': raw['access_token'],
-        if (raw['token']        != null) 'access_token': raw['token'],
-      };
-    } else {
-      return AuthResponse(
-          accessToken: '', userId: '', username: fallbackName, email: fallbackEmail);
+
+    if (raw is Map) {
+      final Map<String, dynamic> top = Map<String, dynamic>.from(raw);
+
+      // Nested shape: { "access_token": "...", "user": { "id": ..., ... } }
+      if (top['user'] is Map) {
+        final Map<String, dynamic> userFields =
+        Map<String, dynamic>.from(top['user'] as Map);
+
+        final flattened = <String, dynamic>{
+          ...userFields,
+          // Top-level token wins; fall back to any token key inside user block
+          if (top['access_token'] != null)
+            'access_token': top['access_token']
+          else if (top['token'] != null)
+            'access_token': top['token'],
+          if (top['message'] != null) 'message': top['message'],
+        };
+
+        debugPrint('[AuthService] _parse nested → id=${flattened['id']}, name=${flattened['name']}');
+        return AuthResponse.fromJson(flattened);
+      }
+
+      // Flat shape: { "access_token": "...", "id": ..., "name": "...", ... }
+      debugPrint('[AuthService] _parse flat → id=${top['id'] ?? top['user_id']}, name=${top['name'] ?? top['username']}');
+      return AuthResponse.fromJson(top);
     }
-    return AuthResponse.fromJson(j);
+
+    return AuthResponse(
+        accessToken: '', userId: '', username: fallbackName, email: fallbackEmail);
   }
 
   Future<AuthResult> _persist(AuthResponse resp, {required String fallbackEmail}) async {
     if (!resp.hasToken) return AuthResult.fail('No token received from server.');
     _c.setToken(resp.accessToken);
     final email = resp.email.isNotEmpty ? resp.email : fallbackEmail;
+    debugPrint('[AuthService] _persist → userId=${resp.userId}, name=${resp.displayName}, email=$email');
     await TokenStorage.save(
       token:     resp.accessToken,
       userId:    resp.userId,
