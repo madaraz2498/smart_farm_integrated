@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/sf_button.dart';
@@ -21,19 +22,19 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() { _emailCtrl.dispose(); _passCtrl.dispose(); super.dispose(); }
 
-  bool _validate() {
+  bool _validate(AppLocalizations l10n) {
     bool ok = true;
     setState(() {
       _emailError = _passError = null;
-      if (_emailCtrl.text.trim().isEmpty) { _emailError = 'Email is required.'; ok = false; }
-      else if (!_emailCtrl.text.contains('@')) { _emailError = 'Enter a valid email.'; ok = false; }
-      if (_passCtrl.text.trim().isEmpty) { _passError = 'Password is required.'; ok = false; }
+      if (_emailCtrl.text.trim().isEmpty) { _emailError = l10n.email_required; ok = false; }
+      else if (!_emailCtrl.text.contains('@')) { _emailError = l10n.invalid_email; ok = false; }
+      if (_passCtrl.text.trim().isEmpty) { _passError = l10n.password_required; ok = false; }
     });
     return ok;
   }
 
-  Future<void> _submit() async {
-    if (!_validate()) return;
+  Future<void> _submit(AppLocalizations l10n) async {
+    if (!_validate(l10n)) return;
     context.read<AuthProvider>().clearError();
     await context.read<AuthProvider>().login(
       email: _emailCtrl.text.trim(),
@@ -43,6 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
@@ -56,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 color:        AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border:       Border.all(color: AppColors.cardBorder),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8)],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8)],
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 // Logo
@@ -69,11 +72,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Icon(Icons.eco_rounded, color: Colors.white, size: 38),
                 )),
                 const SizedBox(height: 20),
-                const Center(child: Text('Smart Farm AI',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textDark))),
+                Center(child: Text(l10n.app_name,
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textDark))),
                 const SizedBox(height: 6),
-                const Center(child: Text('Sign in to your account',
-                    style: TextStyle(fontSize: 14, color: AppColors.textSubtle))),
+                Center(child: Text(l10n.sign_in_to_account,
+                    style: const TextStyle(fontSize: 14, color: AppColors.textSubtle))),
                 const SizedBox(height: 24),
 
                 // Error banner
@@ -85,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: BoxDecoration(
                       color:        const Color(0xFFFEF2F2),
                       borderRadius: BorderRadius.circular(10),
-                      border:       Border.all(color: AppColors.error.withOpacity(0.3)),
+                      border:       Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                     ),
                     child: Row(children: [
                       const Icon(Icons.error_outline, size: 16, color: AppColors.error),
@@ -96,13 +99,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   );
                 }),
 
-                SfTextField(controller: _emailCtrl, hint: 'Enter your email',
-                    label: 'Email', keyboardType: TextInputType.emailAddress,
+                SfTextField(controller: _emailCtrl, hint: l10n.enter_email,
+                    label: l10n.email, keyboardType: TextInputType.emailAddress,
                     errorText: _emailError,
                     onChanged: (_) => setState(() => _emailError = null)),
                 const SizedBox(height: 16),
-                SfTextField(controller: _passCtrl, hint: 'Enter your password',
-                    label: 'Password', obscureText: _obscure,
+                SfTextField(controller: _passCtrl, hint: l10n.enter_password,
+                    label: l10n.password, obscureText: _obscure,
                     textInputAction: TextInputAction.done,
                     errorText: _passError,
                     onChanged: (_) => setState(() => _passError = null),
@@ -114,16 +117,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
 
                 Consumer<AuthProvider>(builder: (_, auth, __) =>
-                    SfPrimaryButton(label: 'Sign In', onPressed: _submit, isLoading: auth.isLoading)),
+                    SfPrimaryButton(label: l10n.login, onPressed: () => _submit(l10n), isLoading: auth.isLoading)),
                 const SizedBox(height: 20),
 
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Text("Don't have an account? ",
-                      style: TextStyle(fontSize: 14, color: AppColors.textSubtle)),
+                  Text("${l10n.dont_have_account} ",
+                      style: const TextStyle(fontSize: 14, color: AppColors.textSubtle)),
                   GestureDetector(
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
-                    child: const Text('Sign up',
-                        style: TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                    child: Text(l10n.register,
+                        style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.w600)),
                   ),
                 ]),
               ]),

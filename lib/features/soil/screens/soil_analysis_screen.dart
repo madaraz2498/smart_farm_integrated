@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../models/soil_models.dart';
 import '../providers/soil_provider.dart';
 import '../../../shared/theme/app_theme.dart';
@@ -27,9 +28,9 @@ class _SoilAnalysisScreenState extends State<SoilAnalysisScreen> {
     super.dispose();
   }
 
-  void _submit(SoilProvider prov) {
+  void _submit(SoilProvider prov, AppLocalizations l10n) {
     if (_phCtrl.text.isEmpty) {
-      setState(() => _validErr = 'Soil pH is required.');
+      setState(() => _validErr = l10n.field_required);
       return;
     }
     setState(() => _validErr = null);
@@ -44,6 +45,7 @@ class _SoilAnalysisScreenState extends State<SoilAnalysisScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ChangeNotifierProvider(
       create: (_) => SoilProvider(),
       child: Consumer<SoilProvider>(builder: (context, prov, _) {
@@ -52,9 +54,9 @@ class _SoilAnalysisScreenState extends State<SoilAnalysisScreen> {
           child: Center(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Soil Type Analysis', style: AppTextStyles.pageTitle),
+              Text(l10n.nav_soil_analysis, style: AppTextStyles.pageTitle),
               const SizedBox(height: 4),
-              const Text('Enter soil properties to identify type and fertility level.',
+              Text(l10n.soil_analyze_button,
                   style: AppTextStyles.pageSubtitle),
               const SizedBox(height: 20),
 
@@ -65,7 +67,7 @@ class _SoilAnalysisScreenState extends State<SoilAnalysisScreen> {
                   color:        AppColors.surface,
                   borderRadius: BorderRadius.circular(AppSizes.radiusCard),
                   border:       Border.all(color: AppColors.cardBorder),
-                  boxShadow:   [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
+                  boxShadow:   [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
@@ -74,33 +76,34 @@ class _SoilAnalysisScreenState extends State<SoilAnalysisScreen> {
                             borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
                         child: const Icon(Icons.layers_outlined, color: AppColors.primary, size: 20)),
                     const SizedBox(width: 12),
-                    const Text('Soil Properties', style: AppTextStyles.cardTitle),
+                    Text(l10n.soil_npk_levels, style: AppTextStyles.cardTitle),
                   ]),
                   const SizedBox(height: 20),
                   SfTextField(controller: _phCtrl, hint: '6.5',
-                      label: 'Soil pH *', keyboardType: TextInputType.number),
+                      label: l10n.soil_ph, keyboardType: TextInputType.number),
                   const SizedBox(height: 14),
                   SfTextField(controller: _moistCtrl, hint: '48',
-                      label: 'Moisture Level (%)', keyboardType: TextInputType.number),
+                      label: l10n.soil_moisture, keyboardType: TextInputType.number),
                   const SizedBox(height: 14),
                   Row(children: [
                     Expanded(child: SfTextField(controller: _nCtrl, hint: '20',
-                        label: 'Nitrogen (N)', keyboardType: TextInputType.number)),
+                        label: l10n.soil_nitrogen, keyboardType: TextInputType.number)),
                     const SizedBox(width: 12),
                     Expanded(child: SfTextField(controller: _pCtrl, hint: '30',
-                        label: 'Phosphorus (P)', keyboardType: TextInputType.number)),
+                        label: l10n.soil_phosphorus, keyboardType: TextInputType.number)),
                   ]),
                   const SizedBox(height: 14),
                   SfTextField(controller: _kCtrl, hint: '25',
-                      label: 'Potassium (K)', keyboardType: TextInputType.number),
+                      label: l10n.soil_potassium, keyboardType: TextInputType.number),
                   const SizedBox(height: 20),
                   if (_validErr != null) ...[SfErrorBanner(_validErr!), const SizedBox(height: 16)],
                   SfPrimaryButton(
-                      label: 'Analyze Soil Properties',
+                      label: l10n.soil_analyze_button,
                       isLoading: prov.isLoading,
-                      onPressed: () => _submit(prov)),
+                      onPressed: () => _submit(prov, l10n)),
                 ]),
               ),
+              // ... rest of the build ...
 
               if (prov.status == ScanStatus.result && prov.result != null) ...[
                 const SizedBox(height: 20),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import 'sf_button.dart';
 
@@ -26,6 +27,7 @@ class SfImagePickerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -33,7 +35,7 @@ class SfImagePickerCard extends StatelessWidget {
         color:        AppColors.surface,
         borderRadius: BorderRadius.circular(AppSizes.radiusCard),
         border:       Border.all(color: AppColors.cardBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
       ),
       child: Column(children: [
         // Icon chip
@@ -62,7 +64,7 @@ class SfImagePickerCard extends StatelessWidget {
         // Buttons
         Row(children: [
           Expanded(
-            child: SfOutlineButton(label: 'Choose Image', onPressed: onPickImage),
+            child: SfOutlineButton(label: l10n.choose_image, onPressed: onPickImage),
           ),
           const SizedBox(width: 12),
           Expanded(

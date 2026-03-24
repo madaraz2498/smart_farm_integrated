@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/reports_provider.dart';
 import '../models/report_models.dart';
 import '../../../shared/theme/app_theme.dart';
-import '../../../shared/widgets/sf_button.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 
 class ReportsScreen extends StatelessWidget {
@@ -25,6 +25,7 @@ class _ReportsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final prov = context.watch<ReportsProvider>();
+    final l10n = AppLocalizations.of(context)!;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -33,10 +34,10 @@ class _ReportsBody extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // Header
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Reports', style: AppTextStyles.pageTitle),
-              SizedBox(height: 4),
-              Text('Access and download all AI-generated reports', style: AppTextStyles.pageSubtitle),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l10n.nav_reports, style: AppTextStyles.pageTitle),
+              const SizedBox(height: 4),
+              Text(l10n.reports_subtitle, style: AppTextStyles.pageSubtitle),
             ])),
             const SizedBox(width: 16),
             ElevatedButton.icon(
@@ -44,7 +45,7 @@ class _ReportsBody extends StatelessWidget {
                 final ok = await prov.generate();
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(ok ? 'Report generated!' : (prov.error ?? 'Failed.')),
+                  content: Text(ok ? l10n.success_msg : (prov.error ?? l10n.error_msg)),
                   backgroundColor: ok ? AppColors.primary : AppColors.error,
                 ));
               },
@@ -52,7 +53,7 @@ class _ReportsBody extends StatelessWidget {
                   ? const SizedBox(width: 14, height: 14,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.add_rounded, size: 16),
-              label: Text(prov.isGenerating ? 'Generating…' : 'Generate Report'),
+              label: Text(prov.isGenerating ? '...' : l10n.generate_report),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary, foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -69,13 +70,13 @@ class _ReportsBody extends StatelessWidget {
               final w = (c.maxWidth - 24) / 3;
               return Row(children: [
                 _StatCard(icon: Icons.description_outlined, value: '${prov.stats!.totalReports}',
-                    label: 'Total Reports', width: w),
+                    label: l10n.total_reports, width: w),
                 const SizedBox(width: 12),
                 _StatCard(icon: Icons.calendar_today_outlined, value: '${prov.stats!.thisMonth}',
-                    label: 'This Month', width: w),
+                    label: l10n.this_month, width: w),
                 const SizedBox(width: 12),
                 _StatCard(icon: Icons.trending_up_rounded, value: prov.stats!.growth,
-                    label: 'vs Last Month', width: w),
+                    label: l10n.vs_last_month, width: w),
               ]);
             }),
           const SizedBox(height: 20),
@@ -97,10 +98,11 @@ class _ReportsBody extends StatelessWidget {
             )),
 
           if (!prov.isLoading && prov.reports.isEmpty && prov.error == null)
-            const Center(
-              child: Padding(padding: EdgeInsets.all(48),
-                  child: Text('No reports yet. Generate your first report.',
-                      style: TextStyle(color: AppColors.textSubtle))),
+            Center(
+              child: Padding(padding: const EdgeInsets.all(48),
+                  child: Text(l10n.no_reports_yet,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppColors.textSubtle))),
             ),
         ]),
       )),
@@ -126,7 +128,7 @@ class _StatCard extends StatelessWidget {
           color:        AppColors.surface,
           borderRadius: BorderRadius.circular(AppSizes.radiusCard),
           border:       Border.all(color: AppColors.cardBorder),
-          boxShadow:   [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
+          boxShadow:   [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(width: 40, height: 40,
@@ -156,7 +158,7 @@ class _ReportCard extends StatelessWidget {
         color:        AppColors.surface,
         borderRadius: BorderRadius.circular(AppSizes.radiusCard),
         border:       Border.all(color: AppColors.cardBorder),
-        boxShadow:   [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
+        boxShadow:   [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
       ),
       child: Column(children: [
         Padding(

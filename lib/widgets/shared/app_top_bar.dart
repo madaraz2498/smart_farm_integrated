@@ -1,12 +1,12 @@
 // lib/widgets/shared/app_top_bar.dart
 // Persistent top bar shared by both Admin and Farmer shells.
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 
-import '../../features/auth/providers/auth_provider.dart';
-import '../../providers/navigation_provider.dart';
-import '../../shared/theme/app_theme.dart';
+import 'package:smart_farm/features/auth/providers/auth_provider.dart';
+import 'package:smart_farm/providers/navigation_provider.dart';
+import 'package:smart_farm/shared/theme/app_theme.dart';
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   const AppTopBar({super.key, required this.showBurger});
@@ -21,6 +21,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     final nav      = context.watch<NavigationProvider>();
     final isAdmin  = auth.isAdmin;
     final userName = auth.displayName;
+    final l10n     = AppLocalizations.of(context)!;
 
     return Container(
       height: AppSizes.topBarHeight,
@@ -37,11 +38,11 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
           )),
         Expanded(
           child: isAdmin
-              ? Center(child: Text(nav.currentAdminLabel,
+              ? Center(child: Text(nav.getAdminLabel(l10n),
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
                       color: AppColors.textDark)))
-              : const Text('Smart Farm AI',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
+              : Text(l10n.app_name,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
                       color: AppColors.primary)),
         ),
         Stack(clipBehavior: Clip.none, children: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../models/crop_models.dart';
 import '../providers/crop_provider.dart';
 import '../../../shared/theme/app_theme.dart';
@@ -21,10 +22,8 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
   final _nCtrl        = TextEditingController();
   final _pCtrl        = TextEditingController();
   final _kCtrl        = TextEditingController();
-  String _soilType    = 'Sandy';
+  String? _soilType;
   String? _validErr;
-
-  static const _soilTypes = ['Sandy', 'Loamy', 'Clay', 'Silt', 'Peaty', 'Saline'];
 
   @override
   void dispose() {
@@ -34,22 +33,22 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
     super.dispose();
   }
 
-  bool _validate() {
+  bool _validate(AppLocalizations l10n) {
     if (_tempCtrl.text.isEmpty || _humCtrl.text.isEmpty || _rainCtrl.text.isEmpty) {
-      setState(() => _validErr = 'Temperature, Humidity, and Rainfall are required.');
+      setState(() => _validErr = l10n.field_required);
       return false;
     }
     setState(() => _validErr = null);
     return true;
   }
 
-  void _submit(CropProvider prov) {
-    if (!_validate()) return;
+  void _submit(CropProvider prov, AppLocalizations l10n) {
+    if (!_validate(l10n)) return;
     prov.recommend(CropRecommendationRequest(
       temperature: double.tryParse(_tempCtrl.text) ?? 0,
       humidity:    double.tryParse(_humCtrl.text)  ?? 0,
       rainfall:    double.tryParse(_rainCtrl.text) ?? 0,
-      soilType:    _soilType,
+      soilType:    _soilType ?? 'Sandy',
       ph:          double.tryParse(_phCtrl.text),
       nitrogen:    double.tryParse(_nCtrl.text),
       phosphorus:  double.tryParse(_pCtrl.text),
@@ -59,6 +58,16 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    _soilType ??= 'Sandy';
+
+    final soilTypes = [
+      {'value': 'Sandy', 'label': l10n.soil_sandy},
+      {'value': 'Loamy', 'label': l10n.soil_loamy},
+      {'value': 'Clay', 'label': l10n.soil_clay},
+      {'value': 'Silty', 'label': l10n.soil_silty},
+    ];
+
     return ChangeNotifierProvider(
       create: (_) => CropProvider(),
       child: Consumer<CropProvider>(builder: (context, prov, _) {
@@ -67,9 +76,9 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
           child: Center(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Crop Recommendation', style: AppTextStyles.pageTitle),
+              Text(l10n.nav_crop_recommendation, style: AppTextStyles.pageTitle),
               const SizedBox(height: 4),
-              const Text('Enter environmental data to get the best crop suggestion.',
+              Text(l10n.soil_get_recommendation,
                   style: AppTextStyles.pageSubtitle),
               const SizedBox(height: 20),
 
@@ -81,7 +90,7 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
                   color:        AppColors.surface,
                   borderRadius: BorderRadius.circular(AppSizes.radiusCard),
                   border:       Border.all(color: AppColors.cardBorder),
-                  boxShadow:   [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
+                  boxShadow:   [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
@@ -90,74 +99,68 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
                             borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
                         child: const Icon(Icons.eco_outlined, color: AppColors.primary, size: 20)),
                     const SizedBox(width: 12),
-                    const Text('Environmental Parameters', style: AppTextStyles.cardTitle),
+                    Text(l10n.environmental_parameters, style: AppTextStyles.cardTitle),
                   ]),
                   const SizedBox(height: 20),
 
                   // Required fields
                   SfTextField(controller: _tempCtrl, hint: '25',
-                      label: 'Temperature (°C)', keyboardType: TextInputType.number),
+                      label: l10n.temperature_c, keyboardType: TextInputType.number),
                   const SizedBox(height: 14),
-                  SfTextField(controller: _humCtrl, hint: '65',
-                      label: 'Humidity (%)', keyboardType: TextInputType.number),
+                  SfTextField(controller: _humCtrl, hint: '60',
+                      label: l10n.humidity_p, keyboardType: TextInputType.number),
                   const SizedBox(height: 14),
-                  SfTextField(controller: _rainCtrl, hint: '120',
-                      label: 'Rainfall (mm)', keyboardType: TextInputType.number),
-                  const SizedBox(height: 14),
+                  SfTextField(controller: _rainCtrl, hint: '200',
+                      label: l10n.rainfall_mm, keyboardType: TextInputType.number),
+                  const SizedBox(height: 20),
 
-                  // Soil type dropdown
-                  const Text('Soil Type', style: AppTextStyles.label),
-                  const SizedBox(height: 6),
+                  // Optional fields
+                  Text(l10n.soil_type, style: AppTextStyles.label),
+                  const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color:        AppColors.background,
+                      color: AppColors.background,
                       borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-                      border:       Border.all(color: AppColors.cardBorder),
+                      border: Border.all(color: AppColors.cardBorder),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
-                        value:      _soilType,
+                        value: _soilType,
                         isExpanded: true,
-                        style:      const TextStyle(fontSize: 14, color: AppColors.textDark),
-                        items: _soilTypes.map((s) =>
-                            DropdownMenuItem(value: s, child: Text(s))).toList(),
-                        onChanged: (v) { if (v != null) setState(() => _soilType = v); },
+                        items: soilTypes.map((type) => DropdownMenuItem(
+                          value: type['value'],
+                          child: Text(type['label']!),
+                        )).toList(),
+                        onChanged: (v) => setState(() => _soilType = v),
                       ),
                     ),
                   ),
                   const SizedBox(height: 14),
 
-                  // Optional NPK / pH
-                  const Text('Optional Parameters', style: AppTextStyles.label),
-                  const SizedBox(height: 8),
                   Row(children: [
-                    Expanded(child: SfTextField(controller: _phCtrl, hint: '6.5', label: 'pH',
-                        keyboardType: TextInputType.number)),
+                    Expanded(child: SfTextField(controller: _phCtrl, hint: '6.5',
+                        label: l10n.soil_ph, keyboardType: TextInputType.number)),
                     const SizedBox(width: 12),
-                    Expanded(child: SfTextField(controller: _nCtrl,  hint: '20',  label: 'Nitrogen (N)',
-                        keyboardType: TextInputType.number)),
+                    Expanded(child: SfTextField(controller: _nCtrl, hint: '20',
+                        label: l10n.soil_nitrogen, keyboardType: TextInputType.number)),
                   ]),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   Row(children: [
-                    Expanded(child: SfTextField(controller: _pCtrl, hint: '30', label: 'Phosphorus (P)',
-                        keyboardType: TextInputType.number)),
+                    Expanded(child: SfTextField(controller: _pCtrl, hint: '30',
+                        label: l10n.soil_phosphorus, keyboardType: TextInputType.number)),
                     const SizedBox(width: 12),
-                    Expanded(child: SfTextField(controller: _kCtrl, hint: '25', label: 'Potassium (K)',
-                        keyboardType: TextInputType.number)),
+                    Expanded(child: SfTextField(controller: _kCtrl, hint: '25',
+                        label: l10n.soil_potassium, keyboardType: TextInputType.number)),
                   ]),
-                  const SizedBox(height: 20),
 
-                  if (_validErr != null) ...[
-                    SfErrorBanner(_validErr!), const SizedBox(height: 16),
-                  ],
-
+                  const SizedBox(height: 24),
+                  if (_validErr != null) ...[SfErrorBanner(_validErr!), const SizedBox(height: 16)],
                   SfPrimaryButton(
-                    label:     'Get Recommendation',
-                    isLoading: prov.isLoading,
-                    onPressed: () => _submit(prov),
-                  ),
+                      label: l10n.soil_get_recommendation,
+                      isLoading: prov.isLoading,
+                      onPressed: () => _submit(prov, l10n)),
                 ]),
               ),
 

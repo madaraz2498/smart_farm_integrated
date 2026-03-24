@@ -1,9 +1,9 @@
-// lib/providers/navigation_provider.dart
-// Unified navigation state for BOTH Admin and Farmer roles.
-
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 
 enum FarmerPage {
+// ... existing enums ...
   welcome,
   plantDisease,
   animalWeight,
@@ -111,6 +111,23 @@ class NavigationProvider extends ChangeNotifier {
     AdminPageMeta(page: AdminPage.settings,         label: 'Settings',           icon: 'tune_outlined'),
   ];
 
-  String get currentFarmerLabel => farmerPages[farmerIndex].label;
-  String get currentAdminLabel  => adminPages[adminIndex].label;
+  String getFarmerLabel(AppLocalizations l10n) => switch (_farmerPage) {
+    FarmerPage.welcome => l10n.welcome_user,
+    FarmerPage.plantDisease => l10n.nav_plant_disease,
+    FarmerPage.animalWeight => l10n.nav_animal_weight,
+    FarmerPage.cropRecommendation => l10n.nav_crop_recommendation,
+    FarmerPage.soilAnalysis => l10n.nav_soil_analysis,
+    FarmerPage.fruitQuality => l10n.nav_fruit_quality,
+    FarmerPage.chatbot => l10n.nav_chatbot,
+    FarmerPage.reports => l10n.nav_reports,
+    FarmerPage.settings => l10n.settings,
+  };
+
+  String getAdminLabel(AppLocalizations l10n) => switch (_adminPage) {
+    AdminPage.dashboard => l10n.nav_reports,
+    AdminPage.userManagement => 'User Management',
+    AdminPage.systemManagement => 'System Management',
+    AdminPage.systemReports => l10n.nav_reports,
+    AdminPage.settings => l10n.settings,
+  };
 }

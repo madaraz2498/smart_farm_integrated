@@ -27,7 +27,7 @@ class SfPrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? AppColors.primary,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: (color ?? AppColors.primary).withOpacity(0.6),
+          disabledBackgroundColor: (color ?? AppColors.primary).withValues(alpha: 0.6),
           padding: const EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
           elevation: 0,
@@ -67,7 +67,7 @@ class SfOutlineButton extends StatelessWidget {
           side:    BorderSide(color: c),
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape:   RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-          backgroundColor: c.withOpacity(0.05),
+          backgroundColor: c.withValues(alpha: 0.05),
         ),
         child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
       ),

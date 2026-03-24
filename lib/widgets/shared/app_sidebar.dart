@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 
 import '../../features/auth/providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
@@ -96,34 +97,65 @@ class _SidebarContent extends StatelessWidget {
     ]);
   }
 
-  List<Widget> _adminItems(BuildContext context) =>
-      List.generate(NavigationProvider.adminPages.length, (i) {
-        final meta       = NavigationProvider.adminPages[i];
-        final isSelected = nav.adminIndex == i;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: _NavTile(
-            icon: _icon(meta.icon), label: meta.label,
-            isSelected: isSelected,
-            badge: meta.isAdminOnly ? 'Admin' : null,
-            onTap: () { nav.goToAdminIndex(i); if (insideDrawer) Navigator.pop(context); },
-          ),
-        );
-      });
+  List<Widget> _adminItems(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return List.generate(NavigationProvider.adminPages.length, (i) {
+      final meta = NavigationProvider.adminPages[i];
+      final isSelected = nav.adminIndex == i;
+      final label = switch (meta.page) {
+        AdminPage.dashboard => l10n.nav_reports,
+        AdminPage.userManagement => 'User Management',
+        AdminPage.systemManagement => 'System Management',
+        AdminPage.systemReports => l10n.nav_reports,
+        AdminPage.settings => l10n.settings,
+      };
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: _NavTile(
+          icon: _icon(meta.icon),
+          label: label,
+          isSelected: isSelected,
+          badge: meta.isAdminOnly ? 'Admin' : null,
+          onTap: () {
+            nav.goToAdminIndex(i);
+            if (insideDrawer) Navigator.pop(context);
+          },
+        ),
+      );
+    });
+  }
 
-  List<Widget> _farmerItems(BuildContext context) =>
-      List.generate(NavigationProvider.farmerPages.length, (i) {
-        final meta       = NavigationProvider.farmerPages[i];
-        final isSelected = nav.farmerIndex == i;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: _NavTile(
-            icon: _icon(meta.icon), svgAsset: meta.svgAsset,
-            label: meta.label, isSelected: isSelected,
-            onTap: () { nav.goToFarmerIndex(i); if (insideDrawer) Navigator.pop(context); },
-          ),
-        );
-      });
+  List<Widget> _farmerItems(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return List.generate(NavigationProvider.farmerPages.length, (i) {
+      final meta = NavigationProvider.farmerPages[i];
+      final isSelected = nav.farmerIndex == i;
+      final label = switch (meta.page) {
+        FarmerPage.welcome => l10n.welcome_user,
+        FarmerPage.plantDisease => l10n.nav_plant_disease,
+        FarmerPage.animalWeight => l10n.nav_animal_weight,
+        FarmerPage.cropRecommendation => l10n.nav_crop_recommendation,
+        FarmerPage.soilAnalysis => l10n.nav_soil_analysis,
+        FarmerPage.fruitQuality => l10n.nav_fruit_quality,
+        FarmerPage.chatbot => l10n.nav_chatbot,
+        FarmerPage.reports => l10n.nav_reports,
+        FarmerPage.settings => l10n.settings,
+      };
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: _NavTile(
+          icon: _icon(meta.icon),
+          svgAsset: meta.svgAsset,
+          label: label,
+          isSelected: isSelected,
+          onTap: () {
+            nav.goToFarmerIndex(i);
+            if (insideDrawer) Navigator.pop(context);
+          },
+        ),
+      );
+    });
+  }
 }
 
 class _SidebarHeader extends StatelessWidget {
@@ -143,7 +175,7 @@ class _SidebarHeader extends StatelessWidget {
       child: Row(children: [
         Container(
           width: 44, height: 44,
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2),
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
           child: Icon(
             isAdmin ? Icons.admin_panel_settings_rounded : Icons.eco_rounded,
@@ -205,7 +237,7 @@ class _NavTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white.withOpacity(0.25) : AppColors.primary.withOpacity(0.1),
+                color: isSelected ? Colors.white.withValues(alpha: 0.25) : AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(badge!, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,

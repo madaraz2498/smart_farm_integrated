@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/chatbot_provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../features/auth/providers/auth_provider.dart';
@@ -19,7 +20,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Resolved here so the userId comes from AuthProvider
     final userId = context.read<AuthProvider>().currentUser?.id ?? '0';
     _prov = ChatbotProvider(userId)..loadHistory();
   }
@@ -46,16 +46,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ChangeNotifierProvider.value(
       value: _prov,
       child: Consumer<ChatbotProvider>(builder: (context, prov, _) {
         return Column(children: [
-          // Language switcher
           Container(
             color: AppColors.surface,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              const Text('Language:', style: TextStyle(fontSize: 13, color: AppColors.textSubtle)),
+              Text(l10n.chatbot_language, style: const TextStyle(fontSize: 13, color: AppColors.textSubtle)),
               const SizedBox(width: 8),
               DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -70,14 +70,12 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ]),
           ),
 
-          // Quick suggestions (shown only when chat is empty)
           if (prov.messages.isEmpty)
             _SuggestionsBar(onTap: (s) { _ctrl.text = s; _send(); }),
 
-          // Messages
           Expanded(
             child: prov.messages.isEmpty
-                ? const _EmptyState()
+                ? _EmptyState(message: l10n.chat_empty_state)
                 : ListView.builder(
                     controller: _scroll,
                     padding: const EdgeInsets.all(16),
@@ -89,8 +87,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   ),
           ),
 
-          // Input bar
-          _InputBar(ctrl: _ctrl, isSending: prov.isSending, onSend: _send),
+          _InputBar(ctrl: _ctrl, isSending: prov.isSending, onSend: _send, hint: l10n.type_message),
         ]);
       }),
     );
@@ -146,16 +143,17 @@ class _SuggestionsBar extends StatelessWidget {
 // ── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({required this.message});
+  final String message;
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Icon(Icons.chat_bubble_outline_rounded, size: 64, color: AppColors.textDisabled),
-      SizedBox(height: 12),
-      Text('Ask me anything about farming!',
-          style: TextStyle(fontSize: 15, color: AppColors.textSubtle)),
-      SizedBox(height: 4),
-      Text('Crops, diseases, irrigation, soil care...',
+    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      const Icon(Icons.chat_bubble_outline_rounded, size: 64, color: AppColors.textDisabled),
+      const SizedBox(height: 12),
+      Text(message,
+          style: const TextStyle(fontSize: 15, color: AppColors.textSubtle)),
+      const SizedBox(height: 4),
+      const Text('Crops, diseases, irrigation, soil care...',
           style: TextStyle(fontSize: 13, color: AppColors.textDisabled)),
     ]));
   }
@@ -284,10 +282,11 @@ class _Dot extends StatelessWidget {
 // ── Input bar ─────────────────────────────────────────────────────────────────
 
 class _InputBar extends StatelessWidget {
-  const _InputBar({required this.ctrl, required this.isSending, required this.onSend});
+  const _InputBar({required this.ctrl, required this.isSending, required this.onSend, required this.hint});
   final TextEditingController ctrl;
   final bool       isSending;
   final VoidCallback onSend;
+  final String hint;
 
   @override
   Widget build(BuildContext context) {
@@ -296,7 +295,7 @@ class _InputBar extends StatelessWidget {
       decoration: BoxDecoration(
         color:  AppColors.surface,
         border: const Border(top: BorderSide(color: AppColors.cardBorder)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, -2))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, -2))],
       ),
       child: Row(children: [
         Expanded(
@@ -312,11 +311,11 @@ class _InputBar extends StatelessWidget {
               textInputAction: TextInputAction.send,
               onSubmitted:     (_) => onSend(),
               style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-              decoration: const InputDecoration(
-                hintText:       'Ask about crops, diseases, irrigation...',
-                hintStyle:      TextStyle(fontSize: 13, color: AppColors.textDisabled),
+              decoration: InputDecoration(
+                hintText:       hint,
+                hintStyle:      const TextStyle(fontSize: 13, color: AppColors.textDisabled),
                 border:         InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
             ),
           ),
@@ -327,7 +326,7 @@ class _InputBar extends StatelessWidget {
           child: Container(
             width: 46, height: 46,
             decoration: BoxDecoration(
-              color:  isSending ? AppColors.primary.withOpacity(0.5) : AppColors.primary,
+              color:  isSending ? AppColors.primary.withValues(alpha: 0.5) : AppColors.primary,
               shape:  BoxShape.circle,
             ),
             child: isSending

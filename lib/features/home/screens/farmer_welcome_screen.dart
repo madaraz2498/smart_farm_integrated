@@ -1,7 +1,7 @@
-// lib/features/home/screens/farmer_welcome_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 
 import '../../auth/providers/auth_provider.dart';
 import '../../../providers/navigation_provider.dart';
@@ -10,26 +10,27 @@ import '../../../shared/theme/app_theme.dart';
 class FarmerWelcomeScreen extends StatelessWidget {
   const FarmerWelcomeScreen({super.key});
 
-  static const _features = [
-    (svg: 'assets/images/icons/plant_icon.svg',  title: 'Plant Disease Detection',   desc: 'Detect diseases early using AI image analysis.',            page: FarmerPage.plantDisease),
-    (svg: 'assets/images/icons/animal_icon.svg', title: 'Animal Weight Estimation',  desc: 'Estimate animal weight without physical scales.',            page: FarmerPage.animalWeight),
-    (svg: 'assets/images/icons/crop_icon.svg',   title: 'Crop Recommendation',       desc: 'Get crop suggestions based on soil and climate.',            page: FarmerPage.cropRecommendation),
-    (svg: 'assets/images/icons/soil_icon.svg',   title: 'Soil Type Analysis',         desc: 'Analyze soil fertility using your data.',                   page: FarmerPage.soilAnalysis),
-    (svg: 'assets/images/icons/fruit_icon.svg',  title: 'Fruit Quality Analysis',    desc: 'Classify fruit quality and detect defects.',                 page: FarmerPage.fruitQuality),
-    (svg: 'assets/images/icons/chat_icon.svg',   title: 'Smart Farm Chatbot',        desc: 'Ask questions and get instant farming advice.',              page: FarmerPage.chatbot),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final name = context.watch<AuthProvider>().displayName;
     final nav  = context.read<NavigationProvider>();
+
+    final features = [
+      (svg: 'assets/images/icons/plant_icon.svg',  title: l10n.nav_plant_disease,   desc: l10n.plant_disease_card_desc,            page: FarmerPage.plantDisease),
+      (svg: 'assets/images/icons/animal_icon.svg', title: l10n.nav_animal_weight,  desc: l10n.animal_weight_card_desc,            page: FarmerPage.animalWeight),
+      (svg: 'assets/images/icons/crop_icon.svg',   title: l10n.nav_crop_recommendation,       desc: l10n.crop_recommendation_card_desc,            page: FarmerPage.cropRecommendation),
+      (svg: 'assets/images/icons/soil_icon.svg',   title: l10n.nav_soil_analysis,         desc: l10n.soil_analysis_card_desc,                   page: FarmerPage.soilAnalysis),
+      (svg: 'assets/images/icons/fruit_icon.svg',  title: l10n.nav_fruit_quality,    desc: l10n.fruit_quality_card_desc,                 page: FarmerPage.fruitQuality),
+      (svg: 'assets/images/icons/chat_icon.svg',   title: l10n.nav_chatbot,        desc: l10n.chatbot_card_desc,              page: FarmerPage.chatbot),
+    ];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSizes.pagePadding),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Welcome, $name 👋', style: AppTextStyles.pageTitle),
+        Text('${l10n.welcome_user}, $name 👋', style: AppTextStyles.pageTitle),
         const SizedBox(height: 6),
-        const Text('Use AI to improve your farming decisions', style: AppTextStyles.pageSubtitle),
+        Text(l10n.app_name, style: AppTextStyles.pageSubtitle),
         const SizedBox(height: AppSizes.pagePadding),
 
         LayoutBuilder(builder: (_, constraints) {
@@ -38,17 +39,23 @@ class FarmerWelcomeScreen extends StatelessWidget {
           final w    = (constraints.maxWidth - gap * (cols - 1)) / cols;
 
           if (cols == 1) {
-            return Column(children: _features.map((f) => Padding(
+            return Column(children: features.map((f) => Padding(
               padding: const EdgeInsets.only(bottom: gap),
-              child: _FeatureCard(svg: f.svg, title: f.title, desc: f.desc,
-                  onTap: () => nav.goToFarmerPage(f.page)),
+              child: AspectRatio(
+                aspectRatio: 1.9, // تم تقليل النسبة قليلاً لزيادة الارتفاع ومنع التداخل
+                child: _FeatureCard(svg: f.svg, title: f.title, desc: f.desc,
+                    fixedHeight: true, onTap: () => nav.goToFarmerPage(f.page)),
+              ),
             )).toList());
           }
 
           return Wrap(spacing: gap, runSpacing: gap,
-            children: _features.map((f) => SizedBox(width: w, height: 192,
-              child: _FeatureCard(svg: f.svg, title: f.title, desc: f.desc,
-                  fixedHeight: true, onTap: () => nav.goToFarmerPage(f.page)),
+            children: features.map((f) => SizedBox(width: w,
+              child: AspectRatio(
+                aspectRatio: 1.6,
+                child: _FeatureCard(svg: f.svg, title: f.title, desc: f.desc,
+                    fixedHeight: true, onTap: () => nav.goToFarmerPage(f.page)),
+              ),
             )).toList());
         }),
       ]),
@@ -68,10 +75,11 @@ class _FeatureCard extends StatelessWidget {
     return InkWell(
       onTap: onTap, borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
       child: Container(
+        width: double.infinity,
         decoration: BoxDecoration(
           color: AppColors.surface, borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
           border: Border.all(color: AppColors.cardBorder),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         padding: const EdgeInsets.all(AppSizes.cardPadding),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,9 +91,11 @@ class _FeatureCard extends StatelessWidget {
           const SizedBox(height: AppSizes.itemPadding),
           Text(title, style: AppTextStyles.cardTitle),
           const SizedBox(height: 6),
-          Text(desc, style: AppTextStyles.pageSubtitle.copyWith(fontSize: 13),
-              maxLines: fixedHeight ? 2 : null,
-              overflow: fixedHeight ? TextOverflow.ellipsis : null),
+          Expanded(
+            child: Text(desc, style: AppTextStyles.pageSubtitle.copyWith(fontSize: 13),
+                maxLines: fixedHeight ? 2 : null,
+                overflow: fixedHeight ? TextOverflow.ellipsis : null),
+          ),
         ]),
       ),
     );

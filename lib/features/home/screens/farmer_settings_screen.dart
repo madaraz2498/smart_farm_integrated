@@ -1,9 +1,11 @@
 // lib/features/home/screens/farmer_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 
 import '../../auth/providers/auth_provider.dart';
 import '../../../providers/navigation_provider.dart';
+import '../../../providers/locale_provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/sf_button.dart';
 import '../../../shared/widgets/sf_text_field.dart';
@@ -19,9 +21,6 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
   late final TextEditingController _emailCtrl;
   bool   _pushNotif   = true;
   bool   _emailAlerts = true;
-  String _language    = 'English';
-
-  static const _langs = ['English', 'Arabic'];
 
   @override
   void initState() {
@@ -34,21 +33,21 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
   @override
   void dispose() { _nameCtrl.dispose(); _emailCtrl.dispose(); super.dispose(); }
 
-  void _saveProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Profile saved.'), backgroundColor: AppColors.primary));
+  void _saveProfile(AppLocalizations l10n) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(l10n.profile_saved), backgroundColor: AppColors.primary));
   }
 
-  void _confirmLogout() {
+  void _confirmLogout(AppLocalizations l10n) {
     showDialog(context: context, builder: (_) => AlertDialog(
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('Sign Out', style: AppTextStyles.cardTitle),
-      content: const Text('Are you sure you want to sign out?',
-          style: TextStyle(fontSize: 14, color: AppColors.textSubtle, height: 1.5)),
+      title: Text(l10n.logout, style: AppTextStyles.cardTitle),
+      content: Text(l10n.confirm_logout_message,
+          style: const TextStyle(fontSize: 14, color: AppColors.textSubtle, height: 1.5)),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSubtle))),
+            child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textSubtle))),
         ElevatedButton(
           onPressed: () {
             Navigator.pop(context);
@@ -57,7 +56,7 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
           },
           style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error, foregroundColor: Colors.white),
-          child: const Text('Sign Out'),
+          child: Text(l10n.logout),
         ),
       ],
     ));
@@ -65,30 +64,33 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final localeProvider = Provider.of<LocaleProvider>(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       child: Center(child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Settings', style: AppTextStyles.pageTitle),
+          Text(l10n.settings, style: AppTextStyles.pageTitle),
           const SizedBox(height: 4),
-          const Text('Manage your account and preferences', style: AppTextStyles.pageSubtitle),
+          Text(l10n.manage_account_preferences, style: AppTextStyles.pageSubtitle),
           const SizedBox(height: 20),
 
           _SectionCard(children: [
-            const _SectionHeader(icon: Icons.person_outline_rounded, title: 'Profile'),
+            _SectionHeader(icon: Icons.person_outline_rounded, title: l10n.profile),
             const SizedBox(height: 16),
-            SfTextField(controller: _nameCtrl, hint: 'Full Name', label: 'Full Name'),
+            SfTextField(controller: _nameCtrl, hint: l10n.full_name, label: l10n.full_name),
             const SizedBox(height: 14),
-            SfTextField(controller: _emailCtrl, hint: 'Email', label: 'Email',
+            SfTextField(controller: _emailCtrl, hint: l10n.email, label: l10n.email,
                 keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 20),
-            SfPrimaryButton(label: 'Save Profile', onPressed: _saveProfile),
+            SfPrimaryButton(label: l10n.save_profile, onPressed: () => _saveProfile(l10n)),
           ]),
           const SizedBox(height: 16),
 
           _SectionCard(children: [
-            const _SectionHeader(icon: Icons.language_rounded, title: 'Language'),
+            _SectionHeader(icon: Icons.language_rounded, title: l10n.language),
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
@@ -97,27 +99,34 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
                   borderRadius: BorderRadius.circular(AppSizes.radiusMid),
                   border: Border.all(color: AppColors.cardBorder)),
               child: DropdownButtonHideUnderline(child: DropdownButton<String>(
-                value: _language, isExpanded: true,
+                value: localeProvider.locale.languageCode, isExpanded: true,
                 style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-                items: _langs.map((l) => DropdownMenuItem(value: l, child: Text(l))).toList(),
-                onChanged: (v) { if (v != null) setState(() => _language = v); },
+                items: const [
+                  DropdownMenuItem(value: 'en', child: Text('English')),
+                  DropdownMenuItem(value: 'ar', child: Text('Arabic (العربية)')),
+                ],
+                onChanged: (v) {
+                  if (v != null) {
+                    localeProvider.setLocale(Locale(v));
+                  }
+                },
               )),
             ),
           ]),
           const SizedBox(height: 16),
 
           _SectionCard(children: [
-            const _SectionHeader(icon: Icons.notifications_outlined, title: 'Notifications'),
+            _SectionHeader(icon: Icons.notifications_outlined, title: l10n.notifications),
             const SizedBox(height: 8),
-            _ToggleRow(label: 'Push Notifications', value: _pushNotif,
+            _ToggleRow(label: l10n.push_notifications, value: _pushNotif,
                 onChanged: (v) => setState(() => _pushNotif = v)),
             const Divider(height: 1, color: AppColors.cardBorder),
-            _ToggleRow(label: 'Email Alerts', value: _emailAlerts,
+            _ToggleRow(label: l10n.email_alerts, value: _emailAlerts,
                 onChanged: (v) => setState(() => _emailAlerts = v)),
           ]),
           const SizedBox(height: 24),
 
-          SfOutlineButton(label: 'Sign Out', onPressed: _confirmLogout, color: AppColors.error),
+          SfOutlineButton(label: l10n.logout, onPressed: () => _confirmLogout(l10n), color: AppColors.error),
         ]),
       )),
     );
@@ -133,7 +142,7 @@ class _SectionCard extends StatelessWidget {
     decoration: BoxDecoration(color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSizes.radiusCard),
         border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)]),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)]),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
   );
 }

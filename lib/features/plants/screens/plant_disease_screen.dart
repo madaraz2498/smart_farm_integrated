@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/plant_provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/sf_image_picker_card.dart';
@@ -22,6 +23,7 @@ class _PlantDiseaseScreenState extends State<PlantDiseaseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ChangeNotifierProvider(
       create: (_) => PlantProvider(),
       child: Consumer<PlantProvider>(builder: (context, prov, _) {
@@ -30,38 +32,32 @@ class _PlantDiseaseScreenState extends State<PlantDiseaseScreen> {
           child: Center(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Plant Disease Detection', style: AppTextStyles.pageTitle),
+              Text(l10n.nav_plant_disease, style: AppTextStyles.pageTitle),
               const SizedBox(height: 4),
-              const Text('Upload a leaf image for AI-powered disease diagnosis.',
-                  style: AppTextStyles.pageSubtitle),
+              Text(l10n.plant_disease_desc, style: AppTextStyles.pageSubtitle),
               const SizedBox(height: 20),
               SfImagePickerCard(
-                title: 'Plant Image',
-                icon:  Icons.eco_outlined,
-                analyzeLabel: 'Analyze Plant',
-                isLoading:    prov.isLoading,
-                pickedImage:  _picked,
-                onPickImage:  _pick,
+                title: l10n.plant_image,
+                icon: Icons.eco_outlined,
+                analyzeLabel: l10n.analyze_plant,
+                isLoading: prov.isLoading,
+                pickedImage: _picked,
+                onPickImage: _pick,
                 onAnalyze: () {
                   if (_picked != null) prov.analyze(_picked!);
                 },
               ),
               if (prov.status == ScanStatus.result && prov.result != null) ...[
                 const SizedBox(height: 20),
-                SfResultCard(title: 'Analysis Result', children: [
+                SfResultCard(title: l10n.analysis_result, children: [
                   SfInfoRow(
-                    label: 'Prediction',
+                    label: l10n.prediction,
                     value: prov.result!.prediction,
                     valueColor: prov.result!.isHealthy ? AppColors.primary : AppColors.error,
                   ),
-                  if (prov.result!.description != null)
-                    SfInfoRow(label: 'Description', value: prov.result!.description!),
-                  if (prov.result!.treatment != null)
-                    SfInfoRow(label: 'Treatment', value: prov.result!.treatment!),
-                  SfConfidenceBar(
-                    confidence: prov.result!.confidence,
-                    color: prov.result!.isHealthy ? AppColors.primary : AppColors.error,
-                  ),
+                  SfInfoRow(label: l10n.description, value: prov.result!.description ?? ''),
+                  SfInfoRow(label: l10n.treatment, value: prov.result!.treatment ?? ''),
+                  SfConfidenceBar(confidence: prov.result!.confidence),
                 ]),
               ],
               if (prov.status == ScanStatus.error && prov.error != null) ...[
