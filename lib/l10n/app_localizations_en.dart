@@ -88,6 +88,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile_saved => 'Profile saved.';
 
   @override
+  String get profile_settings => 'Profile Settings';
+
+  @override
+  String get phone_number => 'Phone Number';
+
+  @override
+  String get theme_preference => 'Theme Preference';
+
+  @override
+  String get light_mode => 'Light Mode';
+
+  @override
+  String get dark_mode => 'Dark Mode';
+
+  @override
   String get join_today => 'Join Smart Farm AI today';
 
   @override
@@ -269,6 +284,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chat_empty_state => 'Ask me anything about farming!';
+
+  @override
+  String get chat_empty_subtitle => 'Crops, diseases, irrigation, soil care...';
+
+  @override
+  String get chat_suggestions_title => 'Quick questions:';
+
+  @override
+  String get chat_suggest_1 => 'How to treat leaf blight?';
+
+  @override
+  String get chat_suggest_2 => 'Best irrigation for wheat';
+
+  @override
+  String get chat_suggest_3 => 'Soil fertilizer recommendations';
+
+  @override
+  String get chat_suggest_4 => 'Common tomato pests';
 
   @override
   String get disease_detection => 'Disease Detection';

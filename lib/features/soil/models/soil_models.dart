@@ -2,6 +2,7 @@
 class SoilAnalysisRequest {
   const SoilAnalysisRequest({
     required this.ph,
+    this.userId,
     this.moisture,
     this.nitrogen,
     this.phosphorus,
@@ -9,15 +10,26 @@ class SoilAnalysisRequest {
   });
 
   final double ph;
+  final String? userId;
   final double? moisture, nitrogen, phosphorus, potassium;
 
-  /// form-encoded — used with ApiClient.postForm()
-  Map<String, String> toForm() => {
-        'ph': ph.toString(),
-        if (moisture   != null) 'moisture': moisture!.toString(),
-        if (nitrogen   != null) 'N':        nitrogen!.toString(),
-        if (phosphorus != null) 'P':        phosphorus!.toString(),
-        if (potassium  != null) 'K':        potassium!.toString(),
+  SoilAnalysisRequest copyWith({String? userId}) => SoilAnalysisRequest(
+    ph: ph,
+    userId: userId ?? this.userId,
+    moisture: moisture,
+    nitrogen: nitrogen,
+    phosphorus: phosphorus,
+    potassium: potassium,
+  );
+
+  /// JSON-ready — used with ApiClient.post()
+  Map<String, dynamic> toJson() => {
+        'ph': ph,
+        if (userId     != null) 'user_id':  int.tryParse(userId!) ?? userId!,
+        if (moisture   != null) 'moisture': moisture,
+        if (nitrogen   != null) 'N':        nitrogen,
+        if (phosphorus != null) 'P':        phosphorus,
+        if (potassium  != null) 'K':        potassium,
       };
 }
 

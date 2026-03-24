@@ -11,7 +11,8 @@ class ChatMessage {
     required this.text,
     required this.isUser,
     this.isError = false,
-  }) : timestamp = DateTime.now();
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 
   final String   text;
   final bool     isUser, isError;
@@ -19,55 +20,64 @@ class ChatMessage {
 }
 
 class ChatbotProvider extends ChangeNotifier {
-  ChatbotProvider(this.userId);
+  ChatbotProvider(this._userId);
 
-  final String          userId;
+  String _userId;
+  String get userId => _userId;
+
+  void updateUserId(String id) {
+    if (_userId != id) {
+      _userId = id;
+      _messages.clear(); // Clear chat when user changes
+      notifyListeners();
+    }
+  }
+
   final ChatbotService  _svc       = ChatbotService.instance;
   final List<ChatMessage> _messages = [];
 
   ChatStatus _status   = ChatStatus.idle;
   String?    _error;
-  String     _language = 'English';
+  String     _chatLanguage = 'English';
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   ChatStatus        get status   => _status;
   String?           get error    => _error;
-  String            get language => _language;
+  String            get chatLanguage => _chatLanguage;
   bool get isSending => _status == ChatStatus.sending;
 
   static const _supportedLanguages = ['English', 'Arabic'];
   List<String> get supportedLanguages => _supportedLanguages;
 
-  void setLanguage(String lang) { _language = lang; notifyListeners(); }
+  void setLanguage(String lang) { _chatLanguage = lang; notifyListeners(); }
 
-  Future<void> send(String question) async {
-    if (question.trim().isEmpty) return;
+  Future<void> send(String text) async {
+    if (text.isEmpty || isSending) return;
 
-    _messages.add(ChatMessage(text: question.trim(), isUser: true));
+    final userMsg = ChatMessage(text: text, isUser: true);
+    _messages.add(userMsg);
     _status = ChatStatus.sending;
-    _error  = null;
+    _error = null;
     notifyListeners();
 
     try {
-      final resp = await _svc.ask(ChatRequest(
+      final response = await _svc.askBot(
         userId:   userId,
-        question: question.trim(),
-        language: _language,
-      ));
-      _messages.add(ChatMessage(text: resp.response, isUser: false));
+        question: text,
+        language: _chatLanguage,
+      );
+      _messages.add(ChatMessage(text: response.response, isUser: false));
       _status = ChatStatus.idle;
-    } on ApiException catch (e) {
-      _error = e.message;
-      _messages.add(ChatMessage(
-          text: 'Error: ${e.message}', isUser: false, isError: true));
+    } catch (e) {
       _status = ChatStatus.error;
-    } catch (_) {
-      _error = 'Failed to get a response.';
       _messages.add(ChatMessage(
-          text: _error!, isUser: false, isError: true));
-      _status = ChatStatus.error;
+        text: 'Error: ${e.toString()}',
+        isUser: false,
+        isError: true,
+      ));
+    } finally {
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<void> loadHistory() async {
@@ -75,11 +85,23 @@ class ChatbotProvider extends ChangeNotifier {
     try {
       final history = await _svc.getHistory(userId);
       for (final item in history) {
-        _messages.add(ChatMessage(text: item.question, isUser: true));
-        _messages.add(ChatMessage(text: item.response, isUser: false));
+        _messages.add(ChatMessage(
+          text: item.message,
+          isUser: item.isUser,
+          timestamp: _parseTime(item.time),
+        ));
       }
       notifyListeners();
     } catch (_) { /* non-critical */ }
+  }
+
+  DateTime? _parseTime(String? timeStr) {
+    if (timeStr == null || !timeStr.contains(':')) return null;
+    try {
+      final parts = timeStr.split(':');
+      final now = DateTime.now();
+      return DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]));
+    } catch (_) { return null; }
   }
 
   void clearChat() { _messages.clear(); _error = null; notifyListeners(); }

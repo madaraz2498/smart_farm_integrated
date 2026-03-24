@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/chatbot_provider.dart';
 import '../../../shared/theme/app_theme.dart';
-import '../../../features/auth/providers/auth_provider.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -15,23 +14,23 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final _ctrl   = TextEditingController();
   final _scroll = ScrollController();
 
-  late ChatbotProvider _prov;
-
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final userId = context.read<AuthProvider>().currentUser?.id ?? '0';
-    _prov = ChatbotProvider(userId)..loadHistory();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatbotProvider>().loadHistory();
+    });
   }
 
   @override
-  void dispose() { _ctrl.dispose(); _scroll.dispose(); _prov.dispose(); super.dispose(); }
+  void dispose() { _ctrl.dispose(); _scroll.dispose(); super.dispose(); }
 
   Future<void> _send() async {
+    final prov = context.read<ChatbotProvider>();
     final text = _ctrl.text.trim();
-    if (text.isEmpty || _prov.isSending) return;
+    if (text.isEmpty || prov.isSending) return;
     _ctrl.clear();
-    await _prov.send(text);
+    await prov.send(text);
     _scrollToBottom();
   }
 
@@ -47,10 +46,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return ChangeNotifierProvider.value(
-      value: _prov,
-      child: Consumer<ChatbotProvider>(builder: (context, prov, _) {
-        return Column(children: [
+    return Consumer<ChatbotProvider>(builder: (context, prov, _) {
+      return Column(children: [
           Container(
             color: AppColors.surface,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -59,7 +56,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               const SizedBox(width: 8),
               DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  value: prov.language,
+                  value: prov.chatLanguage,
                   isDense: true,
                   style: const TextStyle(fontSize: 13, color: AppColors.textDark),
                   items: prov.supportedLanguages.map((l) =>
@@ -71,64 +68,78 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           ),
 
           if (prov.messages.isEmpty)
-            _SuggestionsBar(onTap: (s) { _ctrl.text = s; _send(); }),
+            _SuggestionsBar(onTap: (s) { _ctrl.text = s; _send(); }, chatLanguage: prov.chatLanguage),
 
           Expanded(
             child: prov.messages.isEmpty
-                ? _EmptyState(message: l10n.chat_empty_state)
+                ? _EmptyState(chatLanguage: prov.chatLanguage)
                 : ListView.builder(
                     controller: _scroll,
                     padding: const EdgeInsets.all(16),
                     itemCount: prov.messages.length + (prov.isSending ? 1 : 0),
                     itemBuilder: (_, i) {
-                      if (i == prov.messages.length) return const _TypingIndicator();
+                      if (i == prov.messages.length) return _TypingIndicator(chatLanguage: prov.chatLanguage);
                       return _Bubble(msg: prov.messages[i]);
                     },
                   ),
           ),
 
-          _InputBar(ctrl: _ctrl, isSending: prov.isSending, onSend: _send, hint: l10n.type_message),
+          _InputBar(ctrl: _ctrl, isSending: prov.isSending, onSend: _send, 
+              hint: prov.chatLanguage == 'Arabic' ? 'اكتب رسالة...' : 'Type a message...'),
         ]);
-      }),
-    );
+      }
+      );
   }
 }
 
 // ── Quick suggestions ─────────────────────────────────────────────────────────
 
 class _SuggestionsBar extends StatelessWidget {
-  const _SuggestionsBar({required this.onTap});
+  const _SuggestionsBar({super.key, required this.onTap, required this.chatLanguage});
   final ValueChanged<String> onTap;
-  static const _s = [
-    'How to treat leaf blight?',
-    'Best irrigation for wheat',
-    'Soil fertilizer recommendations',
-    'Common tomato pests',
-  ];
+  final String chatLanguage;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Use the selected chat language for suggestions, fallback to app locale if they match
+    final isArabic = chatLanguage == 'Arabic';
+    final suggestions = isArabic
+        ? [
+            'كيف تعالج لفحة الأوراق؟',
+            'أفضل ري للقمح',
+            'توصيات أسمدة التربة',
+            'آفات الطماطم الشائعة',
+          ]
+        : [
+            'How to treat leaf blight?',
+            'Best irrigation for wheat',
+            'Soil fertilizer recommendations',
+            'Common tomato pests',
+          ];
+
     return Container(
       color: AppColors.surface,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Quick questions:', style: AppTextStyles.caption),
+        Text(isArabic ? 'أسئلة سريعة:' : 'Quick questions:', style: AppTextStyles.caption),
         const SizedBox(height: 8),
         SizedBox(height: 34,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: _s.length,
+            itemCount: suggestions.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (_, i) => GestureDetector(
-              onTap: () => onTap(_s[i]),
+              onTap: () => onTap(suggestions[i]),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color:        AppColors.primarySurface,
                   borderRadius: BorderRadius.circular(50),
-                  border:       Border.all(color: AppColors.primary.withOpacity(0.3)),
+                  border:       Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                 ),
-                child: Text(_s[i],
+                child: Text(suggestions[i],
                     style: const TextStyle(fontSize: 12, color: AppColors.primary,
                         fontWeight: FontWeight.w500)),
               ),
@@ -143,18 +154,20 @@ class _SuggestionsBar extends StatelessWidget {
 // ── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.message});
-  final String message;
+  const _EmptyState({super.key, required this.chatLanguage});
+  final String chatLanguage;
+
   @override
   Widget build(BuildContext context) {
+    final isArabic = chatLanguage == 'Arabic';
     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       const Icon(Icons.chat_bubble_outline_rounded, size: 64, color: AppColors.textDisabled),
       const SizedBox(height: 12),
-      Text(message,
+      Text(isArabic ? 'اسألني أي شيء عن الزراعة!' : 'Ask me anything about farming!',
           style: const TextStyle(fontSize: 15, color: AppColors.textSubtle)),
       const SizedBox(height: 4),
-      const Text('Crops, diseases, irrigation, soil care...',
-          style: TextStyle(fontSize: 13, color: AppColors.textDisabled)),
+      Text(isArabic ? 'المحاصيل، الأمراض، الري، العناية بالتربة...' : 'Crops, diseases, irrigation, soil care...',
+          style: const TextStyle(fontSize: 13, color: AppColors.textDisabled)),
     ]));
   }
 }
@@ -162,7 +175,7 @@ class _EmptyState extends StatelessWidget {
 // ── Chat bubble ───────────────────────────────────────────────────────────────
 
 class _Bubble extends StatelessWidget {
-  const _Bubble({required this.msg});
+  const _Bubble({super.key, required this.msg});
   final ChatMessage msg;
 
   @override
@@ -189,7 +202,7 @@ class _Bubble extends StatelessWidget {
                   bottomRight: Radius.circular(msg.isUser ? 4 : AppSizes.radiusLarge),
                 ),
                 border: msg.isUser ? null : Border.all(color: AppColors.cardBorder),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4)],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4)],
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(msg.text,
@@ -203,7 +216,7 @@ class _Bubble extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(ts, style: TextStyle(
                   fontSize: 10,
-                  color: msg.isUser ? Colors.white.withOpacity(0.65) : AppColors.textSubtle,
+                  color: msg.isUser ? Colors.white.withValues(alpha: 0.65) : AppColors.textSubtle,
                 )),
               ]),
             ),
@@ -217,7 +230,7 @@ class _Bubble extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.isUser});
+  const _Avatar({super.key, required this.isUser});
   final bool isUser;
 
   @override
@@ -239,7 +252,9 @@ class _Avatar extends StatelessWidget {
 // ── Typing indicator ──────────────────────────────────────────────────────────
 
 class _TypingIndicator extends StatelessWidget {
-  const _TypingIndicator();
+  const _TypingIndicator({super.key, required this.chatLanguage});
+  final String chatLanguage;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -259,8 +274,11 @@ class _TypingIndicator extends StatelessWidget {
             ),
             border: Border.all(color: AppColors.cardBorder),
           ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: const [
-            _Dot(), SizedBox(width: 4), _Dot(), SizedBox(width: 4), _Dot(),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text(chatLanguage == 'Arabic' ? 'الروبوت يكتب' : 'Bot is typing', 
+                style: const TextStyle(fontSize: 12, color: AppColors.textSubtle)),
+            const SizedBox(width: 8),
+            const _Dot(), const SizedBox(width: 4), const _Dot(), const SizedBox(width: 4), const _Dot(),
           ]),
         ),
       ]),
@@ -269,7 +287,7 @@ class _TypingIndicator extends StatelessWidget {
 }
 
 class _Dot extends StatelessWidget {
-  const _Dot();
+  const _Dot({super.key});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -282,7 +300,7 @@ class _Dot extends StatelessWidget {
 // ── Input bar ─────────────────────────────────────────────────────────────────
 
 class _InputBar extends StatelessWidget {
-  const _InputBar({required this.ctrl, required this.isSending, required this.onSend, required this.hint});
+  const _InputBar({super.key, required this.ctrl, required this.isSending, required this.onSend, required this.hint});
   final TextEditingController ctrl;
   final bool       isSending;
   final VoidCallback onSend;
@@ -301,41 +319,53 @@ class _InputBar extends StatelessWidget {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              color:        AppColors.background,
-              borderRadius: BorderRadius.circular(50),
-              border:       Border.all(color: AppColors.cardBorder),
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+              border: Border.all(color: AppColors.cardBorder),
             ),
             child: TextField(
-              controller:      ctrl,
-              minLines: 1, maxLines: 4,
-              textInputAction: TextInputAction.send,
-              onSubmitted:     (_) => onSend(),
-              style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+              controller: ctrl,
+              style: const TextStyle(fontSize: 14),
               decoration: InputDecoration(
-                hintText:       hint,
-                hintStyle:      const TextStyle(fontSize: 13, color: AppColors.textDisabled),
-                border:         InputBorder.none,
+                hintText: hint,
+                hintStyle: const TextStyle(color: AppColors.textDisabled, fontSize: 13),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: InputBorder.none,
               ),
+              onSubmitted: (_) => onSend(),
             ),
           ),
         ),
         const SizedBox(width: 8),
-        GestureDetector(
-          onTap: isSending ? null : onSend,
-          child: Container(
-            width: 46, height: 46,
-            decoration: BoxDecoration(
-              color:  isSending ? AppColors.primary.withValues(alpha: 0.5) : AppColors.primary,
-              shape:  BoxShape.circle,
-            ),
-            child: isSending
-                ? const Padding(padding: EdgeInsets.all(13),
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-          ),
-        ),
+        _SendButton(onPressed: onSend, isLoading: isSending),
       ]),
+    );
+  }
+}
+
+class _SendButton extends StatelessWidget {
+  const _SendButton({super.key, required this.onPressed, required this.isLoading});
+  final VoidCallback onPressed;
+  final bool         isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: isLoading ? null : onPressed,
+      borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+      child: Container(
+        width: 44, height: 44,
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+        ),
+        child: Center(
+          child: isLoading
+              ? const SizedBox(width: 18, height: 18, 
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+        ),
+      ),
     );
   }
 }

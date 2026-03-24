@@ -4,57 +4,61 @@ import '../models/report_models.dart';
 import '../services/reports_service.dart';
 
 class ReportsProvider extends ChangeNotifier {
-  ReportsProvider(this.userId);
+  ReportsProvider(this._userId);
 
-  final String         userId;
+  String _userId;
+  String get userId => _userId;
+
+  void updateUserId(String id) {
+    if (_userId != id) {
+      _userId = id;
+      _stats = null;
+      _reports = [];
+      notifyListeners();
+    }
+  }
+
   final ReportsService _svc = ReportsService.instance;
 
-  FarmerReportStats?     _stats;
-  List<FarmerReportItem> _reports    = [];
-  bool                   _loading    = false;
-  bool                   _generating = false;
-  String?                _error;
+  FarmerReportStats?  _stats;
+  List<FarmerReportItem> _reports   = [];
+  bool         _isLoading = false;
+  String?      _error;
 
-  FarmerReportStats?     get stats        => _stats;
-  List<FarmerReportItem> get reports      => List.unmodifiable(_reports);
-  bool                   get isLoading    => _loading;
-  bool                   get isGenerating => _generating;
-  String?                get error        => _error;
-
-  // ── Load stats + list ─────────────────────────────────────────────────────
+  FarmerReportStats?  get stats     => _stats;
+  List<FarmerReportItem> get reports   => _reports;
+  bool         get isLoading => _isLoading;
+  bool         get isGenerating => _isLoading && _reports.isNotEmpty; 
+  String?      get error     => _error;
 
   Future<void> load() async {
-    _loading = true; _error = null; notifyListeners();
+    _isLoading = true; _error = null;
+    notifyListeners();
     try {
       final results = await Future.wait([
         _svc.getStats(userId),
         _svc.listReports(userId),
       ]);
-      _stats   = results[0] as FarmerReportStats;
-      _reports = results[1] as List<FarmerReportItem>;
-    } on ApiException catch (e) {
-      _error = e.message;
-    } catch (_) {
-      _error = 'Failed to load reports.';
+      _stats = results[0] as FarmerReportStats?;
+      _reports = (results[1] as List).cast<FarmerReportItem>();
+    } catch (e) {
+      _error = e.toString();
     } finally {
-      _loading = false; notifyListeners();
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  // ── Generate report ───────────────────────────────────────────────────────
-
   Future<bool> generate() async {
-    _generating = true; _error = null; notifyListeners();
+    _isLoading = true; notifyListeners();
     try {
       await _svc.generate(userId);
-      await load(); // refresh list after generation
+      await load();
       return true;
-    } on ApiException catch (e) {
-      _error = e.message; return false;
-    } catch (_) {
-      _error = 'Failed to generate report.'; return false;
-    } finally {
-      _generating = false; notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
     }
   }
 

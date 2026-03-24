@@ -14,14 +14,16 @@ class AnimalService {
   Future<AnimalWeightResponse> estimateWeight({
     required List<int> imageBytes,
     required String    fileName,
+    required String    userId,
   }) async {
-    debugPrint('[AnimalService] POST /animals/estimate-weight  file=$fileName  size=${imageBytes.length}b');
+    debugPrint('[AnimalService] POST /animals/estimate-weight  file=$fileName  userId=$userId');
     try {
       final data = await _c.postMultipart(
         '/animals/estimate-weight',
-        fileField: 'file',
+        fileField: 'image',
         fileBytes: imageBytes,
         fileName:  fileName,
+        fields:    {'user_id': userId},
       );
       debugPrint('[AnimalService] response: $data');
       return AnimalWeightResponse.fromJson(data as Map<String, dynamic>);

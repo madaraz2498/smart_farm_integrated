@@ -68,10 +68,8 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
       {'value': 'Silty', 'label': l10n.soil_silty},
     ];
 
-    return ChangeNotifierProvider(
-      create: (_) => CropProvider(),
-      child: Consumer<CropProvider>(builder: (context, prov, _) {
-        return SingleChildScrollView(
+    return Consumer<CropProvider>(builder: (context, prov, _) {
+      return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           child: Center(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -207,7 +205,8 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
             ]),
           )),
         );
-      }),
-    );
+      }
+      );
+
   }
 }

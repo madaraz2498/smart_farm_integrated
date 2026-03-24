@@ -11,9 +11,9 @@ class CropService {
 
   Future<CropRecommendationResponse> recommend(CropRecommendationRequest req) async {
     debugPrint('[CropService] POST /crops/recommend-crop');
-    debugPrint('[CropService] form: ${req.toForm()}');
+    debugPrint('[CropService] body: ${req.toJson()}');
     try {
-      final data = await _c.postForm('/crops/recommend-crop', req.toForm());
+      final data = await _c.post('/crops/recommend-crop', body: req.toJson());
       debugPrint('[CropService] response: $data');
       return CropRecommendationResponse.fromJson(data as Map<String, dynamic>);
     } on ApiException { rethrow; }

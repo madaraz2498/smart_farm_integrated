@@ -19,6 +19,8 @@ class FarmerSettingsScreen extends StatefulWidget {
 class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _emailCtrl;
+  late final TextEditingController _phoneCtrl;
+  String _themeMode = 'light';
   bool   _pushNotif   = true;
   bool   _emailAlerts = true;
 
@@ -26,12 +28,18 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
   void initState() {
     super.initState();
     final user = context.read<AuthProvider>().currentUser;
-    _nameCtrl  = TextEditingController(text: user?.name  ?? '');
-    _emailCtrl = TextEditingController(text: user?.email ?? '');
+    _nameCtrl  = TextEditingController(text: user?.name  ?? 'Farm Owner');
+    _emailCtrl = TextEditingController(text: user?.email ?? 'owner@smartfarm.com');
+    _phoneCtrl = TextEditingController(text: '+1234567890');
   }
 
   @override
-  void dispose() { _nameCtrl.dispose(); _emailCtrl.dispose(); super.dispose(); }
+  void dispose() { 
+    _nameCtrl.dispose(); 
+    _emailCtrl.dispose(); 
+    _phoneCtrl.dispose();
+    super.dispose(); 
+  }
 
   void _saveProfile(AppLocalizations l10n) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -72,22 +80,48 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
       child: Center(child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l10n.settings, style: AppTextStyles.pageTitle),
+          Row(children: [
+            const Icon(Icons.settings_outlined, color: AppColors.primary, size: 24),
+            const SizedBox(width: 12),
+            Text(l10n.settings, style: AppTextStyles.pageTitle),
+          ]),
           const SizedBox(height: 4),
           Text(l10n.manage_account_preferences, style: AppTextStyles.pageSubtitle),
+          const SizedBox(height: 24),
+
+          _SectionCard(children: [
+            _SectionHeader(icon: Icons.person_outline_rounded, title: l10n.profile_settings),
+            const SizedBox(height: 20),
+            SfTextField(controller: _nameCtrl, hint: l10n.full_name, label: l10n.full_name),
+            const SizedBox(height: 16),
+            SfTextField(controller: _emailCtrl, hint: l10n.email, label: l10n.email,
+                keyboardType: TextInputType.emailAddress),
+            const SizedBox(height: 16),
+            SfTextField(controller: _phoneCtrl, hint: l10n.phone_number, label: l10n.phone_number,
+                keyboardType: TextInputType.phone),
+            const SizedBox(height: 24),
+            SfPrimaryButton(label: l10n.save_profile, onPressed: () => _saveProfile(l10n)),
+          ]),
           const SizedBox(height: 20),
 
           _SectionCard(children: [
-            _SectionHeader(icon: Icons.person_outline_rounded, title: l10n.profile),
-            const SizedBox(height: 16),
-            SfTextField(controller: _nameCtrl, hint: l10n.full_name, label: l10n.full_name),
-            const SizedBox(height: 14),
-            SfTextField(controller: _emailCtrl, hint: l10n.email, label: l10n.email,
-                keyboardType: TextInputType.emailAddress),
+            _SectionHeader(icon: Icons.palette_outlined, title: l10n.theme_preference),
             const SizedBox(height: 20),
-            SfPrimaryButton(label: l10n.save_profile, onPressed: () => _saveProfile(l10n)),
+            _ThemeOption(
+              label: l10n.light_mode, 
+              value: 'light', 
+              groupValue: _themeMode, 
+              onChanged: (v) => setState(() => _themeMode = v!),
+            ),
+            const SizedBox(height: 12),
+            _ThemeOption(
+              label: l10n.dark_mode, 
+              value: 'dark', 
+              groupValue: _themeMode, 
+              onChanged: (v) => setState(() => _themeMode = v!),
+            ),
           ]),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           _SectionCard(children: [
             _SectionHeader(icon: Icons.language_rounded, title: l10n.language),
@@ -129,6 +163,45 @@ class _FarmerSettingsScreenState extends State<FarmerSettingsScreen> {
           SfOutlineButton(label: l10n.logout, onPressed: () => _confirmLogout(l10n), color: AppColors.error),
         ]),
       )),
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  const _ThemeOption({
+    required this.label, 
+    required this.value, 
+    required this.groupValue, 
+    required this.onChanged
+  });
+  final String label, value, groupValue;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = value == groupValue;
+    return InkWell(
+      onTap: () => onChanged(value),
+      borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+          border: Border.all(color: isSelected ? AppColors.primary : AppColors.cardBorder),
+          color: isSelected ? AppColors.primarySurface.withValues(alpha: 0.5) : Colors.transparent,
+        ),
+        child: Row(children: [
+          Radio<String>(
+            value: value, groupValue: groupValue, onChanged: onChanged,
+            activeColor: AppColors.primary, visualDensity: VisualDensity.compact,
+          ),
+          const SizedBox(width: 8),
+          Text(label, style: TextStyle(
+            fontSize: 14, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected ? AppColors.primary : AppColors.textDark,
+          )),
+        ]),
+      ),
     );
   }
 }

@@ -10,15 +10,26 @@ class ChatbotService {
   static final ChatbotService instance = ChatbotService._();
   final ApiClient _c = ApiClient.instance;
 
-  Future<ChatResponse> ask(ChatRequest req) async {
-    debugPrint('[ChatbotService] POST /chatbot/ask-farm-bot  userId=${req.userId}');
-    debugPrint('[ChatbotService] form: ${req.toForm()}');
+  Future<ChatResponse> askBot({
+    required String userId,
+    required String question,
+    required String language,
+  }) async {
+    debugPrint('[ChatbotService] POST /chatbot/ask-farm-bot  userId=$userId  lang=$language');
     try {
-      final data = await _c.postForm('/chatbot/ask-farm-bot', req.toForm());
-      debugPrint('[ChatbotService] response: $data');
-      return ChatResponse.fromJson(data as Map<String, dynamic>);
-    } on ApiException { rethrow; }
-    catch (e) { throw const ApiException('Failed to get a chatbot response.'); }
+      final response = await _c.postForm(
+        '/chatbot/ask-farm-bot',
+        {
+          'user_id':  userId,
+          'question': question,
+          'language': language,
+        },
+      );
+      return ChatResponse.fromJson(response);
+    } catch (e) {
+      debugPrint('[ChatbotService] Error: $e');
+      rethrow;
+    }
   }
 
   Future<List<ChatHistoryItem>> getHistory(String userId) async {

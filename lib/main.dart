@@ -7,6 +7,13 @@ import 'package:smart_farm/features/auth/screens/auth_wrapper.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import 'package:smart_farm/providers/navigation_provider.dart';
 import 'package:smart_farm/providers/locale_provider.dart';
+import 'package:smart_farm/features/chatbot/providers/chatbot_provider.dart';
+import 'package:smart_farm/features/reports/providers/reports_provider.dart';
+import 'package:smart_farm/features/animals/providers/animal_provider.dart';
+import 'package:smart_farm/features/plants/providers/plant_provider.dart';
+import 'package:smart_farm/features/fruits/providers/fruit_provider.dart';
+import 'package:smart_farm/features/soil/providers/soil_provider.dart';
+import 'package:smart_farm/features/crops/providers/crop_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +23,34 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, ChatbotProvider>(
+          create: (_) => ChatbotProvider('0'),
+          update: (_, auth, chatbot) => chatbot!..updateUserId(auth.currentUser?.id ?? '0'),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, ReportsProvider>(
+          create: (_) => ReportsProvider('0'),
+          update: (_, auth, reports) => reports!..updateUserId(auth.currentUser?.id ?? '0'),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, AnimalProvider>(
+          create: (_) => AnimalProvider('0'),
+          update: (_, auth, animal) => animal!..updateUserId(auth.currentUser?.id ?? '0'),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, PlantProvider>(
+          create: (_) => PlantProvider('0'),
+          update: (_, auth, plant) => plant!..updateUserId(auth.currentUser?.id ?? '0'),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, FruitProvider>(
+          create: (_) => FruitProvider('0'),
+          update: (_, auth, fruit) => fruit!..updateUserId(auth.currentUser?.id ?? '0'),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, SoilProvider>(
+          create: (_) => SoilProvider('0'),
+          update: (_, auth, soil) => soil!..updateUserId(auth.currentUser?.id ?? '0'),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, CropProvider>(
+          create: (_) => CropProvider('0'),
+          update: (_, auth, crop) => crop!..updateUserId(auth.currentUser?.id ?? '0'),
+        ),
       ],
       child: const SmartFarmApp(),
     ),

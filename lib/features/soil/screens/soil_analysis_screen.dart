@@ -46,10 +46,8 @@ class _SoilAnalysisScreenState extends State<SoilAnalysisScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return ChangeNotifierProvider(
-      create: (_) => SoilProvider(),
-      child: Consumer<SoilProvider>(builder: (context, prov, _) {
-        return SingleChildScrollView(
+    return Consumer<SoilProvider>(builder: (context, prov, _) {
+      return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           child: Center(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -136,8 +134,8 @@ class _SoilAnalysisScreenState extends State<SoilAnalysisScreen> {
             ]),
           )),
         );
-      }),
-    );
+      }
+      );
   }
 
   Color _fertilityColor(String f) {

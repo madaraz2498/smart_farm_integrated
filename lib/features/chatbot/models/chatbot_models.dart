@@ -23,7 +23,8 @@ class ChatResponse {
   const ChatResponse({required this.response, this.language = 'English'});
 
   factory ChatResponse.fromJson(Map<String, dynamic> j) => ChatResponse(
-        response: j['response'] as String? ??
+        response: j['bot_response'] as String? ??
+            j['response'] as String? ??
             j['answer']  as String? ??
             j['reply']   as String? ??
             j['message'] as String? ??
@@ -37,19 +38,18 @@ class ChatResponse {
 /// A single entry from GET /chatbot/chat-history/{user_id}
 class ChatHistoryItem {
   const ChatHistoryItem({
-    required this.question,
-    required this.response,
-    this.timestamp,
-    this.language = 'English',
+    required this.message,
+    required this.isUser,
+    this.time,
   });
 
   factory ChatHistoryItem.fromJson(Map<String, dynamic> j) => ChatHistoryItem(
-        question:  j['question'] as String? ?? '',
-        response:  j['response'] as String? ?? j['answer'] as String? ?? '',
-        timestamp: j['timestamp'] as String? ?? j['created_at'] as String?,
-        language:  j['language'] as String? ?? 'English',
+        message: j['message'] as String? ?? j['text'] as String? ?? '',
+        isUser:  (j['sender'] as String? ?? '').toLowerCase() == 'user',
+        time:    j['time'] as String?,
       );
 
-  final String  question, response, language;
-  final String? timestamp;
+  final String  message;
+  final bool    isUser;
+  final String? time;
 }

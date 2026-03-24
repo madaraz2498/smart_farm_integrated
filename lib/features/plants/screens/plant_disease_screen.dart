@@ -15,19 +15,24 @@ class PlantDiseaseScreen extends StatefulWidget {
 class _PlantDiseaseScreenState extends State<PlantDiseaseScreen> {
   XFile? _picked;
   final _picker = ImagePicker();
+  bool _isPicking = false;
 
   Future<void> _pick() async {
-    final img = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-    if (img != null) setState(() => _picked = img);
+    if (_isPicking) return;
+    setState(() => _isPicking = true);
+    try {
+      final img = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      if (img != null) setState(() => _picked = img);
+    } finally {
+      setState(() => _isPicking = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return ChangeNotifierProvider(
-      create: (_) => PlantProvider(),
-      child: Consumer<PlantProvider>(builder: (context, prov, _) {
-        return SingleChildScrollView(
+    return Consumer<PlantProvider>(builder: (context, prov, _) {
+      return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           child: Center(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -67,7 +72,7 @@ class _PlantDiseaseScreenState extends State<PlantDiseaseScreen> {
             ]),
           )),
         );
-      }),
-    );
+      }
+      );
   }
 }

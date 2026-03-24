@@ -254,6 +254,36 @@ abstract class AppLocalizations {
   /// **'Profile saved.'**
   String get profile_saved;
 
+  /// No description provided for @profile_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Settings'**
+  String get profile_settings;
+
+  /// No description provided for @phone_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get phone_number;
+
+  /// No description provided for @theme_preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Preference'**
+  String get theme_preference;
+
+  /// No description provided for @light_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Light Mode'**
+  String get light_mode;
+
+  /// No description provided for @dark_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Mode'**
+  String get dark_mode;
+
   /// No description provided for @join_today.
   ///
   /// In en, this message translates to:
@@ -613,6 +643,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask me anything about farming!'**
   String get chat_empty_state;
+
+  /// No description provided for @chat_empty_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Crops, diseases, irrigation, soil care...'**
+  String get chat_empty_subtitle;
+
+  /// No description provided for @chat_suggestions_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick questions:'**
+  String get chat_suggestions_title;
+
+  /// No description provided for @chat_suggest_1.
+  ///
+  /// In en, this message translates to:
+  /// **'How to treat leaf blight?'**
+  String get chat_suggest_1;
+
+  /// No description provided for @chat_suggest_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Best irrigation for wheat'**
+  String get chat_suggest_2;
+
+  /// No description provided for @chat_suggest_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Soil fertilizer recommendations'**
+  String get chat_suggest_3;
+
+  /// No description provided for @chat_suggest_4.
+  ///
+  /// In en, this message translates to:
+  /// **'Common tomato pests'**
+  String get chat_suggest_4;
 
   /// No description provided for @disease_detection.
   ///

@@ -7,6 +7,17 @@ import '../services/fruit_service.dart';
 enum ScanStatus { idle, loading, result, error }
 
 class FruitProvider extends ChangeNotifier {
+  FruitProvider(this._userId);
+  String _userId;
+  String get userId => _userId;
+
+  void updateUserId(String id) {
+    if (_userId != id) {
+      _userId = id;
+      reset();
+    }
+  }
+
   final FruitService _svc = FruitService.instance;
 
   ScanStatus           _status = ScanStatus.idle;
@@ -23,7 +34,11 @@ class FruitProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final bytes = await image.readAsBytes();
-      _result = await _svc.analyze(imageBytes: bytes, fileName: image.name);
+      _result = await _svc.analyze(
+        imageBytes: bytes,
+        fileName:   image.name,
+        userId:     userId,
+      );
       _status = ScanStatus.result;
     } on ApiException catch (e) {
       _error  = e.message; _status = ScanStatus.error;

@@ -6,6 +6,17 @@ import '../services/crop_service.dart';
 enum ScanStatus { idle, loading, result, error }
 
 class CropProvider extends ChangeNotifier {
+  CropProvider(this._userId);
+  String _userId;
+  String get userId => _userId;
+
+  void updateUserId(String id) {
+    if (_userId != id) {
+      _userId = id;
+      reset();
+    }
+  }
+
   final CropService _svc = CropService.instance;
 
   ScanStatus                _status = ScanStatus.idle;
@@ -21,7 +32,8 @@ class CropProvider extends ChangeNotifier {
     _status = ScanStatus.loading; _result = null; _error = null;
     notifyListeners();
     try {
-      _result = await _svc.recommend(req); _status = ScanStatus.result;
+      _result = await _svc.recommend(req.copyWith(userId: userId));
+      _status = ScanStatus.result;
     } on ApiException catch (e) {
       _error  = e.message; _status = ScanStatus.error;
     } catch (_) {

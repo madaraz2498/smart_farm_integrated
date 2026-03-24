@@ -8,11 +8,14 @@ class FarmerReportStats {
     required this.growth,
   });
 
-  factory FarmerReportStats.fromJson(Map<String, dynamic> j) => FarmerReportStats(
-        totalReports: _i(j['total_reports'] ?? j['total'] ?? 0),
-        thisMonth:    _i(j['this_month']    ?? j['monthly'] ?? 0),
-        growth:       j['growth'] as String? ?? '+0%',
-      );
+  factory FarmerReportStats.fromJson(Map<String, dynamic> j) {
+    final t = j['top_cards'] as Map<String, dynamic>? ?? j;
+    return FarmerReportStats(
+      totalReports: _i(t['total_reports'] ?? t['total'] ?? 0),
+      thisMonth:    _i(t['this_month']    ?? t['monthly'] ?? 0),
+      growth:       t['growth'] as String? ?? '+0%',
+    );
+  }
 
   final int    totalReports, thisMonth;
   final String growth;

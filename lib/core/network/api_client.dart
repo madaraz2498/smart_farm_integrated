@@ -132,7 +132,7 @@ class ApiClient {
     required String      fileField,
     required List<int>   fileBytes,
     required String      fileName,
-    Map<String, String>? extraFields,
+    Map<String, String>? fields,
   }) async {
     final uri = _uri(path);
     debugPrint('[MULTIPART] $uri  field=$fileField');
@@ -140,7 +140,7 @@ class ApiClient {
       final req = http.MultipartRequest('POST', uri);
       if (_token != null) req.headers['Authorization'] = 'Bearer $_token';
       req.headers['Accept'] = 'application/json';
-      if (extraFields != null) req.fields.addAll(extraFields);
+      if (fields != null) req.fields.addAll(fields);
       req.files.add(http.MultipartFile.fromBytes(fileField, fileBytes, filename: fileName));
       final resp = await http.Response.fromStream(await req.send().timeout(_uploadTimeout));
       return _handle(resp);

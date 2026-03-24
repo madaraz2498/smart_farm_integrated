@@ -14,14 +14,16 @@ class PlantService {
   Future<PlantDiseaseResponse> detect({
     required List<int> imageBytes,
     required String    fileName,
+    required String    userId,
   }) async {
-    debugPrint('[PlantService] POST /plants/detect  file=$fileName  size=${imageBytes.length}b');
+    debugPrint('[PlantService] POST /plants/detect-disease  file=$fileName  userId=$userId');
     try {
       final data = await _c.postMultipart(
-        '/plants/detect',
-        fileField: 'file',
+        '/plants/detect-disease',
+        fileField: 'image',
         fileBytes: imageBytes,
         fileName:  fileName,
+        fields:    {'user_id': userId},
       );
       debugPrint('[PlantService] response: $data');
       return PlantDiseaseResponse.fromJson(data as Map<String, dynamic>);

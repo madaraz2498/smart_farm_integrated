@@ -4,18 +4,26 @@ import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/reports_provider.dart';
 import '../models/report_models.dart';
 import '../../../shared/theme/app_theme.dart';
-import '../../../features/auth/providers/auth_provider.dart';
 
-class ReportsScreen extends StatelessWidget {
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
   @override
+  State<ReportsScreen> createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ReportsProvider>().load();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final userId = context.read<AuthProvider>().currentUser?.id ?? '0';
-    return ChangeNotifierProvider(
-      create: (_) => ReportsProvider(userId)..load(),
-      child: const _ReportsBody(),
-    );
+    return const _ReportsBody();
   }
 }
 

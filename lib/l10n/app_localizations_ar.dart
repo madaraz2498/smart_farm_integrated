@@ -87,6 +87,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profile_saved => 'تم حفظ الملف الشخصي.';
 
   @override
+  String get profile_settings => 'إعدادات الملف الشخصي';
+
+  @override
+  String get phone_number => 'رقم الهاتف';
+
+  @override
+  String get theme_preference => 'تفضيل المظهر';
+
+  @override
+  String get light_mode => 'الوضع الفاتح';
+
+  @override
+  String get dark_mode => 'الوضع الداكن';
+
+  @override
   String get join_today => 'انضم إلى المزرعة الذكية اليوم';
 
   @override
@@ -268,6 +283,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chat_empty_state => 'اسألني أي شيء عن الزراعة!';
+
+  @override
+  String get chat_empty_subtitle =>
+      'المحاصيل، الأمراض، الري، العناية بالتربة...';
+
+  @override
+  String get chat_suggestions_title => 'أسئلة سريعة:';
+
+  @override
+  String get chat_suggest_1 => 'كيف تعالج لفحة الأوراق؟';
+
+  @override
+  String get chat_suggest_2 => 'أفضل ري للقمح';
+
+  @override
+  String get chat_suggest_3 => 'توصيات أسمدة التربة';
+
+  @override
+  String get chat_suggest_4 => 'آفات الطماطم الشائعة';
 
   @override
   String get disease_detection => 'تشخيص الإصابة';

@@ -25,6 +25,16 @@ class UserModel {
         role:  role  ?? this.role,
       );
 
+  factory UserModel.fromJson(Map<String, dynamic> j) {
+    final roleStr = (j['role'] as String? ?? 'farmer').toLowerCase();
+    return UserModel(
+      id:    (j['id'] ?? j['user_id'] ?? 0).toString(),
+      name:  j['name']  as String? ?? j['username'] as String? ?? '',
+      email: j['email'] as String? ?? '',
+      role:  roleStr == 'admin' ? UserRole.admin : UserRole.farmer,
+    );
+  }
+
   @override
   String toString() => 'UserModel($id, $name, $email, $role)';
 }

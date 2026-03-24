@@ -5,6 +5,7 @@ class CropRecommendationRequest {
     required this.humidity,
     required this.rainfall,
     required this.soilType,
+    this.userId,
     this.ph,
     this.nitrogen,
     this.phosphorus,
@@ -13,18 +14,32 @@ class CropRecommendationRequest {
 
   final double temperature, humidity, rainfall;
   final String  soilType;
+  final String? userId;
   final double? ph, nitrogen, phosphorus, potassium;
 
-  /// form-encoded — used with ApiClient.postForm()
-  Map<String, String> toForm() => {
-        'temperature': temperature.toString(),
-        'humidity':    humidity.toString(),
-        'rainfall':    rainfall.toString(),
+  CropRecommendationRequest copyWith({String? userId}) => CropRecommendationRequest(
+    temperature: temperature,
+    humidity: humidity,
+    rainfall: rainfall,
+    soilType: soilType,
+    userId: userId ?? this.userId,
+    ph: ph,
+    nitrogen: nitrogen,
+    phosphorus: phosphorus,
+    potassium: potassium,
+  );
+
+  /// JSON-ready — used with ApiClient.post()
+  Map<String, dynamic> toJson() => {
+        'temperature': temperature,
+        'humidity':    humidity,
+        'rainfall':    rainfall,
         'soil_type':   soilType,
-        if (ph         != null) 'ph': ph!.toString(),
-        if (nitrogen   != null) 'N':  nitrogen!.toString(),
-        if (phosphorus != null) 'P':  phosphorus!.toString(),
-        if (potassium  != null) 'K':  potassium!.toString(),
+        if (userId     != null) 'user_id': int.tryParse(userId!) ?? userId!,
+        if (ph         != null) 'ph': ph,
+        if (nitrogen   != null) 'N':  nitrogen,
+        if (phosphorus != null) 'P':  phosphorus,
+        if (potassium  != null) 'K':  potassium,
       };
 }
 

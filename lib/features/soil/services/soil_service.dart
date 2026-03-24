@@ -11,9 +11,9 @@ class SoilService {
 
   Future<SoilAnalysisResponse> analyze(SoilAnalysisRequest req) async {
     debugPrint('[SoilService] POST /soil/analyze-soil');
-    debugPrint('[SoilService] form: ${req.toForm()}');
+    debugPrint('[SoilService] body: ${req.toJson()}');
     try {
-      final data = await _c.postForm('/soil/analyze-soil', req.toForm());
+      final data = await _c.post('/soil/analyze-soil', body: req.toJson());
       debugPrint('[SoilService] response: $data');
       return SoilAnalysisResponse.fromJson(data as Map<String, dynamic>);
     } on ApiException { rethrow; }

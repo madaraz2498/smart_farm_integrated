@@ -7,6 +7,17 @@ import '../services/animal_service.dart';
 enum ScanStatus { idle, loading, result, error }
 
 class AnimalProvider extends ChangeNotifier {
+  AnimalProvider(this._userId);
+  String _userId;
+  String get userId => _userId;
+
+  void updateUserId(String id) {
+    if (_userId != id) {
+      _userId = id;
+      reset();
+    }
+  }
+
   final AnimalService _svc = AnimalService.instance;
 
   ScanStatus           _status = ScanStatus.idle;
@@ -23,7 +34,11 @@ class AnimalProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final bytes = await image.readAsBytes();
-      _result = await _svc.estimateWeight(imageBytes: bytes, fileName: image.name);
+      _result = await _svc.estimateWeight(
+        imageBytes: bytes,
+        fileName:   image.name,
+        userId:     userId,
+      );
       _status = ScanStatus.result;
     } on ApiException catch (e) {
       _error  = e.message; _status = ScanStatus.error;
