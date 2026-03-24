@@ -1,0 +1,332 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Arabic (`ar`).
+class AppLocalizationsAr extends AppLocalizations {
+  AppLocalizationsAr([String locale = 'ar']) : super(locale);
+
+  @override
+  String get app_name => 'المزرعة الذكية';
+
+  @override
+  String get login => 'تسجيل الدخول';
+
+  @override
+  String get register => 'إنشاء حساب';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get logout => 'تسجيل الخروج';
+
+  @override
+  String get settings => 'الإعدادات';
+
+  @override
+  String get language => 'اللغة';
+
+  @override
+  String get create_account => 'إنشاء حساب جديد';
+
+  @override
+  String get sign_in_to_account => 'تسجيل الدخول إلى حسابك';
+
+  @override
+  String get enter_email => 'أدخل بريدك الإلكتروني';
+
+  @override
+  String get enter_password => 'أدخل كلمة المرور';
+
+  @override
+  String get dont_have_account => 'ليس لديك حساب؟';
+
+  @override
+  String get email_required => 'البريد الإلكتروني مطلوب.';
+
+  @override
+  String get invalid_email => 'أدخل بريداً إلكترونياً صالحاً.';
+
+  @override
+  String get password_required => 'كلمة المرور مطلوبة.';
+
+  @override
+  String get manage_account_preferences => 'إدارة حسابك وتفضيلاتك';
+
+  @override
+  String get profile => 'الملف الشخصي';
+
+  @override
+  String get full_name => 'الاسم الكامل';
+
+  @override
+  String get save_profile => 'حفظ الملف الشخصي';
+
+  @override
+  String get notifications => 'الإشعارات';
+
+  @override
+  String get push_notifications => 'إشعارات الهاتف';
+
+  @override
+  String get email_alerts => 'تنبيهات البريد الإلكتروني';
+
+  @override
+  String get confirm_logout_message => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
+
+  @override
+  String get cancel => 'إلغاء';
+
+  @override
+  String get profile_saved => 'تم حفظ الملف الشخصي.';
+
+  @override
+  String get join_today => 'انضم إلى المزرعة الذكية اليوم';
+
+  @override
+  String get enter_full_name => 'أدخل اسمك الكامل';
+
+  @override
+  String get min_6_chars => '6 أحرف على الأقل';
+
+  @override
+  String get confirm_password => 'تأكيد كلمة المرور';
+
+  @override
+  String get re_enter_password => 'أعد إدخال كلمة المرور';
+
+  @override
+  String get already_have_account => 'لديك حساب بالفعل؟';
+
+  @override
+  String get sign_in => 'تسجيل الدخول';
+
+  @override
+  String get name_too_short => 'يجب أن يكون الاسم حرفين على الأقل.';
+
+  @override
+  String get password_too_short => 'يجب أن تكون كلمة المرور 6 أحرف على الأقل.';
+
+  @override
+  String get passwords_dont_match => 'كلمات المرور غير متطابقة.';
+
+  @override
+  String get welcome_user => 'أهلاً بك';
+
+  @override
+  String get nav_plant_disease => 'كشف أمراض النبات';
+
+  @override
+  String get nav_animal_weight => 'تقدير وزن الحيوان';
+
+  @override
+  String get nav_crop_recommendation => 'توصيات المحاصيل';
+
+  @override
+  String get nav_soil_analysis => 'تحليل نوع التربة';
+
+  @override
+  String get nav_fruit_quality => 'تحليل جودة الفاكهة';
+
+  @override
+  String get nav_chatbot => 'روبوت المزرعة الذكي';
+
+  @override
+  String get nav_reports => 'التقارير الإحصائية';
+
+  @override
+  String get admin => 'المسؤول';
+
+  @override
+  String get environmental_parameters => 'المعايير البيئية';
+
+  @override
+  String get temperature_c => 'درجة الحرارة (مئوية)';
+
+  @override
+  String get humidity_p => 'الرطوبة (%)';
+
+  @override
+  String get rainfall_mm => 'معدل الأمطار (ملم)';
+
+  @override
+  String get soil_type => 'نوع التربة';
+
+  @override
+  String get soil_sandy => 'رملية';
+
+  @override
+  String get soil_loamy => 'طينية';
+
+  @override
+  String get soil_clay => 'صلصالية';
+
+  @override
+  String get soil_silty => 'غرينية';
+
+  @override
+  String get soil_ph => 'درجة الحموضة (pH)';
+
+  @override
+  String get soil_moisture => 'مستوى الرطوبة';
+
+  @override
+  String get soil_nitrogen => 'النيتروجين (N)';
+
+  @override
+  String get soil_phosphorus => 'الفوسفور (P)';
+
+  @override
+  String get soil_potassium => 'البوتاسيوم (K)';
+
+  @override
+  String get soil_analyze_button => 'تحليل خصائص التربة';
+
+  @override
+  String get soil_get_recommendation => 'الحصول على توصيات المحاصيل';
+
+  @override
+  String get soil_fertility => 'مستوى الخصوبة';
+
+  @override
+  String get soil_npk_levels => 'مستويات النيتروجين والفوسفور والبوتاسيوم';
+
+  @override
+  String get animal_weight_desc =>
+      'قم بتحميل صورة حيوان لتقدير الوزن باستخدام الرؤية الحاسوبية.';
+
+  @override
+  String get animal_image => 'صورة الحيوان';
+
+  @override
+  String get estimate_weight => 'تقدير الوزن';
+
+  @override
+  String get estimation_result => 'نتيجة التقدير';
+
+  @override
+  String get estimated_weight => 'الوزن المقدر';
+
+  @override
+  String get animal_type => 'نوع الحيوان';
+
+  @override
+  String get plant_disease_desc =>
+      'قم بتحميل صورة لورقة نبات لتشخيص المرض بالذكاء الاصطناعي.';
+
+  @override
+  String get plant_image => 'صورة النبات';
+
+  @override
+  String get analyze_plant => 'تحليل النبات';
+
+  @override
+  String get analysis_result => 'نتيجة التحليل';
+
+  @override
+  String get prediction => 'التشخيص';
+
+  @override
+  String get description => 'الوصف';
+
+  @override
+  String get treatment => 'العلاج المقترح';
+
+  @override
+  String get fruit_quality_desc =>
+      'قم بتحميل صورة فاكهة لتحديد الجودة والدرجة.';
+
+  @override
+  String get fruit_image => 'صورة الفاكهة';
+
+  @override
+  String get analyze_fruit => 'تحليل الفاكهة';
+
+  @override
+  String get quality_grade => 'درجة الجودة';
+
+  @override
+  String get grade_label => 'تصنيف الدرجة';
+
+  @override
+  String get ripeness => 'مستوى النضج';
+
+  @override
+  String get defects => 'العيوب';
+
+  @override
+  String get chatbot_language => 'لغة الدردشة:';
+
+  @override
+  String get type_message => 'اكتب رسالة...';
+
+  @override
+  String get chat_empty_state => 'اسألني أي شيء عن الزراعة!';
+
+  @override
+  String get disease_detection => 'تشخيص الإصابة';
+
+  @override
+  String get disease_diagnosis => 'نتائج التشخيص';
+
+  @override
+  String get success_msg => 'تمت العملية بنجاح';
+
+  @override
+  String get error_msg => 'حدث خطأ، يرجى المحاولة مرة أخرى';
+
+  @override
+  String get field_required => 'هذا الحقل مطلوب';
+
+  @override
+  String get choose_image => 'اختر صورة';
+
+  @override
+  String get plant_disease_card_desc =>
+      'اكتشف أمراض النباتات مبكراً باستخدام تحليل الصور بالذكاء الاصطناعي.';
+
+  @override
+  String get animal_weight_card_desc =>
+      'تقدير وزن الحيوانات بدقة بدون الحاجة لموازين فيزيائية.';
+
+  @override
+  String get crop_recommendation_card_desc =>
+      'احصل على أفضل مقترحات المحاصيل بناءً على التربة والمناخ.';
+
+  @override
+  String get soil_analysis_card_desc =>
+      'تحليل خصوبة التربة ونوعها باستخدام بياناتك.';
+
+  @override
+  String get fruit_quality_card_desc =>
+      'تصنيف جودة الفواكه وكشف العيوب تلقائياً.';
+
+  @override
+  String get chatbot_card_desc => 'اطرح أسئلتك واحصل على نصائح زراعية فورية.';
+
+  @override
+  String get reports_subtitle =>
+      'الوصول إلى جميع التقارير الناتجة عن الذكاء الاصطناعي وتحميلها.';
+
+  @override
+  String get generate_report => 'إنشاء تقرير +';
+
+  @override
+  String get total_reports => 'إجمالي التقارير';
+
+  @override
+  String get this_month => 'هذا الشهر';
+
+  @override
+  String get vs_last_month => 'مقارنة بالشهر الماضي';
+
+  @override
+  String get no_reports_yet =>
+      'لا توجد تقارير بعد. قم بإنشاء تقريرك الأول الآن.';
+}

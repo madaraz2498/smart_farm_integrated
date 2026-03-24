@@ -1,0 +1,757 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_ar.dart';
+import 'app_localizations_en.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'l10n/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
+    Locale('en')
+  ];
+
+  /// No description provided for @app_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Farm AI'**
+  String get app_name;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logout;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @create_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get create_account;
+
+  /// No description provided for @sign_in_to_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to your account'**
+  String get sign_in_to_account;
+
+  /// No description provided for @enter_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email'**
+  String get enter_email;
+
+  /// No description provided for @enter_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get enter_password;
+
+  /// No description provided for @dont_have_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get dont_have_account;
+
+  /// No description provided for @email_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required.'**
+  String get email_required;
+
+  /// No description provided for @invalid_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email.'**
+  String get invalid_email;
+
+  /// No description provided for @password_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required.'**
+  String get password_required;
+
+  /// No description provided for @manage_account_preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your account and preferences'**
+  String get manage_account_preferences;
+
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// No description provided for @full_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get full_name;
+
+  /// No description provided for @save_profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get save_profile;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @push_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Notifications'**
+  String get push_notifications;
+
+  /// No description provided for @email_alerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Alerts'**
+  String get email_alerts;
+
+  /// No description provided for @confirm_logout_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to sign out?'**
+  String get confirm_logout_message;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @profile_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved.'**
+  String get profile_saved;
+
+  /// No description provided for @join_today.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Smart Farm AI today'**
+  String get join_today;
+
+  /// No description provided for @enter_full_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your full name'**
+  String get enter_full_name;
+
+  /// No description provided for @min_6_chars.
+  ///
+  /// In en, this message translates to:
+  /// **'Min 6 characters'**
+  String get min_6_chars;
+
+  /// No description provided for @confirm_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirm_password;
+
+  /// No description provided for @re_enter_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter password'**
+  String get re_enter_password;
+
+  /// No description provided for @already_have_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get already_have_account;
+
+  /// No description provided for @sign_in.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get sign_in;
+
+  /// No description provided for @name_too_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Name must be at least 2 characters.'**
+  String get name_too_short;
+
+  /// No description provided for @password_too_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters.'**
+  String get password_too_short;
+
+  /// No description provided for @passwords_dont_match.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get passwords_dont_match;
+
+  /// No description provided for @welcome_user.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get welcome_user;
+
+  /// No description provided for @nav_plant_disease.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant Disease Detection'**
+  String get nav_plant_disease;
+
+  /// No description provided for @nav_animal_weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal Weight Estimation'**
+  String get nav_animal_weight;
+
+  /// No description provided for @nav_crop_recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop Recommendation'**
+  String get nav_crop_recommendation;
+
+  /// No description provided for @nav_soil_analysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Soil Type Analysis'**
+  String get nav_soil_analysis;
+
+  /// No description provided for @nav_fruit_quality.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruit Quality Analysis'**
+  String get nav_fruit_quality;
+
+  /// No description provided for @nav_chatbot.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Farm Chatbot'**
+  String get nav_chatbot;
+
+  /// No description provided for @nav_reports.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistical Reports'**
+  String get nav_reports;
+
+  /// No description provided for @admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get admin;
+
+  /// No description provided for @environmental_parameters.
+  ///
+  /// In en, this message translates to:
+  /// **'Environmental Parameters'**
+  String get environmental_parameters;
+
+  /// No description provided for @temperature_c.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature (°C)'**
+  String get temperature_c;
+
+  /// No description provided for @humidity_p.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity (%)'**
+  String get humidity_p;
+
+  /// No description provided for @rainfall_mm.
+  ///
+  /// In en, this message translates to:
+  /// **'Rainfall (mm)'**
+  String get rainfall_mm;
+
+  /// No description provided for @soil_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Soil Type'**
+  String get soil_type;
+
+  /// No description provided for @soil_sandy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sandy'**
+  String get soil_sandy;
+
+  /// No description provided for @soil_loamy.
+  ///
+  /// In en, this message translates to:
+  /// **'Loamy'**
+  String get soil_loamy;
+
+  /// No description provided for @soil_clay.
+  ///
+  /// In en, this message translates to:
+  /// **'Clay'**
+  String get soil_clay;
+
+  /// No description provided for @soil_silty.
+  ///
+  /// In en, this message translates to:
+  /// **'Silty'**
+  String get soil_silty;
+
+  /// No description provided for @soil_ph.
+  ///
+  /// In en, this message translates to:
+  /// **'Soil pH'**
+  String get soil_ph;
+
+  /// No description provided for @soil_moisture.
+  ///
+  /// In en, this message translates to:
+  /// **'Moisture Level'**
+  String get soil_moisture;
+
+  /// No description provided for @soil_nitrogen.
+  ///
+  /// In en, this message translates to:
+  /// **'Nitrogen (N)'**
+  String get soil_nitrogen;
+
+  /// No description provided for @soil_phosphorus.
+  ///
+  /// In en, this message translates to:
+  /// **'Phosphorus (P)'**
+  String get soil_phosphorus;
+
+  /// No description provided for @soil_potassium.
+  ///
+  /// In en, this message translates to:
+  /// **'Potassium (K)'**
+  String get soil_potassium;
+
+  /// No description provided for @soil_analyze_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze Soil Properties'**
+  String get soil_analyze_button;
+
+  /// No description provided for @soil_get_recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Recommendation'**
+  String get soil_get_recommendation;
+
+  /// No description provided for @soil_fertility.
+  ///
+  /// In en, this message translates to:
+  /// **'Fertility Level'**
+  String get soil_fertility;
+
+  /// No description provided for @soil_npk_levels.
+  ///
+  /// In en, this message translates to:
+  /// **'NPK Levels (Nitrogen, Phosphorus, Potassium)'**
+  String get soil_npk_levels;
+
+  /// No description provided for @animal_weight_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload an animal image to estimate weight using computer vision.'**
+  String get animal_weight_desc;
+
+  /// No description provided for @animal_image.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal Image'**
+  String get animal_image;
+
+  /// No description provided for @estimate_weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate Weight'**
+  String get estimate_weight;
+
+  /// No description provided for @estimation_result.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimation Result'**
+  String get estimation_result;
+
+  /// No description provided for @estimated_weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated Weight'**
+  String get estimated_weight;
+
+  /// No description provided for @animal_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal Type'**
+  String get animal_type;
+
+  /// No description provided for @plant_disease_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a leaf image for AI-powered disease diagnosis.'**
+  String get plant_disease_desc;
+
+  /// No description provided for @plant_image.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant Image'**
+  String get plant_image;
+
+  /// No description provided for @analyze_plant.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze Plant'**
+  String get analyze_plant;
+
+  /// No description provided for @analysis_result.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis Result'**
+  String get analysis_result;
+
+  /// No description provided for @prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'Prediction'**
+  String get prediction;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @treatment.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatment'**
+  String get treatment;
+
+  /// No description provided for @fruit_quality_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a fruit image for AI-powered quality grading.'**
+  String get fruit_quality_desc;
+
+  /// No description provided for @fruit_image.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruit Image'**
+  String get fruit_image;
+
+  /// No description provided for @analyze_fruit.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze Fruit'**
+  String get analyze_fruit;
+
+  /// No description provided for @quality_grade.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality Grade'**
+  String get quality_grade;
+
+  /// No description provided for @grade_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade Label'**
+  String get grade_label;
+
+  /// No description provided for @ripeness.
+  ///
+  /// In en, this message translates to:
+  /// **'Ripeness'**
+  String get ripeness;
+
+  /// No description provided for @defects.
+  ///
+  /// In en, this message translates to:
+  /// **'Defects'**
+  String get defects;
+
+  /// No description provided for @chatbot_language.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Language:'**
+  String get chatbot_language;
+
+  /// No description provided for @type_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message...'**
+  String get type_message;
+
+  /// No description provided for @chat_empty_state.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask me anything about farming!'**
+  String get chat_empty_state;
+
+  /// No description provided for @disease_detection.
+  ///
+  /// In en, this message translates to:
+  /// **'Disease Detection'**
+  String get disease_detection;
+
+  /// No description provided for @disease_diagnosis.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnosis Results'**
+  String get disease_diagnosis;
+
+  /// No description provided for @success_msg.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation completed successfully'**
+  String get success_msg;
+
+  /// No description provided for @error_msg.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred, please try again'**
+  String get error_msg;
+
+  /// No description provided for @field_required.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get field_required;
+
+  /// No description provided for @choose_image.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Image'**
+  String get choose_image;
+
+  /// No description provided for @plant_disease_card_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Detect plant diseases early using AI image analysis.'**
+  String get plant_disease_card_desc;
+
+  /// No description provided for @animal_weight_card_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Accurately estimate animal weight without physical scales.'**
+  String get animal_weight_card_desc;
+
+  /// No description provided for @crop_recommendation_card_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get the best crop suggestions based on soil and climate.'**
+  String get crop_recommendation_card_desc;
+
+  /// No description provided for @soil_analysis_card_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze soil fertility and type using your data.'**
+  String get soil_analysis_card_desc;
+
+  /// No description provided for @fruit_quality_card_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Classify fruit quality and detect defects automatically.'**
+  String get fruit_quality_card_desc;
+
+  /// No description provided for @chatbot_card_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your questions and get instant farming advice.'**
+  String get chatbot_card_desc;
+
+  /// No description provided for @reports_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Access and download all AI-generated reports'**
+  String get reports_subtitle;
+
+  /// No description provided for @generate_report.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Report'**
+  String get generate_report;
+
+  /// No description provided for @total_reports.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Reports'**
+  String get total_reports;
+
+  /// No description provided for @this_month.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get this_month;
+
+  /// No description provided for @vs_last_month.
+  ///
+  /// In en, this message translates to:
+  /// **'vs Last Month'**
+  String get vs_last_month;
+
+  /// No description provided for @no_reports_yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No reports yet. Generate your first report now.'**
+  String get no_reports_yet;
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['ar', 'en'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'ar':
+      return AppLocalizationsAr();
+    case 'en':
+      return AppLocalizationsEn();
+  }
+
+  throw FlutterError(
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
+}
