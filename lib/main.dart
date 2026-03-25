@@ -17,6 +17,7 @@ import 'package:smart_farm/features/fruits/providers/fruit_provider.dart';
 import 'package:smart_farm/features/soil/providers/soil_provider.dart';
 import 'package:smart_farm/features/crops/providers/crop_provider.dart';
 import 'package:smart_farm/features/admin/reports/providers/report_provider.dart';
+import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +64,7 @@ void main() {
               crop!..updateUserId(auth.currentUser?.id ?? '0'),
         ),
         ChangeNotifierProvider(create: (_) => AdminReportProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const SmartFarmApp(),
     ),

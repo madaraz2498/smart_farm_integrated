@@ -1,6 +1,7 @@
 // lib/features/admin/reports/providers/report_provider.dart
 
 import 'package:flutter/material.dart';
+import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 import '../models/report_model.dart';
 import '../services/report_service.dart';
 
@@ -12,8 +13,7 @@ class AdminReportProvider extends ChangeNotifier {
   bool _isGenerating = false;
   String? _error;
   String _selectedRange = 'last_7_days';
-  String? _lastGeneratedUrl;
-  DateTime? _lastGeneratedTime;
+  final List<Map<String, dynamic>> _generatedReports = [];
 
   DashboardStats? get stats => _stats;
   List<ServiceUsage> get usageList => _stats?.usageByService ?? [];
@@ -23,8 +23,8 @@ class AdminReportProvider extends ChangeNotifier {
   bool get isGenerating => _isGenerating;
   String? get error => _error;
   String get selectedRange => _selectedRange;
-  String? get lastGeneratedUrl => _lastGeneratedUrl;
-  DateTime? get lastGeneratedTime => _lastGeneratedTime;
+  List<Map<String, dynamic>> get generatedReports =>
+      List.unmodifiable(_generatedReports);
 
   void setRange(String range) {
     _selectedRange = range;
@@ -46,16 +46,27 @@ class AdminReportProvider extends ChangeNotifier {
     }
   }
 
-  Future<String?> generateNewReport() async {
+  Future<String?> generateNewReport(NotificationProvider notif) async {
     _isGenerating = true;
     notifyListeners();
     try {
       final response = await _service.generateReport();
       if (response != null && response['file_url'] != null) {
-        _lastGeneratedUrl = response['file_url'] as String;
-        _lastGeneratedTime = DateTime.now();
+        final newReport = {
+          'url': response['file_url'] as String,
+          'time': DateTime.now(),
+        };
+        // Add to the beginning of the list to show newest first
+        _generatedReports.insert(0, newReport);
+
+        // Add notification
+        notif.addSystemNotification(
+          title: 'Report Ready',
+          message: 'Your admin report has been generated successfully.',
+        );
+
         notifyListeners();
-        return _lastGeneratedUrl;
+        return newReport['url'] as String;
       }
       return null;
     } catch (e) {

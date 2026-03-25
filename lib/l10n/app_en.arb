@@ -195,5 +195,34 @@
   "download_historical_reports": "Download historical reports",
   "generate_new_report": "Generate New Report",
   "generating_report": "Generating report...",
-  "report_generated_success": "Report generated successfully"
+  "report_generated_success": "Report generated successfully",
+  "mark_all_as_read": "Mark all as read",
+  "view_all_notifications": "View all notifications",
+  "no_notifications": "No notifications yet",
+  "just_now": "Just now",
+  "minutes_ago": "about {count} minutes ago",
+  "@minutes_ago": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "hours_ago": "about {count} hours ago",
+  "@hours_ago": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "days_ago": "about {count} days ago",
+  "@days_ago": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "Delete"
 }

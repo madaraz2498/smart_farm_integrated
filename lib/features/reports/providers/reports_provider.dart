@@ -20,19 +20,20 @@ class ReportsProvider extends ChangeNotifier {
 
   final ReportsService _svc = ReportsService.instance;
 
-  FarmerReportStats?  _stats;
-  List<FarmerReportItem> _reports   = [];
-  bool         _isLoading = false;
-  String?      _error;
+  FarmerReportStats? _stats;
+  List<FarmerReportItem> _reports = [];
+  bool _isLoading = false;
+  String? _error;
 
-  FarmerReportStats?  get stats     => _stats;
-  List<FarmerReportItem> get reports   => _reports;
-  bool         get isLoading => _isLoading;
-  bool         get isGenerating => _isLoading && _reports.isNotEmpty; 
-  String?      get error     => _error;
+  FarmerReportStats? get stats => _stats;
+  List<FarmerReportItem> get reports => _reports;
+  bool get isLoading => _isLoading;
+  bool get isGenerating => _isLoading && _reports.isNotEmpty;
+  String? get error => _error;
 
   Future<void> load() async {
-    _isLoading = true; _error = null;
+    _isLoading = true;
+    _error = null;
     notifyListeners();
     try {
       final results = await Future.wait([
@@ -50,7 +51,8 @@ class ReportsProvider extends ChangeNotifier {
   }
 
   Future<bool> generate() async {
-    _isLoading = true; notifyListeners();
+    _isLoading = true;
+    notifyListeners();
     try {
       await _svc.generate(userId);
       await load();
@@ -67,8 +69,13 @@ class ReportsProvider extends ChangeNotifier {
   Future<Map<String, dynamic>> generateFarmerReport() async {
     try {
       return await _svc.generateFarmerReport(userId);
-    } catch (_) { return {}; }
+    } catch (_) {
+      return {};
+    }
   }
 
-  void clearError() { _error = null; notifyListeners(); }
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
 }

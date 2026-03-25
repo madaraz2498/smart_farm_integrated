@@ -549,4 +549,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get report_generated_success => 'Report generated successfully';
+
+  @override
+  String get mark_all_as_read => 'Mark all as read';
+
+  @override
+  String get view_all_notifications => 'View all notifications';
+
+  @override
+  String get no_notifications => 'No notifications yet';
+
+  @override
+  String get just_now => 'Just now';
+
+  @override
+  String minutes_ago(String count) {
+    return 'about $count minutes ago';
+  }
+
+  @override
+  String hours_ago(String count) {
+    return 'about $count hours ago';
+  }
+
+  @override
+  String days_ago(String count) {
+    return 'about $count days ago';
+  }
+
+  @override
+  String get delete => 'Delete';
 }

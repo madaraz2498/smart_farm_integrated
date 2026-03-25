@@ -1153,6 +1153,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report generated successfully'**
   String get report_generated_success;
+
+  /// No description provided for @mark_all_as_read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get mark_all_as_read;
+
+  /// No description provided for @view_all_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'View all notifications'**
+  String get view_all_notifications;
+
+  /// No description provided for @no_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get no_notifications;
+
+  /// No description provided for @just_now.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get just_now;
+
+  /// No description provided for @minutes_ago.
+  ///
+  /// In en, this message translates to:
+  /// **'about {count} minutes ago'**
+  String minutes_ago(String count);
+
+  /// No description provided for @hours_ago.
+  ///
+  /// In en, this message translates to:
+  /// **'about {count} hours ago'**
+  String hours_ago(String count);
+
+  /// No description provided for @days_ago.
+  ///
+  /// In en, this message translates to:
+  /// **'about {count} days ago'**
+  String days_ago(String count);
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
 }
 
 class _AppLocalizationsDelegate

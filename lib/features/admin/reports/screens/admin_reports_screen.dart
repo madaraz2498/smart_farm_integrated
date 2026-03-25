@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
+import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../shared/theme/app_theme.dart';
 import '../models/report_model.dart';
 import '../providers/report_provider.dart';
 import '../utils/label_mapper.dart';
+import '../widgets/admin_report_widgets.dart';
 
 class AdminReportsScreen extends StatefulWidget {
   const AdminReportsScreen({super.key});
@@ -32,6 +34,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<AdminReportProvider>();
+    final notifProvider = context.read<NotificationProvider>();
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
     final currentYear = DateTime.now().year.toString();
 
@@ -58,7 +61,12 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
             const SizedBox(height: 24),
 
             // Filter Section
-            _buildFilterCard(context, provider, l10n, isAr),
+            _buildFilterCard(
+              context,
+              provider,
+              l10n,
+              isAr,
+            ),
             const SizedBox(height: 24),
 
             // Main Content
@@ -113,7 +121,12 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                 chart: DailyActivityLineChart(data: provider.activityList),
               ),
               const SizedBox(height: 24),
-              _buildGeneratedReportsCard(context, provider, l10n, isAr),
+              _buildGeneratedReportsCard(
+                context: context,
+                provider: provider,
+                notifProvider: notifProvider,
+                l10n: l10n,
+              ),
               const SizedBox(height: 40),
             ],
           ],
@@ -182,8 +195,12 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
     );
   }
 
-  Widget _buildGeneratedReportsCard(BuildContext context,
-      AdminReportProvider provider, AppLocalizations l10n, bool isAr) {
+  Widget _buildGeneratedReportsCard({
+    required BuildContext context,
+    required AdminReportProvider provider,
+    required NotificationProvider notifProvider,
+    required AppLocalizations l10n,
+  }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -218,46 +235,9 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                   ? null
                   : () async {
                       try {
-                        final fileUrl = await provider.generateNewReport();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(fileUrl != null
-                                  ? l10n.report_generated_success
-                                  : l10n.success_msg),
-                              backgroundColor: AppColors.success,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                              action: fileUrl != null
-                                  ? SnackBarAction(
-                                      label: l10n.download,
-                                      textColor: Colors.white,
-                                      onPressed: () async {
-                                        final uri = Uri.parse(fileUrl.trim());
-                                        if (await canLaunchUrl(uri)) {
-                                          await launchUrl(uri,
-                                              mode: LaunchMode
-                                                  .externalApplication);
-                                        }
-                                      },
-                                    )
-                                  : null,
-                            ),
-                          );
-                        }
+                        await provider.generateNewReport(notifProvider);
                       } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${l10n.error_msg}: $e'),
-                              backgroundColor: AppColors.error,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                            ),
-                          );
-                        }
+                        debugPrint('Error generating report: $e');
                       }
                     },
               style: ElevatedButton.styleFrom(
@@ -287,12 +267,19 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          if (provider.lastGeneratedUrl != null)
-            _buildReportHistoryItem(
-              context,
-              url: provider.lastGeneratedUrl!,
-              time: provider.lastGeneratedTime!,
-              l10n: l10n,
+          if (provider.generatedReports.isNotEmpty)
+            Column(
+              children: provider.generatedReports.map((report) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildReportHistoryItem(
+                    context,
+                    url: report['url'] as String,
+                    time: report['time'] as DateTime,
+                    l10n: l10n,
+                  ),
+                );
+              }).toList(),
             )
           else
             _buildReportHistoryItem(

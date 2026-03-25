@@ -195,5 +195,34 @@
   "download_historical_reports": "تحميل التقارير السابقة",
   "generate_new_report": "إنشاء تقرير جديد",
   "generating_report": "جاري إنشاء التقرير...",
-  "report_generated_success": "تم إنشاء التقرير بنجاح"
+  "report_generated_success": "تم إنشاء التقرير بنجاح",
+  "mark_all_as_read": "تحديد الكل كمقروء",
+  "view_all_notifications": "عرض كل الإشعارات",
+  "no_notifications": "لا توجد إشعارات حالياً",
+  "just_now": "الآن",
+  "minutes_ago": "منذ {count} دقيقة",
+  "@minutes_ago": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "hours_ago": "منذ {count} ساعة",
+  "@hours_ago": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "days_ago": "منذ {count} يوم",
+  "@days_ago": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "حذف"
 }

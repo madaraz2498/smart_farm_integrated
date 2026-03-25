@@ -13,16 +13,18 @@ class AuthWrapper extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     return switch (auth.status) {
       AuthStatus.unknown => const Scaffold(
-          body: Center(child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Loading…', style: TextStyle(color: Color(0xFF6B7280), fontSize: 14)),
-            ],
-          ))),
+            body: Center(
+                child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Loading…',
+                style: TextStyle(color: Color(0xFF6B7280), fontSize: 14)),
+          ],
+        ))),
       AuthStatus.unauthenticated => const LoginScreen(),
-      AuthStatus.authenticated   => const MainLayout(),
+      AuthStatus.authenticated => const MainLayout(),
     };
   }
 }

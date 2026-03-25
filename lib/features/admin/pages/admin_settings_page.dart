@@ -1,6 +1,7 @@
 // lib/features/admin/pages/admin_settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../providers/navigation_provider.dart';
@@ -18,8 +19,6 @@ class AdminSettingsPage extends StatefulWidget {
 
 class _AdminSettingsPageState extends State<AdminSettingsPage> {
   late final TextEditingController _nameCtrl, _emailCtrl, _phoneCtrl;
-  bool _emailNotifications = false;
-  bool _analysisAlerts = true;
 
   @override
   void initState() {
@@ -183,20 +182,32 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               _buildSection(
                 icon: Icons.notifications_none_outlined,
                 title: 'Notification Preferences',
-                child: Column(
-                  children: [
-                    _buildSwitchTile(
-                      title: 'Email Notifications',
-                      value: _emailNotifications,
-                      onChanged: (v) => setState(() => _emailNotifications = v),
-                    ),
-                    const Divider(height: 1, color: AppColors.divider),
-                    _buildSwitchTile(
-                      title: 'Analysis Completion Alerts',
-                      value: _analysisAlerts,
-                      onChanged: (v) => setState(() => _analysisAlerts = v),
-                    ),
-                  ],
+                child: Consumer<NotificationProvider>(
+                  builder: (context, notif, _) => Column(
+                    children: [
+                      _buildSwitchTile(
+                        title: 'Push Notifications',
+                        value: notif.pushEnabled,
+                        onChanged: (v) {
+                          final userId =
+                              context.read<AuthProvider>().currentUser?.id ??
+                                  '1';
+                          notif.updateSettings(userId: userId, push: v);
+                        },
+                      ),
+                      const Divider(height: 1, color: AppColors.divider),
+                      _buildSwitchTile(
+                        title: 'Email Notifications',
+                        value: notif.emailEnabled,
+                        onChanged: (v) {
+                          final userId =
+                              context.read<AuthProvider>().currentUser?.id ??
+                                  '1';
+                          notif.updateSettings(userId: userId, email: v);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
 

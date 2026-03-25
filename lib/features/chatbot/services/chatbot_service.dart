@@ -15,12 +15,13 @@ class ChatbotService {
     required String question,
     required String language,
   }) async {
-    debugPrint('[ChatbotService] POST /chatbot/ask-farm-bot  userId=$userId  lang=$language');
+    debugPrint(
+        '[ChatbotService] POST /chatbot/ask-farm-bot  userId=$userId  lang=$language');
     try {
       final response = await _c.postForm(
         '/chatbot/ask-farm-bot',
         {
-          'user_id':  userId,
+          'user_id': userId,
           'question': question,
           'language': language,
         },
@@ -43,7 +44,10 @@ class ChatbotService {
             .toList();
       }
       return [];
-    } on ApiException { rethrow; }
-    catch (e) { throw const ApiException('Failed to load chat history.'); }
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw const ApiException('Failed to load chat history.');
+    }
   }
 }

@@ -548,4 +548,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get report_generated_success => 'تم إنشاء التقرير بنجاح';
+
+  @override
+  String get mark_all_as_read => 'تحديد الكل كمقروء';
+
+  @override
+  String get view_all_notifications => 'عرض كل الإشعارات';
+
+  @override
+  String get no_notifications => 'لا توجد إشعارات حالياً';
+
+  @override
+  String get just_now => 'الآن';
+
+  @override
+  String minutes_ago(String count) {
+    return 'منذ $count دقيقة';
+  }
+
+  @override
+  String hours_ago(String count) {
+    return 'منذ $count ساعة';
+  }
+
+  @override
+  String days_ago(String count) {
+    return 'منذ $count يوم';
+  }
+
+  @override
+  String get delete => 'حذف';
 }
