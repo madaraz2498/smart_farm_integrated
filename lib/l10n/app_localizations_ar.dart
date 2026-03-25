@@ -87,6 +87,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profile_saved => 'تم حفظ الملف الشخصي.';
 
   @override
+  String get admin_panel => 'لوحة المشرف';
+
+  @override
+  String get main_menu => 'القائمة الرئيسية';
+
+  @override
   String get profile_settings => 'إعدادات الملف الشخصي';
 
   @override
@@ -153,7 +159,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_chatbot => 'روبوت المزرعة الذكي';
 
   @override
-  String get nav_reports => 'التقارير الإحصائية';
+  String get nav_reports => 'تقارير النظام';
 
   @override
   String get admin => 'المسؤول';
@@ -363,4 +369,177 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get no_reports_yet =>
       'لا توجد تقارير بعد. قم بإنشاء تقريرك الأول الآن.';
+
+  @override
+  String get system_reports_subtitle =>
+      'تحليلات وتقارير شاملة لمنصة المزرعة الذكية';
+
+  @override
+  String get report_filters => 'فلاتر التقارير';
+
+  @override
+  String get date_range => 'النطاق الزمني';
+
+  @override
+  String get last_30_days => 'آخر 30 يوماً';
+
+  @override
+  String get last_7_days => 'آخر 7 أيام';
+
+  @override
+  String get last_90_days => 'آخر 90 يوماً';
+
+  @override
+  String get last_year => 'آخر سنة';
+
+  @override
+  String get custom_range => 'نطاق مخصص';
+
+  @override
+  String get total_analyses => 'إجمالي التحليلات';
+
+  @override
+  String get active_users => 'المستخدمون النشطون';
+
+  @override
+  String get ai_services => 'خدمات الذكاء الاصطناعي';
+
+  @override
+  String get avg_response => 'متوسط سرعة الاستجابة';
+
+  @override
+  String get usage_by_service => 'الاستخدام حسب الخدمة';
+
+  @override
+  String get total_analyses_per_service => 'إجمالي التحليلات لكل خدمة';
+
+  @override
+  String get user_growth => 'نمو المستخدمين';
+
+  @override
+  String get new_user_registrations => 'تسجيلات المستخدمين الجدد';
+
+  @override
+  String get daily_activity => 'النشاط اليومي';
+
+  @override
+  String get platform_activity_past_week => 'نشاط المنصة خلال الأسبوع الماضي';
+
+  @override
+  String get generated_reports => 'التقارير المُنشأة';
+
+  @override
+  String get download_historical_reports => 'تحميل التقارير السابقة';
+
+  @override
+  String get generate_new_report => 'إنشاء تقرير جديد';
+
+  @override
+  String get download => 'تحميل';
+
+  @override
+  String get uptime => 'وقت التشغيل';
+
+  @override
+  String get active => 'نشط';
+
+  @override
+  String get admin_dashboard => 'لوحة تحكم المسؤول';
+
+  @override
+  String get admin_dashboard_subtitle =>
+      'المراقبة في الوقت الفعلي وإحصائيات المنصة';
+
+  @override
+  String get recent_activity => 'نشاط النظام الأخير';
+
+  @override
+  String get total_users => 'إجمالي المستخدمين';
+
+  @override
+  String get most_used => 'الأكثر استخداماً';
+
+  @override
+  String get registered => 'مسجل';
+
+  @override
+  String get top => 'الأفضل';
+
+  @override
+  String get total => 'الإجمالي';
+
+  @override
+  String get jan => 'يناير';
+
+  @override
+  String get feb => 'فبراير';
+
+  @override
+  String get mar => 'مارس';
+
+  @override
+  String get apr => 'أبريل';
+
+  @override
+  String get may => 'مايو';
+
+  @override
+  String get jun => 'يونيو';
+
+  @override
+  String get jul => 'يوليو';
+
+  @override
+  String get aug => 'أغسطس';
+
+  @override
+  String get sep => 'سبتمبر';
+
+  @override
+  String get oct => 'أكتوبر';
+
+  @override
+  String get nov => 'نوفمبر';
+
+  @override
+  String get dec => 'ديسمبر';
+
+  @override
+  String get mon => 'الاثنين';
+
+  @override
+  String get tue => 'الثلاثاء';
+
+  @override
+  String get wed => 'الأربعاء';
+
+  @override
+  String get thu => 'الخميس';
+
+  @override
+  String get fri => 'الجمعة';
+
+  @override
+  String get sat => 'السبت';
+
+  @override
+  String get sun => 'الأحد';
+
+  @override
+  String get plant_disease => 'أمراض النبات';
+
+  @override
+  String get animal_weight => 'وزن الحيوان';
+
+  @override
+  String get crop_recommendation => 'توصيات المحاصيل';
+
+  @override
+  String get soil_analysis => 'تحليل التربة';
+
+  @override
+  String get fruit_quality => 'جودة الفاكهة';
+
+  @override
+  String get chatbot => 'المساعد الذكي';
 }

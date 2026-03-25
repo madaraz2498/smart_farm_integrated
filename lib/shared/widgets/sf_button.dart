@@ -10,6 +10,8 @@ class SfPrimaryButton extends StatelessWidget {
     this.isLoading = false,
     this.icon,
     this.color,
+    this.width,
+    this.height,
   });
 
   final String     label;
@@ -17,18 +19,21 @@ class SfPrimaryButton extends StatelessWidget {
   final bool       isLoading;
   final IconData?  icon;
   final Color?     color;
+  final double?    width;
+  final double?    height;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
+      width: width ?? double.infinity,
+      height: height,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? AppColors.primary,
           foregroundColor: Colors.white,
           disabledBackgroundColor: (color ?? AppColors.primary).withValues(alpha: 0.6),
-          padding: const EdgeInsets.symmetric(vertical: 15),
+          padding: EdgeInsets.symmetric(vertical: height != null ? 0 : 15),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
           elevation: 0,
         ),
@@ -50,26 +55,45 @@ class SfPrimaryButton extends StatelessWidget {
 
 /// Full-width outlined button.
 class SfOutlineButton extends StatelessWidget {
-  const SfOutlineButton({super.key, required this.label, required this.onPressed, this.color});
+  const SfOutlineButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.color,
+    this.icon,
+    this.width,
+    this.height,
+  });
+
   final String     label;
   final VoidCallback? onPressed;
   final Color?     color;
+  final IconData?  icon;
+  final double?    width;
+  final double?    height;
 
   @override
   Widget build(BuildContext context) {
     final c = color ?? AppColors.primary;
     return SizedBox(
-      width: double.infinity,
+      width: width ?? double.infinity,
+      height: height,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: c,
           side:    BorderSide(color: c),
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: EdgeInsets.symmetric(vertical: height != null ? 0 : 14),
           shape:   RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
           backgroundColor: c.withValues(alpha: 0.05),
         ),
-        child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        child: icon != null
+            ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(icon, size: 18),
+                const SizedBox(width: 8),
+                Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              ])
+            : Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
       ),
     );
   }

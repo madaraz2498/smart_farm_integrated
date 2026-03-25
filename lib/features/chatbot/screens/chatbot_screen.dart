@@ -11,7 +11,7 @@ class ChatbotScreen extends StatefulWidget {
 }
 
 class _ChatbotScreenState extends State<ChatbotScreen> {
-  final _ctrl   = TextEditingController();
+  final _ctrl = TextEditingController();
   final _scroll = ScrollController();
 
   @override
@@ -23,7 +23,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }
 
   @override
-  void dispose() { _ctrl.dispose(); _scroll.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    _scroll.dispose();
+    super.dispose();
+  }
 
   Future<void> _send() async {
     final prov = context.read<ChatbotProvider>();
@@ -48,61 +52,74 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     final l10n = AppLocalizations.of(context)!;
     return Consumer<ChatbotProvider>(builder: (context, prov, _) {
       return Column(children: [
-          Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              Text(l10n.chatbot_language, style: const TextStyle(fontSize: 13, color: AppColors.textSubtle)),
-              const SizedBox(width: 8),
-              DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: prov.chatLanguage,
-                  isDense: true,
-                  style: const TextStyle(fontSize: 13, color: AppColors.textDark),
-                  items: prov.supportedLanguages.map((l) =>
-                      DropdownMenuItem(value: l, child: Text(l))).toList(),
-                  onChanged: (v) { if (v != null) prov.setLanguage(v); },
-                ),
+        Container(
+          color: AppColors.surface,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+            Text(l10n.chatbot_language,
+                style:
+                    const TextStyle(fontSize: 13, color: AppColors.textSubtle)),
+            const SizedBox(width: 8),
+            DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: prov.chatLanguage,
+                isDense: true,
+                style: const TextStyle(fontSize: 13, color: AppColors.textDark),
+                items: prov.supportedLanguages
+                    .map((l) => DropdownMenuItem(value: l, child: Text(l)))
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) prov.setLanguage(v);
+                },
               ),
-            ]),
-          ),
-
-          if (prov.messages.isEmpty)
-            _SuggestionsBar(onTap: (s) { _ctrl.text = s; _send(); }, chatLanguage: prov.chatLanguage),
-
-          Expanded(
-            child: prov.messages.isEmpty
-                ? _EmptyState(chatLanguage: prov.chatLanguage)
-                : ListView.builder(
-                    controller: _scroll,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: prov.messages.length + (prov.isSending ? 1 : 0),
-                    itemBuilder: (_, i) {
-                      if (i == prov.messages.length) return _TypingIndicator(chatLanguage: prov.chatLanguage);
-                      return _Bubble(msg: prov.messages[i]);
-                    },
-                  ),
-          ),
-
-          _InputBar(ctrl: _ctrl, isSending: prov.isSending, onSend: _send, 
-              hint: prov.chatLanguage == 'Arabic' ? 'اكتب رسالة...' : 'Type a message...'),
-        ]);
-      }
-      );
+            ),
+          ]),
+        ),
+        if (prov.messages.isEmpty)
+          _SuggestionsBar(
+              onTap: (s) {
+                _ctrl.text = s;
+                _send();
+              },
+              chatLanguage: prov.chatLanguage),
+        Expanded(
+          child: prov.messages.isEmpty
+              ? _EmptyState(chatLanguage: prov.chatLanguage)
+              : ListView.builder(
+                  controller: _scroll,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: prov.messages.length + (prov.isSending ? 1 : 0),
+                  itemBuilder: (_, i) {
+                    if (i == prov.messages.length)
+                      return _TypingIndicator(chatLanguage: prov.chatLanguage);
+                    return _Bubble(msg: prov.messages[i]);
+                  },
+                ),
+        ),
+        _InputBar(
+            ctrl: _ctrl,
+            isSending: prov.isSending,
+            onSend: _send,
+            hint: prov.chatLanguage == 'Arabic'
+                ? 'اكتب رسالة...'
+                : 'Type a message...'),
+      ]);
+    });
   }
 }
 
 // ── Quick suggestions ─────────────────────────────────────────────────────────
 
 class _SuggestionsBar extends StatelessWidget {
-  const _SuggestionsBar({super.key, required this.onTap, required this.chatLanguage});
+  const _SuggestionsBar(
+      {super.key, required this.onTap, required this.chatLanguage});
   final ValueChanged<String> onTap;
   final String chatLanguage;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     // Use the selected chat language for suggestions, fallback to app locale if they match
     final isArabic = chatLanguage == 'Arabic';
     final suggestions = isArabic
@@ -123,9 +140,11 @@ class _SuggestionsBar extends StatelessWidget {
       color: AppColors.surface,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(isArabic ? 'أسئلة سريعة:' : 'Quick questions:', style: AppTextStyles.caption),
+        Text(isArabic ? 'أسئلة سريعة:' : 'Quick questions:',
+            style: AppTextStyles.caption),
         const SizedBox(height: 8),
-        SizedBox(height: 34,
+        SizedBox(
+          height: 34,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: suggestions.length,
@@ -133,14 +152,18 @@ class _SuggestionsBar extends StatelessWidget {
             itemBuilder: (_, i) => GestureDetector(
               onTap: () => onTap(suggestions[i]),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color:        AppColors.primarySurface,
+                  color: AppColors.primarySurface,
                   borderRadius: BorderRadius.circular(50),
-                  border:       Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.3)),
                 ),
                 child: Text(suggestions[i],
-                    style: const TextStyle(fontSize: 12, color: AppColors.primary,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w500)),
               ),
             ),
@@ -160,13 +183,21 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isArabic = chatLanguage == 'Arabic';
-    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      const Icon(Icons.chat_bubble_outline_rounded, size: 64, color: AppColors.textDisabled),
+    return Center(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      const Icon(Icons.chat_bubble_outline_rounded,
+          size: 64, color: AppColors.textDisabled),
       const SizedBox(height: 12),
-      Text(isArabic ? 'اسألني أي شيء عن الزراعة!' : 'Ask me anything about farming!',
+      Text(
+          isArabic
+              ? 'اسألني أي شيء عن الزراعة!'
+              : 'Ask me anything about farming!',
           style: const TextStyle(fontSize: 15, color: AppColors.textSubtle)),
       const SizedBox(height: 4),
-      Text(isArabic ? 'المحاصيل، الأمراض، الري، العناية بالتربة...' : 'Crops, diseases, irrigation, soil care...',
+      Text(
+          isArabic
+              ? 'المحاصيل، الأمراض، الري، العناية بالتربة...'
+              : 'Crops, diseases, irrigation, soil care...',
           style: const TextStyle(fontSize: 13, color: AppColors.textDisabled)),
     ]));
   }
@@ -181,11 +212,12 @@ class _Bubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ts = '${msg.timestamp.hour.toString().padLeft(2, '0')}:'
-               '${msg.timestamp.minute.toString().padLeft(2, '0')}';
+        '${msg.timestamp.minute.toString().padLeft(2, '0')}';
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!msg.isUser) _Avatar(isUser: false),
@@ -196,29 +228,43 @@ class _Bubble extends StatelessWidget {
               decoration: BoxDecoration(
                 color: msg.isUser ? AppColors.primary : AppColors.surface,
                 borderRadius: BorderRadius.only(
-                  topLeft:     const Radius.circular(AppSizes.radiusLarge),
-                  topRight:    const Radius.circular(AppSizes.radiusLarge),
-                  bottomLeft:  Radius.circular(msg.isUser ? AppSizes.radiusLarge : 4),
-                  bottomRight: Radius.circular(msg.isUser ? 4 : AppSizes.radiusLarge),
+                  topLeft: const Radius.circular(AppSizes.radiusLarge),
+                  topRight: const Radius.circular(AppSizes.radiusLarge),
+                  bottomLeft:
+                      Radius.circular(msg.isUser ? AppSizes.radiusLarge : 4),
+                  bottomRight:
+                      Radius.circular(msg.isUser ? 4 : AppSizes.radiusLarge),
                 ),
-                border: msg.isUser ? null : Border.all(color: AppColors.cardBorder),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4)],
+                border:
+                    msg.isUser ? null : Border.all(color: AppColors.cardBorder),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 4)
+                ],
               ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(msg.text,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: msg.isUser ? Colors.white
-                          : msg.isError  ? AppColors.error
-                          : AppColors.textMid,
-                      height: 1.5,
-                    )),
-                const SizedBox(height: 4),
-                Text(ts, style: TextStyle(
-                  fontSize: 10,
-                  color: msg.isUser ? Colors.white.withValues(alpha: 0.65) : AppColors.textSubtle,
-                )),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(msg.text,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: msg.isUser
+                              ? Colors.white
+                              : msg.isError
+                                  ? AppColors.error
+                                  : AppColors.textMid,
+                          height: 1.5,
+                        )),
+                    const SizedBox(height: 4),
+                    Text(ts,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: msg.isUser
+                              ? Colors.white.withValues(alpha: 0.65)
+                              : AppColors.textSubtle,
+                        )),
+                  ]),
             ),
           ),
           const SizedBox(width: 8),
@@ -236,14 +282,16 @@ class _Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 32, height: 32,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         color: isUser ? AppColors.primary : AppColors.primarySurface,
         shape: BoxShape.circle,
       ),
       child: Icon(
         isUser ? Icons.person_rounded : Icons.smart_toy_outlined,
-        size: 16, color: isUser ? Colors.white : AppColors.primary,
+        size: 16,
+        color: isUser ? Colors.white : AppColors.primary,
       ),
     );
   }
@@ -265,20 +313,25 @@ class _TypingIndicator extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color:        AppColors.surface,
+            color: AppColors.surface,
             borderRadius: const BorderRadius.only(
-              topLeft:     Radius.circular(AppSizes.radiusLarge),
-              topRight:    Radius.circular(AppSizes.radiusLarge),
+              topLeft: Radius.circular(AppSizes.radiusLarge),
+              topRight: Radius.circular(AppSizes.radiusLarge),
               bottomRight: Radius.circular(AppSizes.radiusLarge),
-              bottomLeft:  Radius.circular(4),
+              bottomLeft: Radius.circular(4),
             ),
             border: Border.all(color: AppColors.cardBorder),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(chatLanguage == 'Arabic' ? 'الروبوت يكتب' : 'Bot is typing', 
-                style: const TextStyle(fontSize: 12, color: AppColors.textSubtle)),
+            Text(chatLanguage == 'Arabic' ? 'الروبوت يكتب' : 'Bot is typing',
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.textSubtle)),
             const SizedBox(width: 8),
-            const _Dot(), const SizedBox(width: 4), const _Dot(), const SizedBox(width: 4), const _Dot(),
+            const _Dot(),
+            const SizedBox(width: 4),
+            const _Dot(),
+            const SizedBox(width: 4),
+            const _Dot(),
           ]),
         ),
       ]),
@@ -291,8 +344,10 @@ class _Dot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 7, height: 7,
-      decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+      width: 7,
+      height: 7,
+      decoration:
+          const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
     );
   }
 }
@@ -300,9 +355,14 @@ class _Dot extends StatelessWidget {
 // ── Input bar ─────────────────────────────────────────────────────────────────
 
 class _InputBar extends StatelessWidget {
-  const _InputBar({super.key, required this.ctrl, required this.isSending, required this.onSend, required this.hint});
+  const _InputBar(
+      {super.key,
+      required this.ctrl,
+      required this.isSending,
+      required this.onSend,
+      required this.hint});
   final TextEditingController ctrl;
-  final bool       isSending;
+  final bool isSending;
   final VoidCallback onSend;
   final String hint;
 
@@ -311,9 +371,14 @@ class _InputBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       decoration: BoxDecoration(
-        color:  AppColors.surface,
+        color: AppColors.surface,
         border: const Border(top: BorderSide(color: AppColors.cardBorder)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, -2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, -2))
+        ],
       ),
       child: Row(children: [
         Expanded(
@@ -328,8 +393,10 @@ class _InputBar extends StatelessWidget {
               style: const TextStyle(fontSize: 14),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: const TextStyle(color: AppColors.textDisabled, fontSize: 13),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                hintStyle: const TextStyle(
+                    color: AppColors.textDisabled, fontSize: 13),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: InputBorder.none,
               ),
               onSubmitted: (_) => onSend(),
@@ -344,9 +411,10 @@ class _InputBar extends StatelessWidget {
 }
 
 class _SendButton extends StatelessWidget {
-  const _SendButton({super.key, required this.onPressed, required this.isLoading});
+  const _SendButton(
+      {super.key, required this.onPressed, required this.isLoading});
   final VoidCallback onPressed;
-  final bool         isLoading;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -354,15 +422,19 @@ class _SendButton extends StatelessWidget {
       onTap: isLoading ? null : onPressed,
       borderRadius: BorderRadius.circular(AppSizes.radiusMid),
       child: Container(
-        width: 44, height: 44,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           color: AppColors.primary,
           borderRadius: BorderRadius.circular(AppSizes.radiusMid),
         ),
         child: Center(
           child: isLoading
-              ? const SizedBox(width: 18, height: 18, 
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
         ),
       ),

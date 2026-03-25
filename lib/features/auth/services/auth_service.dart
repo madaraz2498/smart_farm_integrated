@@ -118,6 +118,7 @@ class AuthService {
       final name   = stored['name']  ?? '';
       final email  = stored['email'] ?? '';
       final id     = stored['id']    ?? '';
+      final role   = (stored['role'] ?? 'farmer').toLowerCase();
 
       // Guard: if cached data is corrupted (id missing or "0"), force re-login.
       // This cleans up stale cache written before the _parse() fix.
@@ -133,8 +134,13 @@ class AuthService {
       }
 
       _c.setToken(token);
-      debugPrint('[AuthService] session restored for $name (id=$id)');
-      return UserModel(id: id, name: name.isNotEmpty ? name : email.split('@').first, email: email);
+      debugPrint('[AuthService] session restored for $name (id=$id, role=$role)');
+      return UserModel(
+        id:    id, 
+        name:  name.isNotEmpty ? name : email.split('@').first, 
+        email: email,
+        role:  role == 'admin' ? UserRole.admin : UserRole.farmer,
+      );
     } catch (_) {
       await _clear();
       return null;
@@ -192,14 +198,20 @@ class AuthService {
     if (!resp.hasToken) return AuthResult.fail('No token received from server.');
     _c.setToken(resp.accessToken);
     final email = resp.email.isNotEmpty ? resp.email : fallbackEmail;
-    debugPrint('[AuthService] _persist → userId=${resp.userId}, name=${resp.displayName}, email=$email');
+    debugPrint('[AuthService] _persist → userId=${resp.userId}, name=${resp.displayName}, email=$email, role=${resp.role}');
     await TokenStorage.save(
       token:     resp.accessToken,
       userId:    resp.userId,
       userName:  resp.displayName,
       userEmail: email,
+      userRole:  resp.role,
     );
-    return AuthResult.ok(UserModel(id: resp.userId, name: resp.displayName, email: email));
+    return AuthResult.ok(UserModel(
+      id:    resp.userId,
+      name:  resp.displayName,
+      email: email,
+      role:  resp.userRole,
+    ));
   }
 
   Future<void> _clear() async {

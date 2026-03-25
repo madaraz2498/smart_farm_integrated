@@ -88,6 +88,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile_saved => 'Profile saved.';
 
   @override
+  String get admin_panel => 'ADMIN PANEL';
+
+  @override
+  String get main_menu => 'MAIN MENU';
+
+  @override
   String get profile_settings => 'Profile Settings';
 
   @override
@@ -154,7 +160,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_chatbot => 'Smart Farm Chatbot';
 
   @override
-  String get nav_reports => 'Statistical Reports';
+  String get nav_reports => 'System Reports';
 
   @override
   String get admin => 'Admin';
@@ -363,4 +369,178 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get no_reports_yet =>
       'No reports yet. Generate your first report now.';
+
+  @override
+  String get system_reports_subtitle =>
+      'Comprehensive analytics and reporting for the Smart Farm AI platform';
+
+  @override
+  String get report_filters => 'Report Filters';
+
+  @override
+  String get date_range => 'Date Range';
+
+  @override
+  String get last_30_days => 'Last 30 Days';
+
+  @override
+  String get last_7_days => 'Last 7 Days';
+
+  @override
+  String get last_90_days => 'Last 90 Days';
+
+  @override
+  String get last_year => 'Last Year';
+
+  @override
+  String get custom_range => 'Custom Range';
+
+  @override
+  String get total_analyses => 'Total Analyses';
+
+  @override
+  String get active_users => 'Active Users';
+
+  @override
+  String get ai_services => 'AI Services';
+
+  @override
+  String get avg_response => 'Avg Response';
+
+  @override
+  String get usage_by_service => 'Usage by Service';
+
+  @override
+  String get total_analyses_per_service => 'Total analyses per service';
+
+  @override
+  String get user_growth => 'User Growth';
+
+  @override
+  String get new_user_registrations => 'New user registrations';
+
+  @override
+  String get daily_activity => 'Daily Activity';
+
+  @override
+  String get platform_activity_past_week =>
+      'Platform activity over the past week';
+
+  @override
+  String get generated_reports => 'Generated Reports';
+
+  @override
+  String get download_historical_reports => 'Download historical reports';
+
+  @override
+  String get generate_new_report => 'Generate New Report';
+
+  @override
+  String get download => 'Download';
+
+  @override
+  String get uptime => 'uptime';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get admin_dashboard => 'Admin Dashboard';
+
+  @override
+  String get admin_dashboard_subtitle =>
+      'Real-time monitoring and platform statistics';
+
+  @override
+  String get recent_activity => 'Recent System Activity';
+
+  @override
+  String get total_users => 'Total Users';
+
+  @override
+  String get most_used => 'Most Used';
+
+  @override
+  String get registered => 'registered';
+
+  @override
+  String get top => 'Top';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get jan => 'Jan';
+
+  @override
+  String get feb => 'Feb';
+
+  @override
+  String get mar => 'Mar';
+
+  @override
+  String get apr => 'Apr';
+
+  @override
+  String get may => 'May';
+
+  @override
+  String get jun => 'Jun';
+
+  @override
+  String get jul => 'Jul';
+
+  @override
+  String get aug => 'Aug';
+
+  @override
+  String get sep => 'Sep';
+
+  @override
+  String get oct => 'Oct';
+
+  @override
+  String get nov => 'Oct';
+
+  @override
+  String get dec => 'Dec';
+
+  @override
+  String get mon => 'Mon';
+
+  @override
+  String get tue => 'Tue';
+
+  @override
+  String get wed => 'Wed';
+
+  @override
+  String get thu => 'Thu';
+
+  @override
+  String get fri => 'Fri';
+
+  @override
+  String get sat => 'Sat';
+
+  @override
+  String get sun => 'Sun';
+
+  @override
+  String get plant_disease => 'Plant Disease';
+
+  @override
+  String get animal_weight => 'Animal Weight';
+
+  @override
+  String get crop_recommendation => 'Crop Recommendation';
+
+  @override
+  String get soil_analysis => 'Soil Analysis';
+
+  @override
+  String get fruit_quality => 'Fruit Quality';
+
+  @override
+  String get chatbot => 'Chatbot';
 }

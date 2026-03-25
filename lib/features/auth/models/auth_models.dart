@@ -5,6 +5,8 @@
 //     POST /login    → { "email": "...", "password": "..." }
 //     POST /register → { "username": "...", "email": "...", "password": "..." }
 
+import 'package:smart_farm/shared/models/user_model.dart';
+
 class LoginRequest {
   const LoginRequest({required this.email, required this.password});
   final String email, password;
@@ -39,6 +41,7 @@ class AuthResponse {
     required this.userId,
     required this.username,
     required this.email,
+    this.role = 'farmer',
     this.message,
   });
 
@@ -47,12 +50,14 @@ class AuthResponse {
         userId:      (j['user_id'] ?? j['id'] ?? 0).toString(),
         username:    j['username']  as String? ?? j['name'] as String? ?? '',
         email:       j['email']     as String? ?? '',
+        role:        j['role']      as String? ?? 'farmer',
         message:     j['message']   as String? ?? j['detail'] as String?,
       );
 
-  final String  accessToken, userId, username, email;
+  final String  accessToken, userId, username, email, role;
   final String? message;
 
   bool   get hasToken    => accessToken.isNotEmpty;
   String get displayName => username.isNotEmpty ? username : email.split('@').first;
+  UserRole get userRole  => role.toLowerCase() == 'admin' ? UserRole.admin : UserRole.farmer;
 }

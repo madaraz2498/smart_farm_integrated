@@ -254,6 +254,18 @@ abstract class AppLocalizations {
   /// **'Profile saved.'**
   String get profile_saved;
 
+  /// No description provided for @admin_panel.
+  ///
+  /// In en, this message translates to:
+  /// **'ADMIN PANEL'**
+  String get admin_panel;
+
+  /// No description provided for @main_menu.
+  ///
+  /// In en, this message translates to:
+  /// **'MAIN MENU'**
+  String get main_menu;
+
   /// No description provided for @profile_settings.
   ///
   /// In en, this message translates to:
@@ -389,7 +401,7 @@ abstract class AppLocalizations {
   /// No description provided for @nav_reports.
   ///
   /// In en, this message translates to:
-  /// **'Statistical Reports'**
+  /// **'System Reports'**
   String get nav_reports;
 
   /// No description provided for @admin.
@@ -787,6 +799,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No reports yet. Generate your first report now.'**
   String get no_reports_yet;
+
+  /// No description provided for @system_reports_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comprehensive analytics and reporting for the Smart Farm AI platform'**
+  String get system_reports_subtitle;
+
+  /// No description provided for @report_filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Filters'**
+  String get report_filters;
+
+  /// No description provided for @date_range.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Range'**
+  String get date_range;
+
+  /// No description provided for @last_30_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 Days'**
+  String get last_30_days;
+
+  /// No description provided for @last_7_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 Days'**
+  String get last_7_days;
+
+  /// No description provided for @last_90_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 Days'**
+  String get last_90_days;
+
+  /// No description provided for @last_year.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Year'**
+  String get last_year;
+
+  /// No description provided for @custom_range.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Range'**
+  String get custom_range;
+
+  /// No description provided for @total_analyses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Analyses'**
+  String get total_analyses;
+
+  /// No description provided for @active_users.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Users'**
+  String get active_users;
+
+  /// No description provided for @ai_services.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Services'**
+  String get ai_services;
+
+  /// No description provided for @avg_response.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Response'**
+  String get avg_response;
+
+  /// No description provided for @usage_by_service.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage by Service'**
+  String get usage_by_service;
+
+  /// No description provided for @total_analyses_per_service.
+  ///
+  /// In en, this message translates to:
+  /// **'Total analyses per service'**
+  String get total_analyses_per_service;
+
+  /// No description provided for @user_growth.
+  ///
+  /// In en, this message translates to:
+  /// **'User Growth'**
+  String get user_growth;
+
+  /// No description provided for @new_user_registrations.
+  ///
+  /// In en, this message translates to:
+  /// **'New user registrations'**
+  String get new_user_registrations;
+
+  /// No description provided for @daily_activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Activity'**
+  String get daily_activity;
+
+  /// No description provided for @platform_activity_past_week.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform activity over the past week'**
+  String get platform_activity_past_week;
+
+  /// No description provided for @generated_reports.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated Reports'**
+  String get generated_reports;
+
+  /// No description provided for @download_historical_reports.
+  ///
+  /// In en, this message translates to:
+  /// **'Download historical reports'**
+  String get download_historical_reports;
+
+  /// No description provided for @generate_new_report.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate New Report'**
+  String get generate_new_report;
+
+  /// No description provided for @download.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get download;
+
+  /// No description provided for @uptime.
+  ///
+  /// In en, this message translates to:
+  /// **'uptime'**
+  String get uptime;
+
+  /// No description provided for @active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// No description provided for @admin_dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Dashboard'**
+  String get admin_dashboard;
+
+  /// No description provided for @admin_dashboard_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Real-time monitoring and platform statistics'**
+  String get admin_dashboard_subtitle;
+
+  /// No description provided for @recent_activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent System Activity'**
+  String get recent_activity;
+
+  /// No description provided for @total_users.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Users'**
+  String get total_users;
+
+  /// No description provided for @most_used.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Used'**
+  String get most_used;
+
+  /// No description provided for @registered.
+  ///
+  /// In en, this message translates to:
+  /// **'registered'**
+  String get registered;
+
+  /// No description provided for @top.
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get top;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @jan.
+  ///
+  /// In en, this message translates to:
+  /// **'Jan'**
+  String get jan;
+
+  /// No description provided for @feb.
+  ///
+  /// In en, this message translates to:
+  /// **'Feb'**
+  String get feb;
+
+  /// No description provided for @mar.
+  ///
+  /// In en, this message translates to:
+  /// **'Mar'**
+  String get mar;
+
+  /// No description provided for @apr.
+  ///
+  /// In en, this message translates to:
+  /// **'Apr'**
+  String get apr;
+
+  /// No description provided for @may.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get may;
+
+  /// No description provided for @jun.
+  ///
+  /// In en, this message translates to:
+  /// **'Jun'**
+  String get jun;
+
+  /// No description provided for @jul.
+  ///
+  /// In en, this message translates to:
+  /// **'Jul'**
+  String get jul;
+
+  /// No description provided for @aug.
+  ///
+  /// In en, this message translates to:
+  /// **'Aug'**
+  String get aug;
+
+  /// No description provided for @sep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sep'**
+  String get sep;
+
+  /// No description provided for @oct.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct'**
+  String get oct;
+
+  /// No description provided for @nov.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct'**
+  String get nov;
+
+  /// No description provided for @dec.
+  ///
+  /// In en, this message translates to:
+  /// **'Dec'**
+  String get dec;
+
+  /// No description provided for @mon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get mon;
+
+  /// No description provided for @tue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get tue;
+
+  /// No description provided for @wed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get wed;
+
+  /// No description provided for @thu.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get thu;
+
+  /// No description provided for @fri.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get fri;
+
+  /// No description provided for @sat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get sat;
+
+  /// No description provided for @sun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get sun;
+
+  /// No description provided for @plant_disease.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant Disease'**
+  String get plant_disease;
+
+  /// No description provided for @animal_weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Animal Weight'**
+  String get animal_weight;
+
+  /// No description provided for @crop_recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop Recommendation'**
+  String get crop_recommendation;
+
+  /// No description provided for @soil_analysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Soil Analysis'**
+  String get soil_analysis;
+
+  /// No description provided for @fruit_quality.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruit Quality'**
+  String get fruit_quality;
+
+  /// No description provided for @chatbot.
+  ///
+  /// In en, this message translates to:
+  /// **'Chatbot'**
+  String get chatbot;
 }
 
 class _AppLocalizationsDelegate

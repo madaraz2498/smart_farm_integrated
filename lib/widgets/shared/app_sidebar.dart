@@ -75,14 +75,17 @@ class _SidebarContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
     return Column(children: [
       _SidebarHeader(isAdmin: isAdmin, userName: userName),
       Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
         child: Align(
-          alignment: Alignment.centerLeft,
+          alignment: isRtl ? Alignment.centerRight : Alignment.centerLeft,
           child: Text(
-            isAdmin ? 'ADMIN PANEL' : 'MAIN MENU',
+            isAdmin ? l10n.admin_panel : l10n.main_menu,
             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
                 letterSpacing: 1.2, color: AppColors.textSubtle),
           ),
@@ -103,7 +106,7 @@ class _SidebarContent extends StatelessWidget {
       final meta = NavigationProvider.adminPages[i];
       final isSelected = nav.adminIndex == i;
       final label = switch (meta.page) {
-        AdminPage.dashboard => l10n.nav_reports,
+        AdminPage.dashboard => l10n.admin_dashboard,
         AdminPage.userManagement => 'User Management',
         AdminPage.systemManagement => 'System Management',
         AdminPage.systemReports => l10n.nav_reports,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/admin_provider.dart';
 import '../models/admin_models.dart';
 import '../../../shared/theme/app_theme.dart';
@@ -30,12 +31,18 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSizes.pagePadding),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('User Management', style: AppTextStyles.pageTitle),
+        Row(children: [
+          const Icon(Icons.people_outline_rounded, color: AppColors.primary, size: 24),
+          const SizedBox(width: 12),
+          Text('User Management', style: AppTextStyles.pageTitle),
+        ]),
         const SizedBox(height: 4),
-        const Text('Manage users, roles, and permissions', style: AppTextStyles.pageSubtitle),
+        Text('Manage users, roles, and permissions', style: AppTextStyles.pageSubtitle),
         const SizedBox(height: 24),
 
         // Search bar
@@ -43,10 +50,18 @@ class _UserManagementPageState extends State<UserManagementPage> {
           onChanged: (v) => setState(() => _query = v.toLowerCase()),
           decoration: InputDecoration(
             hintText: 'Search by name or email...',
-            prefixIcon: const Icon(Icons.search),
-            filled: true, fillColor: AppColors.surface,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none),
+            prefixIcon: const Icon(Icons.search, color: AppColors.textSubtle),
+            filled: true, 
+            fillColor: AppColors.surface,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+              borderSide: const BorderSide(color: AppColors.cardBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+              borderSide: const BorderSide(color: AppColors.cardBorder),
+            ),
           ),
         ),
         const SizedBox(height: 24),
@@ -68,27 +83,46 @@ class _UserManagementPageState extends State<UserManagementPage> {
           if (filtered.isEmpty) return const _EmptyState();
 
           return Container(
-            decoration: BoxDecoration(color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-                border: Border.all(color: AppColors.cardBorder)),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+              border: Border.all(color: AppColors.cardBorder),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
+            ),
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                dividerTheme: const DividerThemeData(color: AppColors.cardBorder),
+              ),
               child: DataTable(
                 horizontalMargin: 20,
+                headingTextStyle: AppTextStyles.tableHeader,
+                dataTextStyle: const TextStyle(fontSize: 13, color: AppColors.textDark),
                 columns: const [
-                  DataColumn(label: Text('USER',    style: AppTextStyles.tableHeader)),
-                  DataColumn(label: Text('EMAIL',   style: AppTextStyles.tableHeader)),
-                  DataColumn(label: Text('ROLE',    style: AppTextStyles.tableHeader)),
-                  DataColumn(label: Text('STATUS',  style: AppTextStyles.tableHeader)),
-                  DataColumn(label: Text('ACTIONS', style: AppTextStyles.tableHeader)),
+                  DataColumn(label: Text('USER')),
+                  DataColumn(label: Text('EMAIL')),
+                  DataColumn(label: Text('ROLE')),
+                  DataColumn(label: Text('STATUS')),
+                  DataColumn(label: Text('ACTIONS')),
                 ],
                 rows: filtered.map((u) => DataRow(cells: [
-                  DataCell(Text(u.displayName)),
+                  DataCell(Text(u.displayName, style: const TextStyle(fontWeight: FontWeight.w600))),
                   DataCell(Text(u.email)),
-                  DataCell(Text(u.displayRole)),
+                  DataCell(Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: u.isAdmin ? AppColors.primarySurface : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(u.displayRole, style: TextStyle(
+                      fontSize: 11, 
+                      fontWeight: FontWeight.bold,
+                      color: u.isAdmin ? AppColors.primary : AppColors.textSubtle,
+                    )),
+                  )),
                   DataCell(_StatusBadge(isActive: u.isActive)),
                   DataCell(Builder(builder: (ctx) => IconButton(
-                    icon: const Icon(Icons.more_vert),
+                    icon: const Icon(Icons.more_horiz, color: AppColors.textSubtle),
                     onPressed: () => _showMenu(ctx, u, prov),
                   ))),
                 ])).toList(),
@@ -100,44 +134,54 @@ class _UserManagementPageState extends State<UserManagementPage> {
     );
   }
 
-  void _showMenu(BuildContext ctx, AdminUser user, AdminProvider prov) {
-    final box     = ctx.findRenderObject() as RenderBox;
-    final overlay = Overlay.of(ctx).context.findRenderObject() as RenderBox;
+  void _showMenu(BuildContext ctx, AdminUser u, AdminProvider prov) {
+    final RenderBox button = ctx.findRenderObject() as RenderBox;
+    final RenderBox overlay = Overlay.of(ctx).context.findRenderObject() as RenderBox;
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(Offset.zero, ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+
     showMenu(
       context: ctx,
+      position: position,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(box.localToGlobal(Offset.zero, ancestor: overlay),
-            box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay)),
-        Offset.zero & overlay.size,
-      ),
+      elevation: 8,
       items: [
-        PopupMenuItem(
-          value: user.isActive ? 'deactivate' : 'activate',
+        if (!u.isAdmin) PopupMenuItem(
           onTap: () async {
-            final ok = user.isActive
-                ? await prov.deactivateUser(user.id)
-                : await prov.activateUser(user.id);
-            _snack(ok ? (user.isActive ? 'User deactivated.' : 'User activated.')
-                : (prov.usersError ?? 'Failed.'), ok: ok);
+            final ok = await prov.promoteToAdmin(u.id);
+            _snack(ok ? 'Promoted to Admin' : 'Failed to promote');
           },
-          child: Row(children: [
-            Icon(user.isActive ? Icons.person_off_outlined : Icons.person_outlined,
-                size: 18, color: user.isActive ? AppColors.warning : AppColors.primary),
-            const SizedBox(width: 8),
-            Text(user.isActive ? 'Deactivate' : 'Activate'),
+          child: const Row(children: [
+            Icon(Icons.admin_panel_settings_outlined, size: 18),
+            SizedBox(width: 12),
+            Text('Promote to Admin'),
           ]),
         ),
         PopupMenuItem(
-          value: 'delete',
           onTap: () async {
-            final ok = await prov.deleteUser(user.id);
-            _snack(ok ? 'User deleted.' : (prov.usersError ?? 'Failed.'), ok: ok);
+            final ok = u.isActive ? await prov.deactivateUser(u.id) : await prov.activateUser(u.id);
+            _snack(ok ? (u.isActive ? 'Deactivated' : 'Activated') : 'Operation failed');
+          },
+          child: Row(children: [
+            Icon(u.isActive ? Icons.block : Icons.check_circle_outline, size: 18),
+            SizedBox(width: 12),
+            Text(u.isActive ? 'Deactivate User' : 'Activate User'),
+          ]),
+        ),
+        PopupMenuItem(
+          onTap: () async {
+            final ok = await prov.deleteUser(u.id);
+            _snack(ok ? 'User deleted' : 'Failed to delete');
           },
           child: const Row(children: [
-            Icon(Icons.delete_forever_outlined, size: 18, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Delete User', style: TextStyle(color: Colors.red)),
+            Icon(Icons.delete_outline, color: AppColors.error, size: 18),
+            SizedBox(width: 12),
+            Text('Delete User', style: TextStyle(color: AppColors.error)),
           ]),
         ),
       ],
@@ -150,41 +194,52 @@ class _StatusBadge extends StatelessWidget {
   final bool isActive;
   @override
   Widget build(BuildContext context) {
+    final color = isActive ? AppColors.primary : AppColors.error;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isActive ? AppColors.primarySurface : const Color(0xFFFEF2F2),
-        borderRadius: BorderRadius.circular(50),
-        border: Border.all(color: isActive ? AppColors.primary.withOpacity(0.3) : AppColors.error.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
-      child: Text(isActive ? 'Active' : 'Inactive',
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500,
-              color: isActive ? AppColors.primary : AppColors.error)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          const SizedBox(width: 6),
+          Text(isActive ? 'Active' : 'Inactive', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 }
 
 class _ErrorState extends StatelessWidget {
   const _ErrorState({required this.message, required this.onRetry});
-  final String message; final VoidCallback onRetry;
+  final String message;
+  final VoidCallback onRetry;
   @override
-  Widget build(BuildContext context) => Center(child: Padding(
-    padding: const EdgeInsets.all(32),
-    child: Column(children: [
-      const Icon(Icons.error_outline, color: AppColors.error, size: 48),
-      const SizedBox(height: 12),
-      Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textSubtle)),
-      const SizedBox(height: 16),
-      ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
-    ]),
-  ));
+  Widget build(BuildContext context) => Center(child: Column(children: [
+    const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+    const SizedBox(height: 16),
+    Text(message, style: const TextStyle(color: AppColors.textSubtle)),
+    TextButton(onPressed: onRetry, child: const Text('Retry')),
+  ]));
 }
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
   @override
-  Widget build(BuildContext context) => const Center(child: Padding(
-    padding: EdgeInsets.all(32),
-    child: Text('No users found.', style: TextStyle(color: AppColors.textSubtle)),
-  ));
+  Widget build(BuildContext context) => const Center(
+    child: Padding(
+      padding: EdgeInsets.all(48.0),
+      child: Column(
+        children: [
+          Icon(Icons.search_off_rounded, size: 48, color: AppColors.textDisabled),
+          SizedBox(height: 16),
+          Text('No users found matching your search.', style: TextStyle(color: AppColors.textSubtle)),
+        ],
+      ),
+    ),
+  );
 }
