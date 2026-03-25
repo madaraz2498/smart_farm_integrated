@@ -8,19 +8,25 @@ class LabelMapper {
 
     if (cleanLabel.contains('plant') ||
         cleanLabel.contains('disease') ||
-        cleanLabel.contains('نبات')) return l10n.plant_disease;
+        cleanLabel.contains('نبات') ||
+        cleanLabel.contains('ﺕﺎﺒﻨﻟﺍ')) return l10n.plant_disease;
     if (cleanLabel.contains('animal') ||
         cleanLabel.contains('weight') ||
-        cleanLabel.contains('حيوان')) return l10n.animal_weight;
-    if (cleanLabel.contains('crop') || cleanLabel.contains('محاصيل'))
-      return l10n.crop_recommendation;
-    if (cleanLabel.contains('soil') || cleanLabel.contains('تربة'))
-      return l10n.soil_analysis;
-    if (cleanLabel.contains('fruit') || cleanLabel.contains('فاكهة'))
-      return l10n.fruit_quality;
+        cleanLabel.contains('حيوان') ||
+        cleanLabel.contains('ﺔﻴﺷﺎﻤﻟﺍ')) return l10n.animal_weight;
+    if (cleanLabel.contains('crop') ||
+        cleanLabel.contains('محاصيل') ||
+        cleanLabel.contains('ﻞﻴﺻﺎﺤﻤﻟﺍ')) return l10n.crop_recommendation;
+    if (cleanLabel.contains('soil') ||
+        cleanLabel.contains('تربة') ||
+        cleanLabel.contains('ﺔﺑﺮﺘﻟﺍ')) return l10n.soil_analysis;
+    if (cleanLabel.contains('fruit') ||
+        cleanLabel.contains('فاكهة') ||
+        cleanLabel.contains('ﺔﻬﻛﺎﻔﻟﺍ')) return l10n.fruit_quality;
     if (cleanLabel.contains('chat') ||
         cleanLabel.contains('مساعد') ||
-        cleanLabel.contains('بوت')) return l10n.chatbot;
+        cleanLabel.contains('بوت') ||
+        cleanLabel.contains('ﻲﻛﺬﻟﺍ')) return l10n.chatbot;
 
     return apiLabel;
   }

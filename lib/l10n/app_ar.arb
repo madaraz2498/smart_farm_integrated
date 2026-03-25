@@ -185,5 +185,15 @@
   "crop_recommendation": "توصيات المحاصيل",
   "soil_analysis": "تحليل التربة",
   "fruit_quality": "جودة الفاكهة",
-  "chatbot": "المساعد الذكي"
+  "chatbot": "المساعد الذكي",
+  "report_filters": "فلاتر التقارير",
+  "date_range": "النطاق الزمني",
+  "last_7_days": "آخر 7 أيام",
+  "last_30_days": "آخر 30 يوم",
+  "last_year": "آخر سنة",
+  "generated_reports": "التقارير المنشأة",
+  "download_historical_reports": "تحميل التقارير السابقة",
+  "generate_new_report": "إنشاء تقرير جديد",
+  "generating_report": "جاري إنشاء التقرير...",
+  "report_generated_success": "تم إنشاء التقرير بنجاح"
 }

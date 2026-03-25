@@ -381,7 +381,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get date_range => 'النطاق الزمني';
 
   @override
-  String get last_30_days => 'آخر 30 يوماً';
+  String get last_30_days => 'آخر 30 يوم';
 
   @override
   String get last_7_days => 'آخر 7 أيام';
@@ -426,7 +426,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get platform_activity_past_week => 'نشاط المنصة خلال الأسبوع الماضي';
 
   @override
-  String get generated_reports => 'التقارير المُنشأة';
+  String get generated_reports => 'التقارير المنشأة';
 
   @override
   String get download_historical_reports => 'تحميل التقارير السابقة';
@@ -542,4 +542,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatbot => 'المساعد الذكي';
+
+  @override
+  String get generating_report => 'جاري إنشاء التقرير...';
+
+  @override
+  String get report_generated_success => 'تم إنشاء التقرير بنجاح';
 }

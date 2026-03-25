@@ -1141,6 +1141,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chatbot'**
   String get chatbot;
+
+  /// No description provided for @generating_report.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating report...'**
+  String get generating_report;
+
+  /// No description provided for @report_generated_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Report generated successfully'**
+  String get report_generated_success;
 }
 
 class _AppLocalizationsDelegate

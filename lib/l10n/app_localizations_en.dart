@@ -543,4 +543,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatbot => 'Chatbot';
+
+  @override
+  String get generating_report => 'Generating report...';
+
+  @override
+  String get report_generated_success => 'Report generated successfully';
 }

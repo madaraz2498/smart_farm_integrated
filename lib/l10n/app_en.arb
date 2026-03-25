@@ -185,5 +185,15 @@
   "crop_recommendation": "Crop Recommendation",
   "soil_analysis": "Soil Analysis",
   "fruit_quality": "Fruit Quality",
-  "chatbot": "Chatbot"
+  "chatbot": "Chatbot",
+  "report_filters": "Report Filters",
+  "date_range": "Date Range",
+  "last_7_days": "Last 7 Days",
+  "last_30_days": "Last 30 Days",
+  "last_year": "Last Year",
+  "generated_reports": "Generated Reports",
+  "download_historical_reports": "Download historical reports",
+  "generate_new_report": "Generate New Report",
+  "generating_report": "Generating report...",
+  "report_generated_success": "Report generated successfully"
 }

@@ -2,8 +2,10 @@
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../shared/theme/app_theme.dart';
 import '../models/report_model.dart';
@@ -53,6 +55,10 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                     ? 'تحليل مقاييس النظام والنمو لعام $currentYear'
                     : 'System metrics and growth analysis for $currentYear',
                 style: AppTextStyles.pageSubtitle),
+            const SizedBox(height: 24),
+
+            // Filter Section
+            _buildFilterCard(context, provider, l10n, isAr),
             const SizedBox(height: 24),
 
             // Main Content
@@ -106,10 +112,256 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                     : 'Active interactions in the last 7 days',
                 chart: DailyActivityLineChart(data: provider.activityList),
               ),
+              const SizedBox(height: 24),
+              _buildGeneratedReportsCard(context, provider, l10n, isAr),
               const SizedBox(height: 40),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFilterCard(BuildContext context, AdminReportProvider provider,
+      AppLocalizations l10n, bool isAr) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.filter_list_rounded,
+                  color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(l10n.report_filters, style: AppTextStyles.cardTitle),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(l10n.date_range, style: AppTextStyles.label),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: provider.selectedRange,
+            decoration: InputDecoration(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.cardBorder),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.cardBorder),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+              filled: true,
+              fillColor: AppColors.background,
+            ),
+            items: [
+              DropdownMenuItem(
+                  value: 'last_7_days', child: Text(l10n.last_7_days)),
+              DropdownMenuItem(
+                  value: 'last_30_days', child: Text(l10n.last_30_days)),
+              DropdownMenuItem(value: 'last_year', child: Text(l10n.last_year)),
+            ],
+            onChanged: (value) {
+              if (value != null) provider.setRange(value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeneratedReportsCard(BuildContext context,
+      AdminReportProvider provider, AppLocalizations l10n, bool isAr) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.generated_reports, style: AppTextStyles.cardTitle),
+                  const SizedBox(height: 4),
+                  Text(l10n.download_historical_reports,
+                      style: AppTextStyles.caption),
+                ],
+              ),
+              const Icon(Icons.history_rounded, color: AppColors.textDisabled),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: provider.isGenerating
+                  ? null
+                  : () async {
+                      try {
+                        final fileUrl = await provider.generateNewReport();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(fileUrl != null
+                                  ? l10n.report_generated_success
+                                  : l10n.success_msg),
+                              backgroundColor: AppColors.success,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              action: fileUrl != null
+                                  ? SnackBarAction(
+                                      label: l10n.download,
+                                      textColor: Colors.white,
+                                      onPressed: () async {
+                                        final uri = Uri.parse(fileUrl.trim());
+                                        if (await canLaunchUrl(uri)) {
+                                          await launchUrl(uri,
+                                              mode: LaunchMode
+                                                  .externalApplication);
+                                        }
+                                      },
+                                    )
+                                  : null,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${l10n.error_msg}: $e'),
+                              backgroundColor: AppColors.error,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          );
+                        }
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)),
+                elevation: 0,
+              ),
+              child: provider.isGenerating
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.add_chart_rounded),
+                        const SizedBox(width: 10),
+                        Text(l10n.generate_new_report,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
+                      ],
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (provider.lastGeneratedUrl != null)
+            _buildReportHistoryItem(
+              context,
+              url: provider.lastGeneratedUrl!,
+              time: provider.lastGeneratedTime!,
+              l10n: l10n,
+            )
+          else
+            _buildReportHistoryItem(
+              context,
+              url: 'Annual_Farm_Report_2025.pdf',
+              time: DateTime(2025, 3, 20),
+              l10n: l10n,
+              isMock: true,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportHistoryItem(
+    BuildContext context, {
+    required String url,
+    required DateTime time,
+    required AppLocalizations l10n,
+    bool isMock = false,
+  }) {
+    final fileName = url.split('/').last;
+    final formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(time);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.picture_as_pdf_rounded,
+                color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(fileName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w500)),
+                Text('${isMock ? "2.4 MB" : "PDF"} • $formattedDate',
+                    style: AppTextStyles.caption),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: isMock
+                ? null
+                : () async {
+                    final uri = Uri.parse(url.trim());
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri,
+                          mode: LaunchMode.externalApplication);
+                    }
+                  },
+            icon: const Icon(Icons.download_rounded, color: AppColors.primary),
+          ),
+        ],
       ),
     );
   }
@@ -179,8 +431,12 @@ class ServiceUsageBarChart extends StatelessWidget {
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final label = LabelMapper.getLocalizedService(
                   data[groupIndex].service, l10n);
+              final isLabelArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(label);
+              // Use RTL marker for Arabic text in tooltips
+              final formattedLabel = isLabelArabic ? '\u200F$label' : label;
+
               return BarTooltipItem(
-                '$label\n',
+                '$formattedLabel\n',
                 const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -213,13 +469,16 @@ class ServiceUsageBarChart extends StatelessWidget {
                 final rawLabel = data[index].service;
                 final localizedLabel =
                     LabelMapper.getLocalizedService(rawLabel, l10n);
+                final isLabelArabic =
+                    RegExp(r'[\u0600-\u06FF]').hasMatch(localizedLabel);
 
                 return SideTitleWidget(
                   axisSide: meta.axisSide,
                   space: 12,
                   angle: isAr ? 0.4 : -0.4,
                   child: Directionality(
-                    textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+                    textDirection:
+                        isLabelArabic ? TextDirection.rtl : TextDirection.ltr,
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 70),
                       child: Text(
@@ -287,8 +546,12 @@ class UserGrowthLineChart extends StatelessWidget {
               return touchedSpots.map((spot) {
                 final month = LabelMapper.getLocalizedMonth(
                     data[spot.x.toInt()].month, l10n);
+                final isLabelArabic =
+                    RegExp(r'[\u0600-\u06FF]').hasMatch(month);
+                final label = isLabelArabic ? '\u200F$month' : month;
+
                 return LineTooltipItem(
-                  '$month: ${spot.y.toInt()} ${l10n.registered}',
+                  '$label: ${spot.y.toInt()} ${l10n.registered}',
                   const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold),
                 );
@@ -385,8 +648,11 @@ class DailyActivityLineChart extends StatelessWidget {
               return touchedSpots.map((spot) {
                 final day =
                     LabelMapper.getLocalizedDay(data[spot.x.toInt()].day, l10n);
+                final isLabelArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(day);
+                final label = isLabelArabic ? '\u200F$day' : day;
+
                 return LineTooltipItem(
-                  '$day: ${spot.y.toInt()}',
+                  '$label: ${spot.y.toInt()}',
                   const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold),
                 );
