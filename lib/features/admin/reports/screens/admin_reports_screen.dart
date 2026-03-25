@@ -40,9 +40,13 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: () => provider.fetchAllReports(),
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppSizes.pagePadding),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Section
@@ -131,6 +135,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
             ],
           ],
         ),
+      ),
       ),
     );
   }

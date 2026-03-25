@@ -17,15 +17,15 @@ import '../models/admin_models.dart';
 ///   POST   /admin/users/promote-to-admin   body: { "user_id": <int> }
 ///
 /// ── System ─────────────────────────────────────────────────────────────────
-///   GET    /admin/system/status
-///   GET    /admin/system/settings
-///   POST   /admin/system/settings/toggle/{setting_name}
+///   GET    /admin/system/admin/system/status
+///   GET    /admin/system/admin/system/settings
+///   POST   /admin/system/admin/system/settings/toggle/{setting_name}
 ///   POST   /admin/system/toggle-service/{module_name}
 ///   GET    /admin/system/models-table
 ///
 /// ── Reports ────────────────────────────────────────────────────────────────
-///   GET    /admin/reports/dashboard-stats
-///   POST   /admin/reports/generate-pdf     body: { "period": "...", "format": "..." }
+///   GET    /admin/reports/admin/reports/dashboard-stats
+///   POST   /admin/reports/admin/reports/generate-pdf     body: { "period": "...", "format": "..." }
 class AdminService {
   AdminService._();
   static final AdminService instance = AdminService._();
@@ -40,8 +40,11 @@ class AdminService {
       final data = await _c.get(path);
       debugPrint('[AdminService] getDashboardStats response: $data');
       return DashboardStats.fromJson(data as Map<String, dynamic>);
-    } on ApiException { rethrow; }
-    catch (_) { throw const ApiException('Failed to load dashboard statistics.'); }
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to load dashboard statistics.');
+    }
   }
 
   // ── Users ─────────────────────────────────────────────────────────────────
@@ -53,8 +56,11 @@ class AdminService {
       final data = await _c.get(path);
       debugPrint('[AdminService] getUsersAndSummary response: $data');
       return UserManagementData.fromJson(data as Map<String, dynamic>);
-    } on ApiException { rethrow; }
-    catch (_) { throw const ApiException('Failed to load user data.'); }
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to load user data.');
+    }
   }
 
   Future<List<AdminUser>> searchUsers(String query) async {
@@ -63,7 +69,9 @@ class AdminService {
       final data = await _c.get('/admin/users/search', query: {'q': query});
       debugPrint('[AdminService] searchUsers response: $data');
       if (data is List) {
-        return data.map((e) => AdminUser.fromJson(e as Map<String, dynamic>)).toList();
+        return data
+            .map((e) => AdminUser.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       if (data is Map && data['users'] is List) {
         return (data['users'] as List)
@@ -71,29 +79,44 @@ class AdminService {
             .toList();
       }
       return [];
-    } on ApiException { rethrow; }
-    catch (_) { throw const ApiException('Search failed.'); }
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Search failed.');
+    }
   }
 
   Future<void> deleteUser(String userId) async {
     debugPrint('[AdminService] DELETE /admin/users/delete/$userId');
-    try { await _c.delete('/admin/users/delete/$userId'); }
-    on ApiException { rethrow; }
-    catch (_) { throw const ApiException('Failed to delete user.'); }
+    try {
+      await _c.delete('/admin/users/delete/$userId');
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to delete user.');
+    }
   }
 
   Future<void> deactivateUser(String userId) async {
     debugPrint('[AdminService] PATCH /admin/users/deactivate/$userId');
-    try { await _c.patch('/admin/users/deactivate/$userId'); }
-    on ApiException { rethrow; }
-    catch (_) { throw const ApiException('Failed to deactivate user.'); }
+    try {
+      await _c.patch('/admin/users/deactivate/$userId');
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to deactivate user.');
+    }
   }
 
   Future<void> activateUser(String userId) async {
     debugPrint('[AdminService] PATCH /admin/users/activate/$userId');
-    try { await _c.patch('/admin/users/activate/$userId'); }
-    on ApiException { rethrow; }
-    catch (_) { throw const ApiException('Failed to activate user.'); }
+    try {
+      await _c.patch('/admin/users/activate/$userId');
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to activate user.');
+    }
   }
 
   Future<void> promoteToAdmin(String userId) async {
@@ -102,14 +125,17 @@ class AdminService {
     debugPrint('[AdminService] POST $path  body: $body');
     try {
       await _c.post(path, body: body);
-    } on ApiException { rethrow; }
-    catch (_) { throw const ApiException('Failed to promote user.'); }
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to promote user.');
+    }
   }
 
   // ── System ────────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getSystemStatus() async {
-    const path = '/admin/system/status';
+    const path = '/admin/system/admin/system/status';
     debugPrint('[AdminService] GET $path');
     try {
       final data = await _c.get(path);
@@ -122,7 +148,7 @@ class AdminService {
   }
 
   Future<Map<String, dynamic>> getSystemSettings() async {
-    const path = '/admin/system/settings';
+    const path = '/admin/system/admin/system/settings';
     debugPrint('[AdminService] GET $path');
     try {
       final data = await _c.get(path);
@@ -135,7 +161,7 @@ class AdminService {
   }
 
   Future<void> toggleSystemSetting(String settingName) async {
-    final path = '/admin/system/settings/toggle/$settingName';
+    final path = '/admin/system/admin/system/settings/toggle/$settingName';
     debugPrint('[AdminService] POST $path');
     try {
       await _c.post(path);
@@ -147,8 +173,11 @@ class AdminService {
   Future<void> toggleService(String moduleName) async {
     final path = '/admin/system/toggle-service/$moduleName';
     debugPrint('[AdminService] POST $path');
-    try { await _c.post(path); }
-    catch (e) { debugPrint('[AdminService] toggleService non-critical: $e'); }
+    try {
+      await _c.post(path);
+    } catch (e) {
+      debugPrint('[AdminService] toggleService non-critical: $e');
+    }
   }
 
   Future<List<Map<String, dynamic>>> getModelsTable() async {
@@ -170,7 +199,7 @@ class AdminService {
   // ── Reports ───────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getAdminReportStats() async {
-    const path = '/admin/reports/dashboard-stats';
+    const path = '/admin/reports/admin/reports/dashboard-stats';
     debugPrint('[AdminService] GET $path');
     try {
       final data = await _c.get(path);
@@ -186,12 +215,15 @@ class AdminService {
     String period = 'Last 7 Days',
     String format = 'PDF',
   }) async {
-    const path = '/admin/reports/generate-pdf';
+    const path = '/admin/reports/admin/reports/generate-pdf';
     final body = {'period': period, 'format': format};
     debugPrint('[AdminService] POST $path  body: $body');
     try {
       await _c.post(path, body: body);
-    } on ApiException { rethrow; }
-    catch (_) { throw const ApiException('Failed to generate PDF report.'); }
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to generate PDF report.');
+    }
   }
 }

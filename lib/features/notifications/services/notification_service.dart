@@ -9,13 +9,18 @@ class NotificationService {
 
   Future<List<AppNotification>> getNotifications() async {
     try {
+      // NOTE: The endpoint /admin/notifications/list is currently returning 404
+      // based on recent logs. If the backend hasn't implemented it yet,
+      // we'll use the mock data to keep the UI functional.
       final response = await _apiClient.get('/admin/notifications/list');
       if (response is List) {
         return response.map((json) => AppNotification.fromJson(json)).toList();
       }
       return _getMockNotifications();
     } catch (e) {
-      debugPrint('[NotificationService] Error: $e');
+      // Silence 404 to avoid noisy logs for missing backend endpoints
+      debugPrint(
+          '[NotificationService] Fetch failed (possibly missing endpoint): $e');
       return _getMockNotifications();
     }
   }
@@ -25,6 +30,7 @@ class NotificationService {
       await _apiClient.post('/admin/notifications/mark-read/$id');
       return true;
     } catch (e) {
+      debugPrint('[NotificationService] markAsRead failed: $e');
       return false;
     }
   }
@@ -34,6 +40,7 @@ class NotificationService {
       await _apiClient.post('/admin/notifications/mark-all-read');
       return true;
     } catch (e) {
+      debugPrint('[NotificationService] markAllAsRead failed: $e');
       return false;
     }
   }
@@ -43,6 +50,7 @@ class NotificationService {
       await _apiClient.delete('/admin/notifications/delete/$id');
       return true;
     } catch (e) {
+      debugPrint('[NotificationService] deleteNotification failed: $e');
       return false;
     }
   }
@@ -57,7 +65,7 @@ class NotificationService {
       if (push != null) queryParams['push'] = push.toString();
       if (email != null) queryParams['email'] = email.toString();
 
-      await _apiClient.get(
+      await _apiClient.patch(
         '/admin/users/settings/notifications/$userId',
         query: queryParams,
       );

@@ -1166,6 +1166,114 @@ abstract class AppLocalizations {
   /// **'View all notifications'**
   String get view_all_notifications;
 
+  /// No description provided for @user_management.
+  ///
+  /// In en, this message translates to:
+  /// **'User Management'**
+  String get user_management;
+
+  /// No description provided for @system_management.
+  ///
+  /// In en, this message translates to:
+  /// **'System Management'**
+  String get system_management;
+
+  /// No description provided for @manage_users_roles_permissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage users, roles, and permissions'**
+  String get manage_users_roles_permissions;
+
+  /// No description provided for @configure_ai_services_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure AI services and platform settings'**
+  String get configure_ai_services_settings;
+
+  /// No description provided for @admin_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Settings'**
+  String get admin_settings;
+
+  /// No description provided for @language_selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Language Selection'**
+  String get language_selection;
+
+  /// No description provided for @notification_preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Preferences'**
+  String get notification_preferences;
+
+  /// No description provided for @email_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Notifications'**
+  String get email_notifications;
+
+  /// No description provided for @english.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// No description provided for @arabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic'**
+  String get arabic;
+
+  /// No description provided for @service.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get service;
+
+  /// No description provided for @most_used_service.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Used Service'**
+  String get most_used_service;
+
+  /// No description provided for @best.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get best;
+
+  /// No description provided for @active_users_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Active Users'**
+  String active_users_count(Object count);
+
+  /// No description provided for @ai_models.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Models'**
+  String get ai_models;
+
+  /// No description provided for @general_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'General Settings'**
+  String get general_settings;
+
+  /// No description provided for @save_ai_config.
+  ///
+  /// In en, this message translates to:
+  /// **'Save AI Configuration'**
+  String get save_ai_config;
+
+  /// No description provided for @save_general_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Save General Settings'**
+  String get save_general_settings;
+
   /// No description provided for @no_notifications.
   ///
   /// In en, this message translates to:

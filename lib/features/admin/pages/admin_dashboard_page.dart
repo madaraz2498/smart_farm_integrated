@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
+import '../providers/admin_provider.dart';
 import '../widgets/admin_stats_grid.dart';
 import '../../../shared/theme/app_theme.dart';
 
@@ -10,24 +12,29 @@ class AdminDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.pagePadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, 
-        children: [
-          Row(children: [
-            const Icon(Icons.dashboard_outlined, color: AppColors.primary, size: 24),
-            const SizedBox(width: 12),
-            Text(l10n.admin_dashboard, style: AppTextStyles.pageTitle),
-          ]),
-          const SizedBox(height: 4),
-          Text(l10n.admin_dashboard_subtitle, style: AppTextStyles.pageSubtitle),
-          const SizedBox(height: 24),
-          
-          const AdminStatsGrid(),
-          const SizedBox(height: 24),
-          const RecentActivityList(),
-        ],
+    return RefreshIndicator(
+      onRefresh: () => context.read<AdminProvider>().refreshAll(),
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppSizes.pagePadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, 
+          children: [
+            Row(children: [
+              const Icon(Icons.dashboard_outlined, color: AppColors.primary, size: 24),
+              const SizedBox(width: 12),
+              Text(l10n.admin_dashboard, style: AppTextStyles.pageTitle),
+            ]),
+            const SizedBox(height: 4),
+            Text(l10n.admin_dashboard_subtitle, style: AppTextStyles.pageSubtitle),
+            const SizedBox(height: 24),
+            
+            const AdminStatsGrid(),
+            const SizedBox(height: 24),
+            const RecentActivityList(),
+          ],
+        ),
       ),
     );
   }

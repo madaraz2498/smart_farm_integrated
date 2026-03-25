@@ -557,6 +557,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get view_all_notifications => 'View all notifications';
 
   @override
+  String get user_management => 'User Management';
+
+  @override
+  String get system_management => 'System Management';
+
+  @override
+  String get manage_users_roles_permissions =>
+      'Manage users, roles, and permissions';
+
+  @override
+  String get configure_ai_services_settings =>
+      'Configure AI services and platform settings';
+
+  @override
+  String get admin_settings => 'Admin Settings';
+
+  @override
+  String get language_selection => 'Language Selection';
+
+  @override
+  String get notification_preferences => 'Notification Preferences';
+
+  @override
+  String get email_notifications => 'Email Notifications';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get arabic => 'Arabic';
+
+  @override
+  String get service => 'Service';
+
+  @override
+  String get most_used_service => 'Most Used Service';
+
+  @override
+  String get best => 'Best';
+
+  @override
+  String active_users_count(Object count) {
+    return '$count Active Users';
+  }
+
+  @override
+  String get ai_models => 'AI Models';
+
+  @override
+  String get general_settings => 'General Settings';
+
+  @override
+  String get save_ai_config => 'Save AI Configuration';
+
+  @override
+  String get save_general_settings => 'Save General Settings';
+
+  @override
   String get no_notifications => 'No notifications yet';
 
   @override

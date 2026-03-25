@@ -107,8 +107,8 @@ class _SidebarContent extends StatelessWidget {
       final isSelected = nav.adminIndex == i;
       final label = switch (meta.page) {
         AdminPage.dashboard => l10n.admin_dashboard,
-        AdminPage.userManagement => 'User Management',
-        AdminPage.systemManagement => 'System Management',
+        AdminPage.userManagement => l10n.user_management,
+        AdminPage.systemManagement => l10n.system_management,
         AdminPage.systemReports => l10n.nav_reports,
         AdminPage.settings => l10n.settings,
       };

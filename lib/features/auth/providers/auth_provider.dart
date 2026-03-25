@@ -60,8 +60,40 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout({VoidCallback? onBeforeReset}) async {
     await _svc.logout();
     onBeforeReset?.call();
-    _user = null; _error = null; _status = AuthStatus.unauthenticated;
+    _user = null;
+    _error = null;
+    _status = AuthStatus.unauthenticated;
     notifyListeners();
+  }
+
+  Future<bool> updateProfile({
+    required String name,
+    required String email,
+    String? phone,
+  }) async {
+    if (_user == null) return false;
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final ok = await _svc.updateProfile(
+        userId: _user!.id,
+        name: name,
+        email: email,
+        phone: phone,
+      );
+      if (ok) {
+        _user = _user!.copyWith(name: name, email: email);
+        notifyListeners();
+      }
+      return ok;
+    } catch (e) {
+      _error = 'Failed to update profile.';
+      return false;
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
   }
 
   void clearError() { _error = null; notifyListeners(); }

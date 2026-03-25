@@ -48,186 +48,196 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     final localeProvider = context.watch<LocaleProvider>();
     final l10n = AppLocalizations.of(context)!;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.pagePadding),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.settings_outlined,
-                        color: AppColors.primary, size: 24),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSizes.pagePadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(l10n.settings, style: AppTextStyles.pageTitle),
-                      Text(l10n.manage_account_preferences,
-                          style: AppTextStyles.pageSubtitle),
-                    ],
+                  child: const Icon(Icons.settings_outlined,
+                      color: AppColors.primary, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.settings, style: AppTextStyles.pageTitle),
+                    Text(l10n.manage_account_preferences,
+                        style: AppTextStyles.pageSubtitle),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+
+            // Profile Settings
+            _buildSection(
+              icon: Icons.person_outline,
+              title: l10n.profile_settings,
+              child: Column(
+                children: [
+                  SfTextField(
+                      controller: _nameCtrl,
+                      hint: l10n.full_name,
+                      label: l10n.full_name),
+                  const SizedBox(height: 16),
+                  SfTextField(
+                      controller: _emailCtrl,
+                      hint: l10n.email,
+                      label: l10n.email,
+                      keyboardType: TextInputType.emailAddress),
+                  const SizedBox(height: 16),
+                  SfTextField(
+                      controller: _phoneCtrl,
+                      hint: l10n.phone_number,
+                      label: l10n.phone_number,
+                      keyboardType: TextInputType.phone),
+                  const SizedBox(height: 24),
+                  SfPrimaryButton(
+                    label: l10n.save_profile,
+                    onPressed: () async {
+                      final auth = context.read<AuthProvider>();
+                      final ok = await auth.updateProfile(
+                        name: _nameCtrl.text,
+                        email: _emailCtrl.text,
+                        phone: _phoneCtrl.text,
+                      );
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(ok
+                                  ? l10n.profile_saved
+                                  : (auth.errorMsg ?? 'Failed to update')),
+                              backgroundColor:
+                                  ok ? AppColors.primary : AppColors.error),
+                        );
+                      }
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+            ),
+            const SizedBox(height: 24),
 
-              // Profile Settings
-              _buildSection(
-                icon: Icons.person_outline,
-                title: l10n.profile_settings,
-                child: Column(
-                  children: [
-                    SfTextField(
-                        controller: _nameCtrl,
-                        hint: l10n.full_name,
-                        label: l10n.full_name),
-                    const SizedBox(height: 16),
-                    SfTextField(
-                        controller: _emailCtrl,
-                        hint: l10n.email,
-                        label: l10n.email,
-                        keyboardType: TextInputType.emailAddress),
-                    const SizedBox(height: 16),
-                    SfTextField(
-                        controller: _phoneCtrl,
-                        hint: l10n.phone_number,
-                        label: l10n.phone_number,
-                        keyboardType: TextInputType.phone),
-                    const SizedBox(height: 24),
-                    SfPrimaryButton(
-                      label: l10n.save_profile,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(l10n.profile_saved),
-                              backgroundColor: AppColors.primary),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Theme Preference
-              _buildSection(
-                icon: Icons.palette_outlined,
-                title: 'Theme Preference',
-                child: Column(
-                  children: [
-                    _buildRadioTile(
-                      title: 'Light Mode',
-                      value: false,
-                      groupValue: themeProvider.isDark,
-                      onChanged: (v) => themeProvider.isDark
-                          ? themeProvider.toggleTheme()
-                          : null,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildRadioTile(
-                      title: 'Dark Mode',
-                      value: true,
-                      groupValue: themeProvider.isDark,
-                      onChanged: (v) => !themeProvider.isDark
-                          ? themeProvider.toggleTheme()
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Language Selection
-              _buildSection(
-                icon: Icons.language_outlined,
-                title: 'Language Selection',
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.cardBorder),
+            // Theme Preference
+            _buildSection(
+              icon: Icons.palette_outlined,
+              title: l10n.theme_preference,
+              child: Column(
+                children: [
+                  _buildRadioTile(
+                    title: l10n.light_mode,
+                    value: false,
+                    groupValue: themeProvider.isDark,
+                    onChanged: (v) => themeProvider.isDark
+                        ? themeProvider.toggleTheme()
+                        : null,
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: localeProvider.locale.languageCode,
-                      isExpanded: true,
-                      icon: const Icon(Icons.keyboard_arrow_down,
-                          color: AppColors.textSubtle),
-                      items: const [
-                        DropdownMenuItem(value: 'en', child: Text('English')),
-                        DropdownMenuItem(value: 'ar', child: Text('العربية')),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) localeProvider.setLocale(Locale(v));
-                      },
-                    ),
+                  const SizedBox(height: 12),
+                  _buildRadioTile(
+                    title: l10n.dark_mode,
+                    value: true,
+                    groupValue: themeProvider.isDark,
+                    onChanged: (v) => !themeProvider.isDark
+                        ? themeProvider.toggleTheme()
+                        : null,
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 24),
+            ),
+            const SizedBox(height: 24),
 
-              // Notification Preferences
-              _buildSection(
-                icon: Icons.notifications_none_outlined,
-                title: 'Notification Preferences',
-                child: Consumer<NotificationProvider>(
-                  builder: (context, notif, _) => Column(
-                    children: [
-                      _buildSwitchTile(
-                        title: 'Push Notifications',
-                        value: notif.pushEnabled,
-                        onChanged: (v) {
-                          final userId =
-                              context.read<AuthProvider>().currentUser?.id ??
-                                  '1';
-                          notif.updateSettings(userId: userId, push: v);
-                        },
-                      ),
-                      const Divider(height: 1, color: AppColors.divider),
-                      _buildSwitchTile(
-                        title: 'Email Notifications',
-                        value: notif.emailEnabled,
-                        onChanged: (v) {
-                          final userId =
-                              context.read<AuthProvider>().currentUser?.id ??
-                                  '1';
-                          notif.updateSettings(userId: userId, email: v);
-                        },
-                      ),
+            // Language Selection
+            _buildSection(
+              icon: Icons.language_outlined,
+              title: l10n.language_selection,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: localeProvider.locale.languageCode,
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down,
+                        color: AppColors.textSubtle),
+                    items: [
+                      DropdownMenuItem(value: 'en', child: Text(l10n.english)),
+                      DropdownMenuItem(value: 'ar', child: Text(l10n.arabic)),
                     ],
+                    onChanged: (v) {
+                      if (v != null) localeProvider.setLocale(Locale(v));
+                    },
                   ),
                 ),
               ),
+            ),
+            const SizedBox(height: 24),
 
-              const SizedBox(height: 40),
-              SfOutlineButton(
-                label: l10n.logout,
-                color: AppColors.error,
-                onPressed: _logout,
-                icon: Icons.logout,
+            // Notification Preferences
+            _buildSection(
+              icon: Icons.notifications_none_outlined,
+              title: l10n.notification_preferences,
+              child: Consumer<NotificationProvider>(
+                builder: (context, notif, _) => Column(
+                  children: [
+                    _buildSwitchTile(
+                      title: l10n.push_notifications,
+                      value: notif.pushEnabled,
+                      onChanged: (v) {
+                        final userId =
+                            context.read<AuthProvider>().currentUser?.id ?? '1';
+                        notif.updateSettings(userId: userId, push: v);
+                      },
+                    ),
+                    const Divider(height: 1, color: AppColors.divider),
+                    _buildSwitchTile(
+                      title: l10n.email_notifications,
+                      value: notif.emailEnabled,
+                      onChanged: (v) {
+                        final userId =
+                            context.read<AuthProvider>().currentUser?.id ?? '1';
+                        notif.updateSettings(userId: userId, email: v);
+                      },
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 40),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: 32),
+            SfOutlineButton(
+              label: l10n.logout,
+              color: AppColors.error,
+              onPressed: _logout,
+              icon: Icons.logout,
+            ),
+            const SizedBox(height: 24),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSection(
-      {required IconData icon, required String title, required Widget child}) {
+  Widget _buildSection({
+    required IconData icon,
+    required String title,
+    required Widget child,
+  }) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(

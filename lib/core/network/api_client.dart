@@ -101,16 +101,21 @@ class ApiClient {
   // ── PATCH ──────────────────────────────────────────────────────────────────
   // Used for PATCH /admin/users/activate|deactivate/{id}
 
-  Future<dynamic> patch(String path, {Map<String, dynamic>? body}) async {
-    final uri = _uri(path);
+  Future<dynamic> patch(String path,
+      {Map<String, dynamic>? body, Map<String, String>? query}) async {
+    final uri = _uri(path, query);
     debugPrint('[PATCH] $uri');
     try {
-      return _handle(await http.patch(uri,
-          headers: _jsonHeaders(),
-          body: body != null ? jsonEncode(body) : null
-      ).timeout(_timeout));
-    } on SocketException  { throw const ApiException('No internet connection.', statusCode: 0); }
-    on TimeoutException   { throw const ApiException('Request timed out.',       statusCode: 408); }
+      return _handle(await http
+          .patch(uri,
+              headers: _jsonHeaders(),
+              body: body != null ? jsonEncode(body) : null)
+          .timeout(_timeout));
+    } on SocketException {
+      throw const ApiException('No internet connection.', statusCode: 0);
+    } on TimeoutException {
+      throw const ApiException('Request timed out.', statusCode: 408);
+    }
   }
 
   // ── DELETE ─────────────────────────────────────────────────────────────────

@@ -124,9 +124,9 @@ class NavigationProvider extends ChangeNotifier {
   };
 
   String getAdminLabel(AppLocalizations l10n) => switch (_adminPage) {
-    AdminPage.dashboard => l10n.nav_reports,
-    AdminPage.userManagement => 'User Management',
-    AdminPage.systemManagement => 'System Management',
+    AdminPage.dashboard => l10n.admin_dashboard,
+    AdminPage.userManagement => l10n.user_management,
+    AdminPage.systemManagement => l10n.system_management,
     AdminPage.systemReports => l10n.nav_reports,
     AdminPage.settings => l10n.settings,
   };

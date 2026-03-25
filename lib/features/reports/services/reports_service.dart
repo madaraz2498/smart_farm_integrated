@@ -24,10 +24,12 @@ class ReportsService {
       final data = await _c.get(path);
       debugPrint('[ReportsService] getStats response: $data');
       if (data is Map<String, dynamic>) return FarmerReportStats.fromJson(data);
-      return const FarmerReportStats(totalReports: 0, thisMonth: 0, growth: '+0%');
+      return const FarmerReportStats(
+          totalReports: 0, thisMonth: 0, growth: '+0%');
     } catch (e) {
       debugPrint('[ReportsService] getStats non-critical: $e');
-      return const FarmerReportStats(totalReports: 0, thisMonth: 0, growth: '+0%');
+      return const FarmerReportStats(
+          totalReports: 0, thisMonth: 0, growth: '+0%');
     }
   }
 
@@ -40,7 +42,9 @@ class ReportsService {
       final data = await _c.get(path);
       debugPrint('[ReportsService] listReports response: $data');
       if (data is List) {
-        return data.map((e) => FarmerReportItem.fromJson(e as Map<String, dynamic>)).toList();
+        return data
+            .map((e) => FarmerReportItem.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       // Some APIs wrap in { "reports": [...] }
       if (data is Map && data['reports'] is List) {
@@ -63,17 +67,20 @@ class ReportsService {
     try {
       final result = await _c.post(path);
       debugPrint('[ReportsService] generate response: $result');
-    } on ApiException { rethrow; }
-    catch (e) { throw const ApiException('Failed to generate report.'); }
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw const ApiException('Failed to generate report.');
+    }
   }
 
   // ── Full farmer report ────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> generateFarmerReport(String userId) async {
     final path = '/reports/generate-farmer-report/$userId';
-    debugPrint('[ReportsService] GET $path');
+    debugPrint('[ReportsService] POST $path');
     try {
-      final data = await _c.get(path);
+      final data = await _c.post(path);
       debugPrint('[ReportsService] generateFarmerReport response: $data');
       return (data as Map<String, dynamic>?) ?? {};
     } catch (e) {

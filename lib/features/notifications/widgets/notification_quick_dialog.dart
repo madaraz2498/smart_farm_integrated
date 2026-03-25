@@ -28,20 +28,21 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<NotificationProvider>();
-    final notifications = provider.notifications.take(5).toList();
+    final notifications = provider.notifications.take(3).toList();
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      width: 360,
-      margin: const EdgeInsets.only(top: 60, right: 20, left: 20),
+      width: 320, // Reduced from 360
+      margin: const EdgeInsets.only(
+          top: 0, right: 0, left: 0), // Removed old margin
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12), // Smaller radius
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            blurRadius: 16, // Reduced blur
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -51,14 +52,15 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+            padding:
+                const EdgeInsets.fromLTRB(16, 16, 16, 12), // Reduced padding
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   l10n.notifications,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16, // Reduced from 18
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1E293B),
                   ),
@@ -67,14 +69,15 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                   TextButton(
                     onPressed: () => provider.markAllAsRead(),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8), // Reduced padding
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
                       l10n.mark_all_as_read,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 12, // Reduced from 14
                         color: Color(0xFF10B981),
                         fontWeight: FontWeight.w600,
                       ),
@@ -88,15 +91,18 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
           // List
           if (notifications.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 40),
+              padding: const EdgeInsets.symmetric(
+                  vertical: 30), // Reduced vertical padding
               child: Center(
                 child: Column(
                   children: [
                     Icon(Icons.notifications_none_rounded,
-                        size: 48,
+                        size: 40, // Reduced from 48
                         color: AppColors.textDisabled.withValues(alpha: 0.5)),
-                    const SizedBox(height: 12),
-                    Text(l10n.no_notifications, style: AppTextStyles.caption),
+                    const SizedBox(height: 10),
+                    Text(l10n.no_notifications,
+                        style: AppTextStyles.caption
+                            .copyWith(fontSize: 12)), // Reduced font
                   ],
                 ),
               ),
@@ -119,7 +125,7 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
           // Footer
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8), // Reduced from 12
             child: SizedBox(
               width: double.infinity,
               child: TextButton(
@@ -136,7 +142,7 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF10B981),
-                    fontSize: 15,
+                    fontSize: 13, // Reduced from 15
                   ),
                 ),
               ),
@@ -158,12 +164,13 @@ class _NotificationItem extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 12, vertical: 12), // Reduced from 16
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildIcon(),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12), // Reduced from 16
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,32 +178,32 @@ class _NotificationItem extends StatelessWidget {
                 Text(
                   item.title,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14, // Reduced from 16
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1E293B),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2), // Reduced from 4
                 Text(
                   item.message,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 12, // Reduced from 14
                     color: Color(0xFF64748B),
-                    height: 1.4,
+                    height: 1.3, // Slightly tighter height
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4), // Reduced from 6
                 Text(
                   _formatTime(item.timestamp, l10n),
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 11, // Reduced from 13
                     color: Color(0xFF94A3B8),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6), // Reduced from 8
           Column(
             children: [
               IconButton(
@@ -204,7 +211,7 @@ class _NotificationItem extends StatelessWidget {
                 icon: const Icon(
                   Icons.delete_outline_rounded,
                   color: Color(0xFFFDA4AF),
-                  size: 20,
+                  size: 18, // Reduced from 20
                 ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
@@ -212,9 +219,9 @@ class _NotificationItem extends StatelessWidget {
               ),
               if (!item.isRead)
                 Container(
-                  width: 8,
-                  height: 8,
-                  margin: const EdgeInsets.only(top: 8),
+                  width: 6, // Reduced from 8
+                  height: 6, // Reduced from 8
+                  margin: const EdgeInsets.only(top: 6), // Reduced from 8
                   decoration: const BoxDecoration(
                     color: Color(0xFF10B981),
                     shape: BoxShape.circle,
@@ -250,13 +257,13 @@ class _NotificationItem extends StatelessWidget {
     }
 
     return Container(
-      width: 44,
-      height: 44,
+      width: 36, // Reduced from 44
+      height: 36, // Reduced from 44
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10), // Slightly smaller
       ),
-      child: Icon(icon, size: 24, color: iconColor),
+      child: Icon(icon, size: 20, color: iconColor), // Reduced from 24
     );
   }
 

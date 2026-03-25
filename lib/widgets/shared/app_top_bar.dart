@@ -63,9 +63,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
             onPressed: () {
               showDialog(
                 context: context,
-                barrierColor: Colors.black.withValues(alpha: 0.1),
-                builder: (ctx) => const Align(
-                  alignment: Alignment(0.9, -0.8), // Position near top-right
+                barrierColor: Colors.black.withValues(alpha: 0.2),
+                builder: (ctx) => const Center(
                   child: Material(
                     color: Colors.transparent,
                     child: NotificationQuickDialog(),

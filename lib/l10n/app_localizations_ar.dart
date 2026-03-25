@@ -556,6 +556,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get view_all_notifications => 'عرض كل الإشعارات';
 
   @override
+  String get user_management => 'إدارة المستخدمين';
+
+  @override
+  String get system_management => 'إدارة النظام';
+
+  @override
+  String get manage_users_roles_permissions =>
+      'إدارة المستخدمين والأدوار والصلاحيات';
+
+  @override
+  String get configure_ai_services_settings =>
+      'تكوين خدمات الذكاء الاصطناعي وإعدادات المنصة';
+
+  @override
+  String get admin_settings => 'إعدادات المسؤول';
+
+  @override
+  String get language_selection => 'اختيار اللغة';
+
+  @override
+  String get notification_preferences => 'تفضيلات الإشعارات';
+
+  @override
+  String get email_notifications => 'إشعارات البريد الإلكتروني';
+
+  @override
+  String get english => 'الإنجليزية';
+
+  @override
+  String get arabic => 'العربية';
+
+  @override
+  String get service => 'الخدمة';
+
+  @override
+  String get most_used_service => 'الخدمة الأكثر استخداماً';
+
+  @override
+  String get best => 'الأفضل';
+
+  @override
+  String active_users_count(Object count) {
+    return '$count مستخدم نشط';
+  }
+
+  @override
+  String get ai_models => 'نماذج الذكاء الاصطناعي';
+
+  @override
+  String get general_settings => 'الإعدادات العامة';
+
+  @override
+  String get save_ai_config => 'حفظ تكوين الذكاء الاصطناعي';
+
+  @override
+  String get save_general_settings => 'حفظ الإعدادات العامة';
+
+  @override
   String get no_notifications => 'لا توجد إشعارات حالياً';
 
   @override
