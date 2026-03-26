@@ -1326,7 +1326,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{email} is now an Admin'**
-  String user_promoted_success(Object email);
+  String user_promoted_success(String email);
 
   /// No description provided for @user_not_found_email.
   ///

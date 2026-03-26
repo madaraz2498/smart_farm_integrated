@@ -217,6 +217,13 @@
   "email_address": "عنوان البريد الإلكتروني",
   "add_admin": "إضافة مسؤول",
   "user_promoted_success": "أصبح {email} الآن مسؤولاً",
+  "@user_promoted_success": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "user_not_found_email": "تعذر العثور على مستخدم بهذا البريد الإلكتروني.",
   "search_users_hint": "ابحث بالاسم أو البريد الإلكتروني...",
   "active_users_label": "المستخدمين النشطين",

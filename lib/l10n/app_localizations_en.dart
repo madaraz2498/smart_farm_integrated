@@ -637,7 +637,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get add_admin => 'Add Admin';
 
   @override
-  String user_promoted_success(Object email) {
+  String user_promoted_success(String email) {
     return '$email is now an Admin';
   }
 

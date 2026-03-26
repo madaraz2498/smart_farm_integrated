@@ -636,7 +636,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get add_admin => 'إضافة مسؤول';
 
   @override
-  String user_promoted_success(Object email) {
+  String user_promoted_success(String email) {
     return 'أصبح $email الآن مسؤولاً';
   }
 

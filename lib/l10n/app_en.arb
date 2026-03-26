@@ -217,6 +217,13 @@
   "email_address": "Email Address",
   "add_admin": "Add Admin",
   "user_promoted_success": "{email} is now an Admin",
+  "@user_promoted_success": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "user_not_found_email": "Could not find user with this email.",
   "search_users_hint": "Search by name or email...",
   "active_users_label": "Active Users",
