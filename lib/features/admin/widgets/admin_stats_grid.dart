@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/core/constants/app_assets.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/admin_provider.dart';
 import '../../../shared/theme/app_theme.dart';
@@ -42,7 +43,7 @@ class _AdminStatsGridState extends State<AdminStatsGrid> {
             badge: s?.analysesGrowth ?? '+0%',
             subtitle: l10n.this_month,
             isMobile: mobile,
-            svgPath: 'assets/images/icons/total analyses.svg',
+            svgPath: AppAssets.totalAnalyses,
           ),
           _StatCard(
             title: l10n.total_users,
@@ -50,7 +51,7 @@ class _AdminStatsGridState extends State<AdminStatsGrid> {
             badge: s?.usersGrowth ?? '+0%',
             subtitle: l10n.registered,
             isMobile: mobile,
-            svgPath: 'assets/images/icons/active users.svg',
+            svgPath: AppAssets.activeUsers,
           ),
           _StatCard(
             title: l10n.ai_services,
@@ -58,7 +59,7 @@ class _AdminStatsGridState extends State<AdminStatsGrid> {
             badge: l10n.active,
             subtitle: l10n.active,
             isMobile: mobile,
-            svgPath: 'assets/images/icons/ai services.svg',
+            svgPath: AppAssets.aiServices,
           ),
           _StatCard(
             title: l10n.most_used,
@@ -66,7 +67,7 @@ class _AdminStatsGridState extends State<AdminStatsGrid> {
             badge: l10n.top,
             subtitle: l10n.service,
             isMobile: mobile,
-            svgPath: 'assets/images/icons/avg response.svg',
+            svgPath: AppAssets.avgResponse,
           ),
         ]);
       });

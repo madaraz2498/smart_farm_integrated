@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_farm/core/constants/app_assets.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 
 enum FarmerPage {
@@ -52,8 +53,8 @@ class AdminPageMeta {
 class NavigationProvider extends ChangeNotifier {
   // ── Farmer state ──────────────────────────────────────────────────────────
   FarmerPage _farmerPage = FarmerPage.welcome;
-  FarmerPage get farmerPage  => _farmerPage;
-  int        get farmerIndex => FarmerPage.values.indexOf(_farmerPage);
+  FarmerPage get farmerPage => _farmerPage;
+  int get farmerIndex => FarmerPage.values.indexOf(_farmerPage);
 
   void goToFarmerPage(FarmerPage page) {
     if (_farmerPage == page) return;
@@ -68,8 +69,8 @@ class NavigationProvider extends ChangeNotifier {
 
   // ── Admin state ────────────────────────────────────────────────────────────
   AdminPage _adminPage = AdminPage.dashboard;
-  AdminPage get adminPage  => _adminPage;
-  int       get adminIndex => AdminPage.values.indexOf(_adminPage);
+  AdminPage get adminPage => _adminPage;
+  int get adminIndex => AdminPage.values.indexOf(_adminPage);
 
   void goToAdminPage(AdminPage page) {
     if (_adminPage == page) return;
@@ -85,49 +86,92 @@ class NavigationProvider extends ChangeNotifier {
   // ── Reset on logout ────────────────────────────────────────────────────────
   void reset() {
     _farmerPage = FarmerPage.welcome;
-    _adminPage  = AdminPage.dashboard;
+    _adminPage = AdminPage.dashboard;
     notifyListeners();
   }
 
   // ── Farmer metadata ────────────────────────────────────────────────────────
   static const List<FarmerPageMeta> farmerPages = [
-    FarmerPageMeta(page: FarmerPage.welcome,            label: 'Welcome',                  icon: 'home_outlined'),
-    FarmerPageMeta(page: FarmerPage.plantDisease,       label: 'Plant Disease Detection',   icon: 'local_florist_outlined',        svgAsset: 'assets/images/icons/plant_icon.svg'),
-    FarmerPageMeta(page: FarmerPage.animalWeight,       label: 'Animal Weight Estimation',  icon: 'monitor_weight_outlined',       svgAsset: 'assets/images/icons/animal_icon.svg'),
-    FarmerPageMeta(page: FarmerPage.cropRecommendation, label: 'Crop Recommendation',       icon: 'grass_outlined',                svgAsset: 'assets/images/icons/crop_icon.svg'),
-    FarmerPageMeta(page: FarmerPage.soilAnalysis,       label: 'Soil Type Analysis',        icon: 'layers_outlined',               svgAsset: 'assets/images/icons/soil_icon.svg'),
-    FarmerPageMeta(page: FarmerPage.fruitQuality,       label: 'Fruit Quality Analysis',    icon: 'apple_outlined',                svgAsset: 'assets/images/icons/fruit_icon.svg'),
-    FarmerPageMeta(page: FarmerPage.chatbot,            label: 'Smart Farm Chatbot',        icon: 'chat_bubble_outline',           svgAsset: 'assets/images/icons/chat_icon.svg'),
-    FarmerPageMeta(page: FarmerPage.reports,            label: 'Reports',                   icon: 'bar_chart_outlined'),
-    FarmerPageMeta(page: FarmerPage.settings,           label: 'Settings',                  icon: 'settings_outlined'),
+    FarmerPageMeta(
+        page: FarmerPage.welcome, label: 'Welcome', icon: 'home_outlined'),
+    FarmerPageMeta(
+        page: FarmerPage.plantDisease,
+        label: 'Plant Disease Detection',
+        icon: 'local_florist_outlined',
+        svgAsset: AppAssets.plantIcon),
+    FarmerPageMeta(
+        page: FarmerPage.animalWeight,
+        label: 'Animal Weight Estimation',
+        icon: 'monitor_weight_outlined',
+        svgAsset: AppAssets.animalIcon),
+    FarmerPageMeta(
+        page: FarmerPage.cropRecommendation,
+        label: 'Crop Recommendation',
+        icon: 'grass_outlined',
+        svgAsset: AppAssets.cropIcon),
+    FarmerPageMeta(
+        page: FarmerPage.soilAnalysis,
+        label: 'Soil Type Analysis',
+        icon: 'layers_outlined',
+        svgAsset: AppAssets.soilIcon),
+    FarmerPageMeta(
+        page: FarmerPage.fruitQuality,
+        label: 'Fruit Quality Analysis',
+        icon: 'apple_outlined',
+        svgAsset: AppAssets.fruitIcon),
+    FarmerPageMeta(
+        page: FarmerPage.chatbot,
+        label: 'Smart Farm Chatbot',
+        icon: 'chat_bubble_outline',
+        svgAsset: AppAssets.chatIcon),
+    FarmerPageMeta(
+        page: FarmerPage.reports, label: 'Reports', icon: 'bar_chart_outlined'),
+    FarmerPageMeta(
+        page: FarmerPage.settings,
+        label: 'Settings',
+        icon: 'settings_outlined'),
   ];
 
   // ── Admin metadata ─────────────────────────────────────────────────────────
   static const List<AdminPageMeta> adminPages = [
-    AdminPageMeta(page: AdminPage.dashboard,        label: 'Admin Dashboard',    icon: 'dashboard_outlined'),
-    AdminPageMeta(page: AdminPage.userManagement,   label: 'User Management',    icon: 'people_outline'),
-    AdminPageMeta(page: AdminPage.systemManagement, label: 'System Management',  icon: 'settings_applications_outlined', isAdminOnly: true),
-    AdminPageMeta(page: AdminPage.systemReports,    label: 'System Reports',     icon: 'bar_chart_outlined'),
-    AdminPageMeta(page: AdminPage.settings,         label: 'Settings',           icon: 'tune_outlined'),
+    AdminPageMeta(
+        page: AdminPage.dashboard,
+        label: 'Admin Dashboard',
+        icon: 'dashboard_outlined'),
+    AdminPageMeta(
+        page: AdminPage.userManagement,
+        label: 'User Management',
+        icon: 'people_outline'),
+    AdminPageMeta(
+        page: AdminPage.systemManagement,
+        label: 'System Management',
+        icon: 'settings_applications_outlined',
+        isAdminOnly: true),
+    AdminPageMeta(
+        page: AdminPage.systemReports,
+        label: 'System Reports',
+        icon: 'bar_chart_outlined'),
+    AdminPageMeta(
+        page: AdminPage.settings, label: 'Settings', icon: 'tune_outlined'),
   ];
 
   String getFarmerLabel(AppLocalizations l10n) => switch (_farmerPage) {
-    FarmerPage.welcome => l10n.welcome_user,
-    FarmerPage.plantDisease => l10n.nav_plant_disease,
-    FarmerPage.animalWeight => l10n.nav_animal_weight,
-    FarmerPage.cropRecommendation => l10n.nav_crop_recommendation,
-    FarmerPage.soilAnalysis => l10n.nav_soil_analysis,
-    FarmerPage.fruitQuality => l10n.nav_fruit_quality,
-    FarmerPage.chatbot => l10n.nav_chatbot,
-    FarmerPage.reports => l10n.nav_reports,
-    FarmerPage.settings => l10n.settings,
-  };
+        FarmerPage.welcome => l10n.welcome_user,
+        FarmerPage.plantDisease => l10n.nav_plant_disease,
+        FarmerPage.animalWeight => l10n.nav_animal_weight,
+        FarmerPage.cropRecommendation => l10n.nav_crop_recommendation,
+        FarmerPage.soilAnalysis => l10n.nav_soil_analysis,
+        FarmerPage.fruitQuality => l10n.nav_fruit_quality,
+        FarmerPage.chatbot => l10n.nav_chatbot,
+        FarmerPage.reports => l10n.nav_reports,
+        FarmerPage.settings => l10n.settings,
+      };
 
   String getAdminLabel(AppLocalizations l10n) => switch (_adminPage) {
-    AdminPage.dashboard => l10n.admin_dashboard,
-    AdminPage.userManagement => l10n.user_management,
-    AdminPage.systemManagement => l10n.system_management,
-    AdminPage.systemReports => l10n.nav_reports,
-    AdminPage.settings => l10n.settings,
-  };
+        AdminPage.dashboard => l10n.admin_dashboard,
+        AdminPage.userManagement => l10n.user_management,
+        AdminPage.systemManagement => l10n.system_management,
+        AdminPage.systemReports => l10n.nav_reports,
+        AdminPage.settings => l10n.settings,
+      };
 }

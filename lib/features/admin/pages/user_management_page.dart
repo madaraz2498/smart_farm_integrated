@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_assets.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/admin_provider.dart';
 import '../widgets/user_stat_cards.dart';
@@ -146,25 +147,25 @@ class _UserManagementPageState extends State<UserManagementPage> {
       StatCardData(
         label: l10n.total_users_label,
         value: '$totalCount',
-        svgPath: 'assets/images/icons/total users.svg',
+        svgPath: AppAssets.totalUsers,
         color: const Color(0xFF6366F1),
       ),
       StatCardData(
         label: l10n.admins_label,
         value: '$adminCount',
-        svgPath: 'assets/images/icons/admin.svg',
+        svgPath: AppAssets.admin,
         color: const Color(0xFF7C3AED),
       ),
       StatCardData(
         label: l10n.active_users_label,
         value: '$activeCount',
-        svgPath: 'assets/images/icons/active users.svg',
+        svgPath: AppAssets.activeUsers,
         color: const Color(0xFF10B981),
       ),
       StatCardData(
         label: l10n.inactive_users_label,
         value: '$inactiveCount',
-        svgPath: 'assets/images/icons/inactive users.svg',
+        svgPath: AppAssets.inactiveUsers,
         color: const Color(0xFFEF4444),
       ),
     ];
