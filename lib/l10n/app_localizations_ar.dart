@@ -625,4 +625,92 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get usage_by_ai_service => 'الاستخدام حسب خدمة الذكاء الاصطناعي';
+
+  @override
+  String get add_new_admin => 'إضافة مسؤول جديد';
+
+  @override
+  String get email_address => 'عنوان البريد الإلكتروني';
+
+  @override
+  String get add_admin => 'إضافة مسؤول';
+
+  @override
+  String user_promoted_success(Object email) {
+    return 'أصبح $email الآن مسؤولاً';
+  }
+
+  @override
+  String get user_not_found_email =>
+      'تعذر العثور على مستخدم بهذا البريد الإلكتروني.';
+
+  @override
+  String get search_users_hint => 'ابحث بالاسم أو البريد الإلكتروني...';
+
+  @override
+  String get active_users_label => 'المستخدمين النشطين';
+
+  @override
+  String get total_users_label => 'إجمالي المستخدمين';
+
+  @override
+  String get admins_label => 'المسؤولين';
+
+  @override
+  String get inactive_users_label => 'غير نشط';
+
+  @override
+  String get role => 'الدور';
+
+  @override
+  String get user_name_email => 'الاسم والبريد';
+
+  @override
+  String get status => 'الحالة';
+
+  @override
+  String get actions => 'الإجراءات';
+
+  @override
+  String get edit => 'تعديل';
+
+  @override
+  String get user_details => 'تفاصيل المستخدم';
+
+  @override
+  String get promote_to_admin => 'ترقية لمسؤول';
+
+  @override
+  String get deactivate_user => 'تعطيل الحساب';
+
+  @override
+  String get activate_user => 'تنشيط الحساب';
+
+  @override
+  String get delete_user => 'حذف المستخدم';
+
+  @override
+  String get confirm_delete_user => 'هل أنت متأكد من حذف هذا المستخدم؟';
+
+  @override
+  String get confirm_action_title => 'تأكيد الإجراء';
+
+  @override
+  String get confirm_promote_desc =>
+      'سيتم منح هذا المستخدم صلاحيات المسؤول بالكامل. هل تريد المتابعة؟';
+
+  @override
+  String get confirm_deactivate_desc =>
+      'سيتم تعطيل حساب المستخدم ومنعه من تسجيل الدخول. هل تريد المتابعة؟';
+
+  @override
+  String get confirm_activate_desc =>
+      'سيتم إعادة تنشيط حساب المستخدم والسماح له بالدخول. هل تريد المتابعة؟';
+
+  @override
+  String get confirm_delete_desc =>
+      'سيتم حذف كافة بيانات المستخدم نهائياً من النظام. هذا الإجراء لا يمكن التراجع عنه!';
+
+  @override
+  String get confirm_button => 'تأكيد';
 }

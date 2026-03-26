@@ -626,4 +626,92 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get usage_by_ai_service => 'Usage by AI service';
+
+  @override
+  String get add_new_admin => 'Add New Admin';
+
+  @override
+  String get email_address => 'Email Address';
+
+  @override
+  String get add_admin => 'Add Admin';
+
+  @override
+  String user_promoted_success(Object email) {
+    return '$email is now an Admin';
+  }
+
+  @override
+  String get user_not_found_email => 'Could not find user with this email.';
+
+  @override
+  String get search_users_hint => 'Search by name or email...';
+
+  @override
+  String get active_users_label => 'Active Users';
+
+  @override
+  String get total_users_label => 'Total Users';
+
+  @override
+  String get admins_label => 'Admins';
+
+  @override
+  String get inactive_users_label => 'Inactive';
+
+  @override
+  String get role => 'Role';
+
+  @override
+  String get user_name_email => 'Name & Email';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get actions => 'Actions';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get user_details => 'User Details';
+
+  @override
+  String get promote_to_admin => 'Promote to Admin';
+
+  @override
+  String get deactivate_user => 'Deactivate User';
+
+  @override
+  String get activate_user => 'Activate User';
+
+  @override
+  String get delete_user => 'Delete User';
+
+  @override
+  String get confirm_delete_user =>
+      'Are you sure you want to delete this user?';
+
+  @override
+  String get confirm_action_title => 'Confirm Action';
+
+  @override
+  String get confirm_promote_desc =>
+      'This user will be granted full admin permissions. Do you want to continue?';
+
+  @override
+  String get confirm_deactivate_desc =>
+      'The user account will be disabled and they will be prevented from logging in. Do you want to continue?';
+
+  @override
+  String get confirm_activate_desc =>
+      'The user account will be reactivated and they will be allowed to log in. Do you want to continue?';
+
+  @override
+  String get confirm_delete_desc =>
+      'All user data will be permanently deleted from the system. This action cannot be undone!';
+
+  @override
+  String get confirm_button => 'Confirm';
 }

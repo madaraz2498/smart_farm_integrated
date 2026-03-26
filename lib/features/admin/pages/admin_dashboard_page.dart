@@ -66,42 +66,60 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 // 2. Charts Section
                 if (reportProv.isLoading && reportProv.stats == null)
                   const Center(
-                      child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
-                    child: CircularProgressIndicator(),
-                  ))
-                else if (isMobile)
-                  Column(
-                    children: [
-                      UserGrowthChart(data: reportProv.growthList),
-                      const SizedBox(height: 24),
-                      ServiceDistributionChart(data: reportProv.usageList),
-                      const SizedBox(height: 24),
-                      WeeklyActivityChart(data: reportProv.activityList),
-                    ],
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 60),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(color: AppColors.primary),
+                          SizedBox(height: 16),
+                          Text('Preparing your dashboard...',
+                              style: AppTextStyles.caption),
+                        ],
+                      ),
+                    ),
                   )
-                else
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: UserGrowthChart(data: reportProv.growthList),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        flex: 1,
-                        child: ServiceDistributionChart(
-                            data: reportProv.usageList),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        flex: 1,
-                        child:
-                            WeeklyActivityChart(data: reportProv.activityList),
-                      ),
-                    ],
-                  ),
+                else ...[
+                  // If refreshing in background, show a thin indicator
+                  if (reportProv.isLoading && reportProv.stats != null)
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 16),
+                      child: LinearProgressIndicator(
+                          minHeight: 2, color: AppColors.primary),
+                    ),
+
+                  if (isMobile)
+                    Column(
+                      children: [
+                        UserGrowthChart(data: reportProv.growthList),
+                        const SizedBox(height: 24),
+                        ServiceDistributionChart(data: reportProv.usageList),
+                        const SizedBox(height: 24),
+                        WeeklyActivityChart(data: reportProv.activityList),
+                      ],
+                    )
+                  else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: UserGrowthChart(data: reportProv.growthList),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 1,
+                          child: ServiceDistributionChart(
+                              data: reportProv.usageList),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 1,
+                          child: WeeklyActivityChart(data: reportProv.activityList),
+                        ),
+                      ],
+                    ),
+                ],
 
                 const SizedBox(height: 24),
                 // 3. Recent Activity

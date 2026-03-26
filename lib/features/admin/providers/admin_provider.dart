@@ -30,12 +30,21 @@ class AdminProvider extends ChangeNotifier {
 
   // ── Load stats ─────────────────────────────────────────────────────────────
   Future<void> loadStats({bool force = false}) async {
+    // If we have data and not forcing, just return.
     if (_stats != null && !force) return;
-    _statsLoading = true;
-    _statsError = null;
-    notifyListeners();
+
+    // If we already have data, don't show the full-screen loader (silent refresh).
+    final isSilent = _stats != null;
+
+    if (!isSilent) {
+      _statsLoading = true;
+      _statsError = null;
+      notifyListeners();
+    }
+
     try {
       _stats = await _svc.getDashboardStats();
+      _statsError = null; // Clear error on success
     } on ApiException catch (e) {
       _statsError = e.message;
     } catch (_) {
@@ -49,12 +58,19 @@ class AdminProvider extends ChangeNotifier {
   // ── Load users ─────────────────────────────────────────────────────────────
   Future<void> loadUsers({bool force = false}) async {
     if (_users.isNotEmpty && !force) return;
-    _usersLoading = true;
-    _usersError = null;
-    notifyListeners();
+
+    final isSilent = _users.isNotEmpty;
+
+    if (!isSilent) {
+      _usersLoading = true;
+      _usersError = null;
+      notifyListeners();
+    }
+
     try {
       final data = await _svc.getUsersAndSummary();
       _users = data.users;
+      _usersError = null; // Clear error on success
     } on ApiException catch (e) {
       _usersError = e.message;
     } catch (_) {
@@ -113,19 +129,34 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> promoteToAdmin(String userId) async {
+  Future<bool> promoteToAdmin(String email) async {
     try {
-      await _svc.promoteToAdmin(userId);
+      await _svc.promoteToAdmin(email);
       await loadUsers(force: true);
 
       _notif?.addSystemNotification(
         title: 'User Management',
-        body: 'User $userId has been promoted to Admin.',
+        body: 'User $email has been promoted to Admin.',
       );
 
       return true;
     } on ApiException catch (e) {
       _usersError = e.message;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> promoteUserByEmail(String email) async {
+    try {
+      // Direct promotion by email
+      return await promoteToAdmin(email);
+    } on ApiException catch (e) {
+      _usersError = e.message;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _usersError = 'An error occurred while promoting user.';
       notifyListeners();
       return false;
     }

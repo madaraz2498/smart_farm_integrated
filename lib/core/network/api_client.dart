@@ -57,16 +57,21 @@ class ApiClient {
 
   // ── POST JSON ──────────────────────────────────────────────────────────────
 
-  Future<dynamic> post(String path, {Map<String, dynamic>? body}) async {
-    final uri = _uri(path);
+  Future<dynamic> post(String path,
+      {Map<String, dynamic>? body, Map<String, String>? query}) async {
+    final uri = _uri(path, query);
     debugPrint('[POST-JSON] $uri');
     try {
-      return _handle(await http.post(uri,
-          headers: _jsonHeaders(),
-          body: body != null ? jsonEncode(body) : null
-      ).timeout(_timeout));
-    } on SocketException  { throw const ApiException('No internet connection.', statusCode: 0); }
-    on TimeoutException   { throw const ApiException('Request timed out.',       statusCode: 408); }
+      return _handle(await http
+          .post(uri,
+              headers: _jsonHeaders(),
+              body: body != null ? jsonEncode(body) : null)
+          .timeout(_timeout));
+    } on SocketException {
+      throw const ApiException('No internet connection.', statusCode: 0);
+    } on TimeoutException {
+      throw const ApiException('Request timed out.', statusCode: 408);
+    }
   }
 
   // ── POST form-encoded ──────────────────────────────────────────────────────

@@ -10,11 +10,11 @@ import '../models/admin_models.dart';
 ///
 /// ── Users ──────────────────────────────────────────────────────────────────
 ///   GET    /admin/users/summary-and-list
-///   GET    /admin/users/search?q=
+///   GET    /admin/users/search?query=
 ///   DELETE /admin/users/delete/{user_id}
 ///   PATCH  /admin/users/deactivate/{user_id}
 ///   PATCH  /admin/users/activate/{user_id}
-///   POST   /admin/users/promote-to-admin   body: { "user_id": <int> }
+///   POST   /admin/users/promote-to-admin   query: { "email": "..." }
 ///   PATCH  /admin/users/settings/notifications/{user_id}
 ///
 /// ── System ─────────────────────────────────────────────────────────────────
@@ -65,9 +65,9 @@ class AdminService {
   }
 
   Future<List<AdminUser>> searchUsers(String query) async {
-    debugPrint('[AdminService] GET /admin/users/search?q=$query');
+    debugPrint('[AdminService] GET /admin/users/search?query=$query');
     try {
-      final data = await _c.get('/admin/users/search', query: {'q': query});
+      final data = await _c.get('/admin/users/search', query: {'query': query});
       debugPrint('[AdminService] searchUsers response: $data');
       if (data is List) {
         return data
@@ -120,12 +120,11 @@ class AdminService {
     }
   }
 
-  Future<void> promoteToAdmin(String userId) async {
+  Future<void> promoteToAdmin(String email) async {
     const path = '/admin/users/promote-to-admin';
-    final body = {'user_id': int.tryParse(userId) ?? userId};
-    debugPrint('[AdminService] POST $path  body: $body');
+    debugPrint('[AdminService] POST $path  query: {email: $email}');
     try {
-      await _c.post(path, body: body);
+      await _c.post(path, query: {'email': email});
     } on ApiException {
       rethrow;
     } catch (_) {

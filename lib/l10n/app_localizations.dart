@@ -1303,6 +1303,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Usage by AI service'**
   String get usage_by_ai_service;
+
+  /// No description provided for @add_new_admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Admin'**
+  String get add_new_admin;
+
+  /// No description provided for @email_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get email_address;
+
+  /// No description provided for @add_admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Admin'**
+  String get add_admin;
+
+  /// No description provided for @user_promoted_success.
+  ///
+  /// In en, this message translates to:
+  /// **'{email} is now an Admin'**
+  String user_promoted_success(Object email);
+
+  /// No description provided for @user_not_found_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find user with this email.'**
+  String get user_not_found_email;
+
+  /// No description provided for @search_users_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or email...'**
+  String get search_users_hint;
+
+  /// No description provided for @active_users_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Users'**
+  String get active_users_label;
+
+  /// No description provided for @total_users_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Users'**
+  String get total_users_label;
+
+  /// No description provided for @admins_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Admins'**
+  String get admins_label;
+
+  /// No description provided for @inactive_users_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get inactive_users_label;
+
+  /// No description provided for @role.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get role;
+
+  /// No description provided for @user_name_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Name & Email'**
+  String get user_name_email;
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// No description provided for @actions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get actions;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @user_details.
+  ///
+  /// In en, this message translates to:
+  /// **'User Details'**
+  String get user_details;
+
+  /// No description provided for @promote_to_admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Promote to Admin'**
+  String get promote_to_admin;
+
+  /// No description provided for @deactivate_user.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate User'**
+  String get deactivate_user;
+
+  /// No description provided for @activate_user.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate User'**
+  String get activate_user;
+
+  /// No description provided for @delete_user.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete User'**
+  String get delete_user;
+
+  /// No description provided for @confirm_delete_user.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this user?'**
+  String get confirm_delete_user;
+
+  /// No description provided for @confirm_action_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Action'**
+  String get confirm_action_title;
+
+  /// No description provided for @confirm_promote_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'This user will be granted full admin permissions. Do you want to continue?'**
+  String get confirm_promote_desc;
+
+  /// No description provided for @confirm_deactivate_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The user account will be disabled and they will be prevented from logging in. Do you want to continue?'**
+  String get confirm_deactivate_desc;
+
+  /// No description provided for @confirm_activate_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'The user account will be reactivated and they will be allowed to log in. Do you want to continue?'**
+  String get confirm_activate_desc;
+
+  /// No description provided for @confirm_delete_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'All user data will be permanently deleted from the system. This action cannot be undone!'**
+  String get confirm_delete_desc;
+
+  /// No description provided for @confirm_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm_button;
 }
 
 class _AppLocalizationsDelegate

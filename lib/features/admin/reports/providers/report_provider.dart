@@ -32,12 +32,17 @@ class AdminReportProvider extends ChangeNotifier {
   }
 
   Future<void> fetchAllReports() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    final isSilent = _stats != null;
+
+    if (!isSilent) {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+    }
 
     try {
       _stats = await _service.getDashboardStats(range: _selectedRange);
+      _error = null; // Clear error on success
     } catch (e) {
       _error = e.toString();
     } finally {
