@@ -298,19 +298,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chat_suggestions_title => 'أسئلة سريعة:';
 
   @override
-  String get chat_suggest_1 => 'كيف تعالج لفحة الأوراق؟';
+  String get chat_suggest_1 => 'كيفية علاج لفحة الأوراق؟';
 
   @override
-  String get chat_suggest_2 => 'أفضل ري للقمح';
+  String get chat_suggest_2 => 'أفضل طرق الري للقمح';
 
   @override
-  String get chat_suggest_3 => 'توصيات أسمدة التربة';
+  String get chat_suggest_3 => 'توصيات تسميد التربة';
 
   @override
   String get chat_suggest_4 => 'آفات الطماطم الشائعة';
 
   @override
-  String get disease_detection => 'تشخيص الإصابة';
+  String get disease_detection => 'كشف الأمراض';
 
   @override
   String get disease_diagnosis => 'نتائج التشخيص';
@@ -329,11 +329,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plant_disease_card_desc =>
-      'اكتشف أمراض النباتات مبكراً باستخدام تحليل الصور بالذكاء الاصطناعي.';
+      'اكتشف أمراض النبات مبكراً باستخدام تحليل الصور بالذكاء الاصطناعي.';
 
   @override
   String get animal_weight_card_desc =>
-      'تقدير وزن الحيوانات بدقة بدون الحاجة لموازين فيزيائية.';
+      'قدر وزن الحيوان بدقة دون الحاجة لموازين فيزيائية.';
 
   @override
   String get crop_recommendation_card_desc =>
@@ -341,21 +341,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get soil_analysis_card_desc =>
-      'تحليل خصوبة التربة ونوعها باستخدام بياناتك.';
+      'حلل خصوبة ونوع التربة باستخدام بياناتك.';
 
   @override
   String get fruit_quality_card_desc =>
-      'تصنيف جودة الفواكه وكشف العيوب تلقائياً.';
+      'صنف جودة الفاكهة واكتشف العيوب تلقائياً.';
 
   @override
-  String get chatbot_card_desc => 'اطرح أسئلتك واحصل على نصائح زراعية فورية.';
+  String get chatbot_card_desc => 'اسأل أسئلتك واحصل على نصائح زراعية فورية.';
 
   @override
   String get reports_subtitle =>
-      'الوصول إلى جميع التقارير الناتجة عن الذكاء الاصطناعي وتحميلها.';
+      'الوصول وتحميل جميع التقارير المنشأة بالذكاء الاصطناعي';
 
   @override
-  String get generate_report => 'إنشاء تقرير +';
+  String get generate_report => 'إنشاء تقرير';
 
   @override
   String get total_reports => 'إجمالي التقارير';
@@ -364,7 +364,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get this_month => 'هذا الشهر';
 
   @override
-  String get vs_last_month => 'مقارنة بالشهر الماضي';
+  String get vs_last_month => 'مقابل الشهر الماضي';
 
   @override
   String get no_reports_yet =>
@@ -387,10 +387,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get last_7_days => 'آخر 7 أيام';
 
   @override
-  String get last_90_days => 'آخر 90 يوماً';
+  String get last_90_days => 'آخر 90 يوم';
 
   @override
-  String get last_year => 'آخر سنة';
+  String get last_year => 'السنة الماضية';
 
   @override
   String get custom_range => 'نطاق مخصص';
@@ -399,13 +399,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get total_analyses => 'إجمالي التحليلات';
 
   @override
-  String get active_users => 'المستخدمون النشطون';
+  String get active_users => 'المستخدمين النشطين';
 
   @override
   String get ai_services => 'خدمات الذكاء الاصطناعي';
 
   @override
-  String get avg_response => 'متوسط سرعة الاستجابة';
+  String get avg_response => 'متوسط الاستجابة';
 
   @override
   String get usage_by_service => 'الاستخدام حسب الخدمة';
@@ -448,7 +448,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get admin_dashboard_subtitle =>
-      'المراقبة في الوقت الفعلي وإحصائيات المنصة';
+      'مراقبة وإحصائيات المنصة في الوقت الفعلي';
 
   @override
   String get recent_activity => 'نشاط النظام الأخير';
@@ -463,7 +463,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get registered => 'مسجل';
 
   @override
-  String get top => 'الأفضل';
+  String get top => 'الأعلى';
 
   @override
   String get total => 'الإجمالي';
@@ -532,7 +532,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get animal_weight => 'وزن الحيوان';
 
   @override
-  String get crop_recommendation => 'توصيات المحاصيل';
+  String get crop_recommendation => 'توصية المحاصيل';
 
   @override
   String get soil_analysis => 'تحليل التربة';
@@ -541,7 +541,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fruit_quality => 'جودة الفاكهة';
 
   @override
-  String get chatbot => 'المساعد الذكي';
+  String get chatbot => 'روبوت الدردشة';
 
   @override
   String get generating_report => 'جاري إنشاء التقرير...';
@@ -553,7 +553,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get mark_all_as_read => 'تحديد الكل كمقروء';
 
   @override
-  String get view_all_notifications => 'عرض كل الإشعارات';
+  String get view_all_notifications => 'عرض كافة الإشعارات';
 
   @override
   String get user_management => 'إدارة المستخدمين';
@@ -566,20 +566,38 @@ class AppLocalizationsAr extends AppLocalizations {
       'إدارة المستخدمين والأدوار والصلاحيات';
 
   @override
-  String get configure_ai_services_settings =>
-      'تكوين خدمات الذكاء الاصطناعي وإعدادات المنصة';
+  String get system_status_settings_modules =>
+      'حالة النظام والإعدادات والوحدات';
 
   @override
-  String get admin_settings => 'إعدادات المسؤول';
+  String get no_notifications => 'لا توجد إشعارات حالياً';
+
+  @override
+  String get notification_report => 'تقرير';
+
+  @override
+  String get notification_chatbot => 'الروبوت الذكي';
+
+  @override
+  String get notification_user => 'مستخدم';
+
+  @override
+  String get notification_system => 'تحديث النظام';
+
+  @override
+  String get ai_response_ready => 'رد الذكاء الاصطناعي جاهز';
+
+  @override
+  String get report_ready => 'التقرير جاهز';
+
+  @override
+  String get welcome_to_smart_farm => 'مرحباً بك في المزرعة الذكية';
+
+  @override
+  String get system_update => 'تحديث النظام';
 
   @override
   String get language_selection => 'اختيار اللغة';
-
-  @override
-  String get notification_preferences => 'تفضيلات الإشعارات';
-
-  @override
-  String get email_notifications => 'إشعارات البريد الإلكتروني';
 
   @override
   String get english => 'الإنجليزية';
@@ -588,52 +606,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get arabic => 'العربية';
 
   @override
-  String get service => 'الخدمة';
+  String get notification_preferences => 'تفضيلات الإشعارات';
 
   @override
-  String get most_used_service => 'الخدمة الأكثر استخداماً';
+  String get email_notifications => 'إشعارات البريد الإلكتروني';
 
   @override
-  String get best => 'الأفضل';
+  String get service => 'خدمة';
 
   @override
-  String active_users_count(Object count) {
-    return '$count مستخدم نشط';
-  }
+  String get usage_over_time => 'الاستخدام بمرور الوقت';
 
   @override
-  String get ai_models => 'نماذج الذكاء الاصطناعي';
+  String get monthly_registrations => 'تسجيلات المستخدمين الشهرية';
 
   @override
-  String get general_settings => 'الإعدادات العامة';
+  String get service_distribution => 'توزيع الخدمات';
 
   @override
-  String get save_ai_config => 'حفظ تكوين الذكاء الاصطناعي';
-
-  @override
-  String get save_general_settings => 'حفظ الإعدادات العامة';
-
-  @override
-  String get no_notifications => 'لا توجد إشعارات حالياً';
-
-  @override
-  String get just_now => 'الآن';
-
-  @override
-  String minutes_ago(String count) {
-    return 'منذ $count دقيقة';
-  }
-
-  @override
-  String hours_ago(String count) {
-    return 'منذ $count ساعة';
-  }
-
-  @override
-  String days_ago(String count) {
-    return 'منذ $count يوم';
-  }
-
-  @override
-  String get delete => 'حذف';
+  String get usage_by_ai_service => 'الاستخدام حسب خدمة الذكاء الاصطناعي';
 }

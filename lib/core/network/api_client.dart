@@ -173,7 +173,7 @@ class ApiClient {
       case 400: throw ApiException(msg, statusCode: 400);
       case 401: throw ApiException(msg.isNotEmpty ? msg : 'Invalid credentials.', statusCode: 401);
       case 403: throw ApiException('Access forbidden.',     statusCode: 403);
-      case 404: throw ApiException('Endpoint not found: ${r.request?.url?.path}', statusCode: 404);
+      case 404: throw ApiException('Endpoint not found: ${r.request?.url.path}', statusCode: 404);
       case 409: throw ApiException(msg,                     statusCode: 409);
       case 422: throw ApiException(msg.isNotEmpty ? msg : 'Validation error.', statusCode: 422);
       case 429: throw ApiException('Too many requests.',    statusCode: 429);

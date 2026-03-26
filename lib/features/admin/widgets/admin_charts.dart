@@ -1,10 +1,8 @@
-// lib/features/admin/reports/widgets/admin_report_widgets.dart
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
-import '../../../../shared/theme/app_theme.dart';
-import '../models/report_model.dart';
+import '../../../shared/theme/app_theme.dart';
+import '../reports/models/report_model.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminChartCard — A professional container for all dashboard charts.

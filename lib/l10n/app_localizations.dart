@@ -1055,7 +1055,7 @@ abstract class AppLocalizations {
   /// No description provided for @nov.
   ///
   /// In en, this message translates to:
-  /// **'Oct'**
+  /// **'Nov'**
   String get nov;
 
   /// No description provided for @dec.
@@ -1184,35 +1184,71 @@ abstract class AppLocalizations {
   /// **'Manage users, roles, and permissions'**
   String get manage_users_roles_permissions;
 
-  /// No description provided for @configure_ai_services_settings.
+  /// No description provided for @system_status_settings_modules.
   ///
   /// In en, this message translates to:
-  /// **'Configure AI services and platform settings'**
-  String get configure_ai_services_settings;
+  /// **'System status, settings, and modules'**
+  String get system_status_settings_modules;
 
-  /// No description provided for @admin_settings.
+  /// No description provided for @no_notifications.
   ///
   /// In en, this message translates to:
-  /// **'Admin Settings'**
-  String get admin_settings;
+  /// **'No notifications found'**
+  String get no_notifications;
+
+  /// No description provided for @notification_report.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get notification_report;
+
+  /// No description provided for @notification_chatbot.
+  ///
+  /// In en, this message translates to:
+  /// **'Chatbot'**
+  String get notification_chatbot;
+
+  /// No description provided for @notification_user.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get notification_user;
+
+  /// No description provided for @notification_system.
+  ///
+  /// In en, this message translates to:
+  /// **'System Update'**
+  String get notification_system;
+
+  /// No description provided for @ai_response_ready.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Response Ready'**
+  String get ai_response_ready;
+
+  /// No description provided for @report_ready.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Ready'**
+  String get report_ready;
+
+  /// No description provided for @welcome_to_smart_farm.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Smart Farm AI'**
+  String get welcome_to_smart_farm;
+
+  /// No description provided for @system_update.
+  ///
+  /// In en, this message translates to:
+  /// **'System Update'**
+  String get system_update;
 
   /// No description provided for @language_selection.
   ///
   /// In en, this message translates to:
   /// **'Language Selection'**
   String get language_selection;
-
-  /// No description provided for @notification_preferences.
-  ///
-  /// In en, this message translates to:
-  /// **'Notification Preferences'**
-  String get notification_preferences;
-
-  /// No description provided for @email_notifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Email Notifications'**
-  String get email_notifications;
 
   /// No description provided for @english.
   ///
@@ -1226,89 +1262,47 @@ abstract class AppLocalizations {
   /// **'Arabic'**
   String get arabic;
 
+  /// No description provided for @notification_preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Preferences'**
+  String get notification_preferences;
+
+  /// No description provided for @email_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Notifications'**
+  String get email_notifications;
+
   /// No description provided for @service.
   ///
   /// In en, this message translates to:
   /// **'Service'**
   String get service;
 
-  /// No description provided for @most_used_service.
+  /// No description provided for @usage_over_time.
   ///
   /// In en, this message translates to:
-  /// **'Most Used Service'**
-  String get most_used_service;
+  /// **'Usage Over Time'**
+  String get usage_over_time;
 
-  /// No description provided for @best.
+  /// No description provided for @monthly_registrations.
   ///
   /// In en, this message translates to:
-  /// **'Best'**
-  String get best;
+  /// **'Monthly user registrations'**
+  String get monthly_registrations;
 
-  /// No description provided for @active_users_count.
+  /// No description provided for @service_distribution.
   ///
   /// In en, this message translates to:
-  /// **'{count} Active Users'**
-  String active_users_count(Object count);
+  /// **'Service Distribution'**
+  String get service_distribution;
 
-  /// No description provided for @ai_models.
+  /// No description provided for @usage_by_ai_service.
   ///
   /// In en, this message translates to:
-  /// **'AI Models'**
-  String get ai_models;
-
-  /// No description provided for @general_settings.
-  ///
-  /// In en, this message translates to:
-  /// **'General Settings'**
-  String get general_settings;
-
-  /// No description provided for @save_ai_config.
-  ///
-  /// In en, this message translates to:
-  /// **'Save AI Configuration'**
-  String get save_ai_config;
-
-  /// No description provided for @save_general_settings.
-  ///
-  /// In en, this message translates to:
-  /// **'Save General Settings'**
-  String get save_general_settings;
-
-  /// No description provided for @no_notifications.
-  ///
-  /// In en, this message translates to:
-  /// **'No notifications yet'**
-  String get no_notifications;
-
-  /// No description provided for @just_now.
-  ///
-  /// In en, this message translates to:
-  /// **'Just now'**
-  String get just_now;
-
-  /// No description provided for @minutes_ago.
-  ///
-  /// In en, this message translates to:
-  /// **'about {count} minutes ago'**
-  String minutes_ago(String count);
-
-  /// No description provided for @hours_ago.
-  ///
-  /// In en, this message translates to:
-  /// **'about {count} hours ago'**
-  String hours_ago(String count);
-
-  /// No description provided for @days_ago.
-  ///
-  /// In en, this message translates to:
-  /// **'about {count} days ago'**
-  String days_ago(String count);
-
-  /// No description provided for @delete.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete'**
-  String get delete;
+  /// **'Usage by AI service'**
+  String get usage_by_ai_service;
 }
 
 class _AppLocalizationsDelegate

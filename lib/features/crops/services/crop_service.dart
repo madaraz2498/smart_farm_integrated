@@ -10,10 +10,10 @@ class CropService {
   final ApiClient _c = ApiClient.instance;
 
   Future<CropRecommendationResponse> recommend(CropRecommendationRequest req) async {
-    debugPrint('[CropService] POST /crops/recommend-crop');
+    debugPrint('[CropService] POST /crops/recommend-smart-expert');
     debugPrint('[CropService] body: ${req.toJson()}');
     try {
-      final data = await _c.post('/crops/recommend-crop', body: req.toJson());
+      final data = await _c.post('/crops/recommend-smart-expert', body: req.toJson());
       debugPrint('[CropService] response: $data');
       return CropRecommendationResponse.fromJson(data as Map<String, dynamic>);
     } on ApiException { rethrow; }

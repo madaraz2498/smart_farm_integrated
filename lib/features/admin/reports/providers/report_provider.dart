@@ -62,7 +62,7 @@ class AdminReportProvider extends ChangeNotifier {
         // Add notification
         notif.addSystemNotification(
           title: 'Report Ready',
-          message: 'Your admin report has been generated successfully.',
+          body: 'Your admin report has been generated successfully.',
         );
 
         notifyListeners();

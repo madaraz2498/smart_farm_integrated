@@ -16,6 +16,7 @@ import 'package:smart_farm/features/plants/providers/plant_provider.dart';
 import 'package:smart_farm/features/fruits/providers/fruit_provider.dart';
 import 'package:smart_farm/features/soil/providers/soil_provider.dart';
 import 'package:smart_farm/features/crops/providers/crop_provider.dart';
+import 'package:smart_farm/features/admin/providers/admin_provider.dart';
 import 'package:smart_farm/features/admin/reports/providers/report_provider.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 
@@ -25,9 +26,13 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProxyProvider<NotificationProvider, AuthProvider>(
+          create: (_) => AuthProvider(),
+          update: (_, notif, auth) => auth!..updateNotif(notif),
+        ),
         ChangeNotifierProxyProvider<AuthProvider, ChatbotProvider>(
           create: (_) => ChatbotProvider('0'),
           update: (_, auth, chatbot) =>
@@ -64,7 +69,10 @@ void main() {
               crop!..updateUserId(auth.currentUser?.id ?? '0'),
         ),
         ChangeNotifierProvider(create: (_) => AdminReportProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProxyProvider<NotificationProvider, AdminProvider>(
+          create: (_) => AdminProvider(),
+          update: (_, notif, admin) => admin!..updateNotif(notif),
+        ),
       ],
       child: const SmartFarmApp(),
     ),

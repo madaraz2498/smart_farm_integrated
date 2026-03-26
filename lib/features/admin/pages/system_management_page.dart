@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/admin_provider.dart';
-import '../services/admin_service.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/sf_button.dart';
 
@@ -42,7 +41,17 @@ class _SystemManagementPageState extends State<SystemManagementPage>
 
   Future<void> _toggleService(String key, bool val) async {
     setState(() => _services[key] = val);
-    await AdminService.instance.toggleService(key);
+    await context.read<AdminProvider>().toggleService(key);
+  }
+
+  Future<void> _toggleSetting(String key, bool val) async {
+    // Local state update
+    if (key == 'maintenance') _maintenance = val;
+    if (key == 'email_notif') _emailNotif = val;
+    if (key == 'auto_backup') _autoBackup = val;
+    setState(() {});
+
+    await context.read<AdminProvider>().toggleSystemSetting(key);
   }
 
   void _snack(String msg) => ScaffoldMessenger.of(context).showSnackBar(
@@ -164,19 +173,19 @@ class _SystemManagementPageState extends State<SystemManagementPage>
                 'Disable user access temporarily',
                 _maintenance,
                 AppColors.error,
-                (v) => setState(() => _maintenance = v)),
+                (v) => _toggleSetting('maintenance', v)),
             _ToggleRow(
                 'Email Notifications',
                 'System alerts via email',
                 _emailNotif,
                 AppColors.info,
-                (v) => setState(() => _emailNotif = v)),
+                (v) => _toggleSetting('email_notif', v)),
             _ToggleRow(
                 'Auto Backup',
                 'Daily database snapshots',
                 _autoBackup,
                 const Color(0xFF9C27B0),
-                (v) => setState(() => _autoBackup = v)),
+                (v) => _toggleSetting('auto_backup', v)),
           ])),
       const SizedBox(height: 16),
       SfPrimaryButton(

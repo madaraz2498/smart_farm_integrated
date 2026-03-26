@@ -16,11 +16,11 @@ class PlantService {
     required String    fileName,
     required String    userId,
   }) async {
-    debugPrint('[PlantService] POST /plants/detect-disease  file=$fileName  userId=$userId');
+    debugPrint('[PlantService] POST /plants/detect  file=$fileName  userId=$userId');
     try {
       final data = await _c.postMultipart(
-        '/plants/detect-disease',
-        fileField: 'image',
+        '/plants/detect',
+        fileField: 'file',
         fileBytes: imageBytes,
         fileName:  fileName,
         fields:    {'user_id': userId},

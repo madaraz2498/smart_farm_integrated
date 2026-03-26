@@ -1,6 +1,4 @@
 import 'package:flutter/foundation.dart';
-import '../../../core/network/api_exception.dart';
-import '../models/chatbot_models.dart';
 import '../services/chatbot_service.dart';
 
 enum ChatStatus { idle, sending, error }

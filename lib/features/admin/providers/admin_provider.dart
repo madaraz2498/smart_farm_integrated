@@ -1,33 +1,39 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
+import '../../notifications/providers/notification_provider.dart';
 import '../models/admin_models.dart';
 import '../services/admin_service.dart';
 
 class AdminProvider extends ChangeNotifier {
   final AdminService _svc = AdminService.instance;
+  NotificationProvider? _notif;
+
+  void updateNotif(NotificationProvider? n) => _notif = n;
 
   // ── Stats ─────────────────────────────────────────────────────────────────
   DashboardStats? _stats;
-  bool            _statsLoading = false;
-  String?         _statsError;
+  bool _statsLoading = false;
+  String? _statsError;
 
-  DashboardStats? get stats        => _stats;
-  bool            get statsLoading => _statsLoading;
-  String?         get statsError   => _statsError;
+  DashboardStats? get stats => _stats;
+  bool get statsLoading => _statsLoading;
+  String? get statsError => _statsError;
 
   // ── Users ─────────────────────────────────────────────────────────────────
-  List<AdminUser> _users        = [];
-  bool            _usersLoading = false;
-  String?         _usersError;
+  List<AdminUser> _users = [];
+  bool _usersLoading = false;
+  String? _usersError;
 
-  List<AdminUser> get users        => List.unmodifiable(_users);
-  bool            get usersLoading => _usersLoading;
-  String?         get usersError   => _usersError;
+  List<AdminUser> get users => List.unmodifiable(_users);
+  bool get usersLoading => _usersLoading;
+  String? get usersError => _usersError;
 
   // ── Load stats ─────────────────────────────────────────────────────────────
   Future<void> loadStats({bool force = false}) async {
     if (_stats != null && !force) return;
-    _statsLoading = true; _statsError = null; notifyListeners();
+    _statsLoading = true;
+    _statsError = null;
+    notifyListeners();
     try {
       _stats = await _svc.getDashboardStats();
     } on ApiException catch (e) {
@@ -35,14 +41,17 @@ class AdminProvider extends ChangeNotifier {
     } catch (_) {
       _statsError = 'Failed to load statistics.';
     } finally {
-      _statsLoading = false; notifyListeners();
+      _statsLoading = false;
+      notifyListeners();
     }
   }
 
   // ── Load users ─────────────────────────────────────────────────────────────
   Future<void> loadUsers({bool force = false}) async {
     if (_users.isNotEmpty && !force) return;
-    _usersLoading = true; _usersError = null; notifyListeners();
+    _usersLoading = true;
+    _usersError = null;
+    notifyListeners();
     try {
       final data = await _svc.getUsersAndSummary();
       _users = data.users;
@@ -51,7 +60,8 @@ class AdminProvider extends ChangeNotifier {
     } catch (_) {
       _usersError = 'Failed to load users.';
     } finally {
-      _usersLoading = false; notifyListeners();
+      _usersLoading = false;
+      notifyListeners();
     }
   }
 
@@ -61,25 +71,45 @@ class AdminProvider extends ChangeNotifier {
       await _svc.deleteUser(userId);
       _users.removeWhere((u) => u.id == userId);
       notifyListeners();
+
+      _notif?.addSystemNotification(
+        title: 'User Management',
+        body: 'User $userId has been deleted.',
+      );
+
       return true;
     } on ApiException catch (e) {
-      _usersError = e.message; notifyListeners(); return false;
+      _usersError = e.message;
+      notifyListeners();
+      return false;
     }
   }
 
-  Future<bool> deactivateUser(String userId) async => _toggleActive(userId, false);
-  Future<bool> activateUser(String userId)   async => _toggleActive(userId, true);
+  Future<bool> deactivateUser(String userId) async =>
+      _toggleActive(userId, false);
+  Future<bool> activateUser(String userId) async => _toggleActive(userId, true);
 
   Future<bool> _toggleActive(String userId, bool active) async {
     try {
-      if (active) await _svc.activateUser(userId);
-      else        await _svc.deactivateUser(userId);
+      if (active) {
+        await _svc.activateUser(userId);
+      } else {
+        await _svc.deactivateUser(userId);
+      }
       final i = _users.indexWhere((u) => u.id == userId);
       if (i != -1) _users[i] = _users[i].copyWith(isActive: active);
       notifyListeners();
+
+      _notif?.addSystemNotification(
+        title: 'User Management',
+        body: 'User $userId has been ${active ? 'activated' : 'deactivated'}.',
+      );
+
       return true;
     } on ApiException catch (e) {
-      _usersError = e.message; notifyListeners(); return false;
+      _usersError = e.message;
+      notifyListeners();
+      return false;
     }
   }
 
@@ -87,9 +117,46 @@ class AdminProvider extends ChangeNotifier {
     try {
       await _svc.promoteToAdmin(userId);
       await loadUsers(force: true);
+
+      _notif?.addSystemNotification(
+        title: 'User Management',
+        body: 'User $userId has been promoted to Admin.',
+      );
+
       return true;
     } on ApiException catch (e) {
-      _usersError = e.message; notifyListeners(); return false;
+      _usersError = e.message;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ── System Toggle Actions ──────────────────────────────────────────────────
+  Future<void> toggleService(String moduleName) async {
+    try {
+      await _svc.toggleService(moduleName);
+
+      _notif?.addSystemNotification(
+        title: 'System Update',
+        body: 'Service $moduleName has been toggled.',
+      );
+    } catch (e) {
+      _statsError = 'Failed to toggle service.';
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleSystemSetting(String settingName) async {
+    try {
+      await _svc.toggleSystemSetting(settingName);
+
+      _notif?.addSystemNotification(
+        title: 'System Update',
+        body: 'System setting $settingName has been toggled.',
+      );
+    } catch (e) {
+      _statsError = 'Failed to toggle setting.';
+      notifyListeners();
     }
   }
 
@@ -98,5 +165,9 @@ class AdminProvider extends ChangeNotifier {
     await Future.wait([loadStats(force: true), loadUsers(force: true)]);
   }
 
-  void clearErrors() { _statsError = null; _usersError = null; notifyListeners(); }
+  void clearErrors() {
+    _statsError = null;
+    _usersError = null;
+    notifyListeners();
+  }
 }

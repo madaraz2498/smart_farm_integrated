@@ -1,5 +1,3 @@
-// lib/features/notifications/providers/notification_provider.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
@@ -7,7 +5,7 @@ import '../services/notification_service.dart';
 
 class NotificationProvider extends ChangeNotifier {
   final NotificationService _service = NotificationService();
-  
+
   List<AppNotification> _notifications = [];
   bool _isLoading = false;
   Timer? _refreshTimer;
@@ -15,89 +13,93 @@ class NotificationProvider extends ChangeNotifier {
   bool _pushEnabled = true;
   bool _emailEnabled = false;
 
-  NotificationProvider() {
-    _startRefreshTimer();
-  }
-
-  @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
-  }
-
-  void _startRefreshTimer() {
-    _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      fetchNotifications(showLoading: false);
-    });
-  }
+  NotificationProvider();
 
   List<AppNotification> get notifications => _notifications;
-  List<AppNotification> get unreadNotifications =>
-      _notifications.where((n) => !n.isRead).toList();
-  int get unreadCount => unreadNotifications.length;
   bool get isLoading => _isLoading;
   bool get pushEnabled => _pushEnabled;
   bool get emailEnabled => _emailEnabled;
 
-  Future<void> fetchNotifications({bool showLoading = true}) async {
+  int get unreadCount => _notifications.where((n) => !n.isRead).length;
+
+  Future<void> fetchNotifications(
+      {required String userId, bool showLoading = true}) async {
     if (showLoading) {
       _isLoading = true;
       notifyListeners();
     }
-    
-    final results = await _service.getNotifications();
-    _notifications = results;
-    
+
+    final results = await _service.getNotifications(userId);
+
+    // Merge backend results with current local notifications (avoiding duplicates)
+    final backendIds = results.map((e) => e.id).toSet();
+    final localOnly = _notifications
+        .where((n) => !backendIds.contains(n.id) && n.userId == 'local')
+        .toList();
+
+    _notifications = [...results, ...localOnly];
+    _notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
     if (showLoading) {
       _isLoading = false;
     }
     notifyListeners();
   }
 
+  void addLocalNotification({
+    required String title,
+    required String body,
+    required NotificationType type,
+  }) {
+    final newNotif = AppNotification(
+      id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+      userId: 'local',
+      title: title,
+      body: body,
+      createdAt: DateTime.now(),
+      type: type,
+      isRead: false,
+    );
+    _notifications.insert(0, newNotif);
+    notifyListeners();
+  }
+
+  void addSystemNotification({required String title, required String body}) {
+    addLocalNotification(
+        title: title, body: body, type: NotificationType.system);
+  }
+
   Future<void> markAsRead(String id) async {
-    // Update local state immediately for responsiveness
     final index = _notifications.indexWhere((n) => n.id == id);
     if (index != -1) {
       final original = _notifications[index];
+      if (original.isRead) return;
+
       _notifications[index] = original.copyWith(isRead: true);
       notifyListeners();
 
-      // Attempt to sync with server
-      final success = await _service.markAsRead(id);
-      if (!success) {
-        // Rollback if needed, but for now we trust local state
-        debugPrint('[NotificationProvider] Failed to sync markAsRead for $id');
+      if (original.userId != 'local') {
+        await _service.markAsRead(id);
       }
     }
   }
 
   Future<void> markAllAsRead() async {
-    // Update local state immediately
+    if (_notifications.isEmpty) return;
     _notifications =
         _notifications.map((n) => n.copyWith(isRead: true)).toList();
     notifyListeners();
-
-    // Sync with server
-    final success = await _service.markAllAsRead();
-    if (!success) {
-      debugPrint('[NotificationProvider] Failed to sync markAllAsRead');
-    }
+    // In a real app, we'd sync with backend too
   }
 
   Future<void> deleteNotification(String id) async {
-    // Update local state immediately
     final index = _notifications.indexWhere((n) => n.id == id);
     if (index != -1) {
-      final removedItem = _notifications.removeAt(index);
+      final item = _notifications.removeAt(index);
       notifyListeners();
 
-      // Sync with server
-      final success = await _service.deleteNotification(id);
-      if (!success) {
-        debugPrint(
-            '[NotificationProvider] Failed to sync deleteNotification for $id');
-        // Option: add it back if it's critical, but usually users prefer immediate UI
+      if (item.userId != 'local') {
+        await _service.deleteNotification(id);
       }
     }
   }
@@ -107,28 +109,26 @@ class NotificationProvider extends ChangeNotifier {
     bool? push,
     bool? email,
   }) async {
-    final success = await _service.updateNotificationSettings(
-      userId: userId,
-      push: push,
-      email: email,
-    );
-    if (success) {
-      if (push != null) _pushEnabled = push;
-      if (email != null) _emailEnabled = email;
-      notifyListeners();
-    }
+    // In a real app, call service to update settings on backend
+    if (push != null) _pushEnabled = push;
+    if (email != null) _emailEnabled = email;
+    notifyListeners();
   }
 
-  void addSystemNotification({required String title, required String message}) {
-    final newNotif = AppNotification(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: title,
-      message: message,
-      timestamp: DateTime.now(),
-      type: NotificationType.system,
-      isRead: false,
-    );
-    _notifications.insert(0, newNotif);
-    notifyListeners();
+  void startRefreshTimer(String userId) {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      fetchNotifications(userId: userId, showLoading: false);
+    });
+  }
+
+  void stopRefreshTimer() {
+    _refreshTimer?.cancel();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 }

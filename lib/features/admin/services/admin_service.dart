@@ -15,6 +15,7 @@ import '../models/admin_models.dart';
 ///   PATCH  /admin/users/deactivate/{user_id}
 ///   PATCH  /admin/users/activate/{user_id}
 ///   POST   /admin/users/promote-to-admin   body: { "user_id": <int> }
+///   PATCH  /admin/users/settings/notifications/{user_id}
 ///
 /// ── System ─────────────────────────────────────────────────────────────────
 ///   GET    /admin/system/admin/system/status
@@ -129,6 +130,19 @@ class AdminService {
       rethrow;
     } catch (_) {
       throw const ApiException('Failed to promote user.');
+    }
+  }
+
+  Future<void> updateNotificationSettings(
+      String userId, Map<String, dynamic> settings) async {
+    final path = '/admin/users/settings/notifications/$userId';
+    debugPrint('[AdminService] PATCH $path  body: $settings');
+    try {
+      await _c.patch(path, body: settings);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to update notification settings.');
     }
   }
 

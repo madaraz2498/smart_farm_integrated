@@ -20,7 +20,7 @@ class AnimalService {
     try {
       final data = await _c.postMultipart(
         '/animals/estimate-weight',
-        fileField: 'image',
+        fileField: 'file',
         fileBytes: imageBytes,
         fileName:  fileName,
         fields:    {'user_id': userId},

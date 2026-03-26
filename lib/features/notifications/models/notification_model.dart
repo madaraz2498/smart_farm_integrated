@@ -1,20 +1,22 @@
 // lib/features/notifications/models/notification_model.dart
 
-enum NotificationType { system, analysis, user, alert }
+enum NotificationType { system, report, user, chatbot }
 
 class AppNotification {
   final String id;
+  final String userId;
   final String title;
-  final String message;
-  final DateTime timestamp;
+  final String body;
+  final DateTime createdAt;
   final bool isRead;
   final NotificationType type;
 
   AppNotification({
     required this.id,
+    required this.userId,
     required this.title,
-    required this.message,
-    required this.timestamp,
+    required this.body,
+    required this.createdAt,
     this.isRead = false,
     required this.type,
   });
@@ -22,9 +24,10 @@ class AppNotification {
   AppNotification copyWith({bool? isRead}) {
     return AppNotification(
       id: id,
+      userId: userId,
       title: title,
-      message: message,
-      timestamp: timestamp,
+      body: body,
+      createdAt: createdAt,
       isRead: isRead ?? this.isRead,
       type: type,
     );
@@ -32,11 +35,12 @@ class AppNotification {
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
     return AppNotification(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? '',
       title: json['title'] ?? '',
-      message: json['message'] ?? '',
-      timestamp: json['timestamp'] != null 
-          ? DateTime.parse(json['timestamp']) 
+      body: json['body'] ?? '',
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : DateTime.now(),
       isRead: json['is_read'] ?? false,
       type: _parseType(json['type']),
@@ -45,10 +49,14 @@ class AppNotification {
 
   static NotificationType _parseType(String? type) {
     switch (type?.toLowerCase()) {
-      case 'analysis': return NotificationType.analysis;
-      case 'user': return NotificationType.user;
-      case 'alert': return NotificationType.alert;
-      default: return NotificationType.system;
+      case 'report':
+        return NotificationType.report;
+      case 'user':
+        return NotificationType.user;
+      case 'chatbot':
+        return NotificationType.chatbot;
+      default:
+        return NotificationType.system;
     }
   }
 }

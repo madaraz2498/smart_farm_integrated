@@ -7,27 +7,24 @@ import '../models/notification_model.dart';
 class NotificationService {
   final ApiClient _apiClient = ApiClient.instance;
 
-  Future<List<AppNotification>> getNotifications() async {
+  Future<List<AppNotification>> getNotifications(String userId) async {
     try {
-      // NOTE: The endpoint /admin/notifications/list is currently returning 404
-      // based on recent logs. If the backend hasn't implemented it yet,
-      // we'll use the mock data to keep the UI functional.
-      final response = await _apiClient.get('/admin/notifications/list');
+      final response = await _apiClient.get('/notifications/$userId');
       if (response is List) {
         return response.map((json) => AppNotification.fromJson(json)).toList();
       }
-      return _getMockNotifications();
+      return [];
     } catch (e) {
-      // Silence 404 to avoid noisy logs for missing backend endpoints
-      debugPrint(
-          '[NotificationService] Fetch failed (possibly missing endpoint): $e');
-      return _getMockNotifications();
+      // If endpoint 404, we just return empty list to avoid noisy errors
+      // and let local notifications handle the UI part.
+      debugPrint('[NotificationService] getNotifications error (expected if backend missing): $e');
+      return [];
     }
   }
 
   Future<bool> markAsRead(String id) async {
     try {
-      await _apiClient.post('/admin/notifications/mark-read/$id');
+      await _apiClient.patch('/notifications/read/$id');
       return true;
     } catch (e) {
       debugPrint('[NotificationService] markAsRead failed: $e');
@@ -35,19 +32,9 @@ class NotificationService {
     }
   }
 
-  Future<bool> markAllAsRead() async {
-    try {
-      await _apiClient.post('/admin/notifications/mark-all-read');
-      return true;
-    } catch (e) {
-      debugPrint('[NotificationService] markAllAsRead failed: $e');
-      return false;
-    }
-  }
-
   Future<bool> deleteNotification(String id) async {
     try {
-      await _apiClient.delete('/admin/notifications/delete/$id');
+      await _apiClient.delete('/notifications/$id');
       return true;
     } catch (e) {
       debugPrint('[NotificationService] deleteNotification failed: $e');
@@ -74,42 +61,5 @@ class NotificationService {
       debugPrint('[NotificationService] Update Settings Error: $e');
       return false;
     }
-  }
-
-  List<AppNotification> _getMockNotifications() {
-    return [
-      AppNotification(
-        id: '1',
-        title: 'تحليل جديد للنبات',
-        message: 'تم إجراء تحليل لمرض "لفحة الأوراق" بنجاح للمستخدم أحمد.',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-        type: NotificationType.analysis,
-        isRead: false,
-      ),
-      AppNotification(
-        id: '2',
-        title: 'تسجيل مستخدم جديد',
-        message: 'انضم مزارع جديد "خالد محمد" إلى المنصة الآن.',
-        timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-        type: NotificationType.user,
-        isRead: false,
-      ),
-      AppNotification(
-        id: '3',
-        title: 'تنبيه النظام',
-        message: 'تم تحديث نماذج الذكاء الاصطناعي إلى الإصدار v2.1.',
-        timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-        type: NotificationType.system,
-        isRead: true,
-      ),
-      AppNotification(
-        id: '4',
-        title: 'تقرير تم إنشاؤه',
-        message: 'التقرير السنوي للمزرعة جاهز للتحميل الآن.',
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
-        type: NotificationType.analysis,
-        isRead: true,
-      ),
-    ];
   }
 }

@@ -500,7 +500,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get oct => 'Oct';
 
   @override
-  String get nov => 'Oct';
+  String get nov => 'Nov';
 
   @override
   String get dec => 'Dec';
@@ -567,20 +567,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'Manage users, roles, and permissions';
 
   @override
-  String get configure_ai_services_settings =>
-      'Configure AI services and platform settings';
+  String get system_status_settings_modules =>
+      'System status, settings, and modules';
 
   @override
-  String get admin_settings => 'Admin Settings';
+  String get no_notifications => 'No notifications found';
+
+  @override
+  String get notification_report => 'Report';
+
+  @override
+  String get notification_chatbot => 'Chatbot';
+
+  @override
+  String get notification_user => 'User';
+
+  @override
+  String get notification_system => 'System Update';
+
+  @override
+  String get ai_response_ready => 'AI Response Ready';
+
+  @override
+  String get report_ready => 'Report Ready';
+
+  @override
+  String get welcome_to_smart_farm => 'Welcome to Smart Farm AI';
+
+  @override
+  String get system_update => 'System Update';
 
   @override
   String get language_selection => 'Language Selection';
-
-  @override
-  String get notification_preferences => 'Notification Preferences';
-
-  @override
-  String get email_notifications => 'Email Notifications';
 
   @override
   String get english => 'English';
@@ -589,52 +607,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arabic => 'Arabic';
 
   @override
+  String get notification_preferences => 'Notification Preferences';
+
+  @override
+  String get email_notifications => 'Email Notifications';
+
+  @override
   String get service => 'Service';
 
   @override
-  String get most_used_service => 'Most Used Service';
+  String get usage_over_time => 'Usage Over Time';
 
   @override
-  String get best => 'Best';
+  String get monthly_registrations => 'Monthly user registrations';
 
   @override
-  String active_users_count(Object count) {
-    return '$count Active Users';
-  }
+  String get service_distribution => 'Service Distribution';
 
   @override
-  String get ai_models => 'AI Models';
-
-  @override
-  String get general_settings => 'General Settings';
-
-  @override
-  String get save_ai_config => 'Save AI Configuration';
-
-  @override
-  String get save_general_settings => 'Save General Settings';
-
-  @override
-  String get no_notifications => 'No notifications yet';
-
-  @override
-  String get just_now => 'Just now';
-
-  @override
-  String minutes_ago(String count) {
-    return 'about $count minutes ago';
-  }
-
-  @override
-  String hours_ago(String count) {
-    return 'about $count hours ago';
-  }
-
-  @override
-  String days_ago(String count) {
-    return 'about $count days ago';
-  }
-
-  @override
-  String get delete => 'Delete';
+  String get usage_by_ai_service => 'Usage by AI service';
 }

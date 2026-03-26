@@ -6,6 +6,7 @@ import '../../../shared/theme/app_theme.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
+
   @override
   State<ChatbotScreen> createState() => _ChatbotScreenState();
 }
@@ -90,8 +91,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   padding: const EdgeInsets.all(16),
                   itemCount: prov.messages.length + (prov.isSending ? 1 : 0),
                   itemBuilder: (_, i) {
-                    if (i == prov.messages.length)
+                    if (i == prov.messages.length) {
                       return _TypingIndicator(chatLanguage: prov.chatLanguage);
+                    }
                     return _Bubble(msg: prov.messages[i]);
                   },
                 ),
@@ -111,16 +113,15 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 // ── Quick suggestions ─────────────────────────────────────────────────────────
 
 class _SuggestionsBar extends StatelessWidget {
-  const _SuggestionsBar(
-      {super.key, required this.onTap, required this.chatLanguage});
+  const _SuggestionsBar({
+    required this.onTap,
+    required this.chatLanguage,
+  });
   final ValueChanged<String> onTap;
   final String chatLanguage;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    // Use the selected chat language for suggestions, fallback to app locale if they match
     final isArabic = chatLanguage == 'Arabic';
     final suggestions = isArabic
         ? [
@@ -177,7 +178,9 @@ class _SuggestionsBar extends StatelessWidget {
 // ── Empty state ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({super.key, required this.chatLanguage});
+  const _EmptyState({
+    required this.chatLanguage,
+  });
   final String chatLanguage;
 
   @override
@@ -206,7 +209,9 @@ class _EmptyState extends StatelessWidget {
 // ── Chat bubble ───────────────────────────────────────────────────────────────
 
 class _Bubble extends StatelessWidget {
-  const _Bubble({super.key, required this.msg});
+  const _Bubble({
+    required this.msg,
+  });
   final ChatMessage msg;
 
   @override
@@ -220,7 +225,7 @@ class _Bubble extends StatelessWidget {
             msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!msg.isUser) _Avatar(isUser: false),
+          if (!msg.isUser) const _Avatar(isUser: false),
           const SizedBox(width: 8),
           Flexible(
             child: Container(
@@ -249,26 +254,22 @@ class _Bubble extends StatelessWidget {
                     Text(msg.text,
                         style: TextStyle(
                           fontSize: 14,
-                          color: msg.isUser
-                              ? Colors.white
-                              : msg.isError
-                                  ? AppColors.error
-                                  : AppColors.textMid,
-                          height: 1.5,
+                          color: msg.isUser ? Colors.white : AppColors.textDark,
+                          height: 1.4,
                         )),
                     const SizedBox(height: 4),
                     Text(ts,
                         style: TextStyle(
                           fontSize: 10,
                           color: msg.isUser
-                              ? Colors.white.withValues(alpha: 0.65)
-                              : AppColors.textSubtle,
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : AppColors.textDisabled,
                         )),
                   ]),
             ),
           ),
           const SizedBox(width: 8),
-          if (msg.isUser) _Avatar(isUser: true),
+          if (msg.isUser) const _Avatar(isUser: true),
         ],
       ),
     );
@@ -276,22 +277,23 @@ class _Bubble extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({super.key, required this.isUser});
+  const _Avatar({required this.isUser});
   final bool isUser;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 32,
-      height: 32,
+      width: 28,
+      height: 28,
       decoration: BoxDecoration(
-        color: isUser ? AppColors.primary : AppColors.primarySurface,
+        color: isUser ? AppColors.primarySurface : AppColors.background,
         shape: BoxShape.circle,
+        border: Border.all(color: AppColors.cardBorder),
       ),
       child: Icon(
-        isUser ? Icons.person_rounded : Icons.smart_toy_outlined,
+        isUser ? Icons.person_rounded : Icons.smart_toy_rounded,
         size: 16,
-        color: isUser ? Colors.white : AppColors.primary,
+        color: isUser ? AppColors.primary : AppColors.textSubtle,
       ),
     );
   }
@@ -300,54 +302,35 @@ class _Avatar extends StatelessWidget {
 // ── Typing indicator ──────────────────────────────────────────────────────────
 
 class _TypingIndicator extends StatelessWidget {
-  const _TypingIndicator({super.key, required this.chatLanguage});
+  const _TypingIndicator({required this.chatLanguage});
   final String chatLanguage;
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = chatLanguage == 'Arabic';
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        _Avatar(isUser: false),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(AppSizes.radiusLarge),
-              topRight: Radius.circular(AppSizes.radiusLarge),
-              bottomRight: Radius.circular(AppSizes.radiusLarge),
-              bottomLeft: Radius.circular(4),
+      child: Row(
+        children: [
+          const _Avatar(isUser: false),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
+              border: Border.all(color: AppColors.cardBorder),
             ),
-            border: Border.all(color: AppColors.cardBorder),
+            child: Text(
+              isArabic ? 'جاري الكتابة...' : 'Typing...',
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.textSubtle),
+            ),
           ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(chatLanguage == 'Arabic' ? 'الروبوت يكتب' : 'Bot is typing',
-                style:
-                    const TextStyle(fontSize: 12, color: AppColors.textSubtle)),
-            const SizedBox(width: 8),
-            const _Dot(),
-            const SizedBox(width: 4),
-            const _Dot(),
-            const SizedBox(width: 4),
-            const _Dot(),
-          ]),
-        ),
-      ]),
-    );
-  }
-}
-
-class _Dot extends StatelessWidget {
-  const _Dot({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 7,
-      height: 7,
-      decoration:
-          const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+        ],
+      ),
     );
   }
 }
@@ -355,12 +338,12 @@ class _Dot extends StatelessWidget {
 // ── Input bar ─────────────────────────────────────────────────────────────────
 
 class _InputBar extends StatelessWidget {
-  const _InputBar(
-      {super.key,
-      required this.ctrl,
-      required this.isSending,
-      required this.onSend,
-      required this.hint});
+  const _InputBar({
+    required this.ctrl,
+    required this.isSending,
+    required this.onSend,
+    required this.hint,
+  });
   final TextEditingController ctrl;
   final bool isSending;
   final VoidCallback onSend;
@@ -369,73 +352,63 @@ class _InputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: const Border(top: BorderSide(color: AppColors.cardBorder)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, -2))
+              color: Colors.black.withValues(alpha: 0.05),
+              offset: const Offset(0, -2),
+              blurRadius: 10)
         ],
       ),
-      child: Row(children: [
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-              border: Border.all(color: AppColors.cardBorder),
-            ),
-            child: TextField(
-              controller: ctrl,
-              style: const TextStyle(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: const TextStyle(
-                    color: AppColors.textDisabled, fontSize: 13),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: InputBorder.none,
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: TextField(
+                  controller: ctrl,
+                  maxLines: 4,
+                  minLines: 1,
+                  style: const TextStyle(fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: hint,
+                    hintStyle: const TextStyle(
+                        fontSize: 14, color: AppColors.textDisabled),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    border: InputBorder.none,
+                  ),
+                ),
               ),
-              onSubmitted: (_) => onSend(),
             ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        _SendButton(onPressed: onSend, isLoading: isSending),
-      ]),
-    );
-  }
-}
-
-class _SendButton extends StatelessWidget {
-  const _SendButton(
-      {super.key, required this.onPressed, required this.isLoading});
-  final VoidCallback onPressed;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: isLoading ? null : onPressed,
-      borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-        ),
-        child: Center(
-          child: isLoading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white))
-              : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: isSending ? null : onSend,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: isSending
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.send_rounded,
+                        color: Colors.white, size: 20),
+              ),
+            ),
+          ],
         ),
       ),
     );

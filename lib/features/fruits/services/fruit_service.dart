@@ -20,7 +20,7 @@ class FruitService {
     try {
       final data = await _c.postMultipart(
         '/fruits/analyze-fruit',
-        fileField: 'image',
+        fileField: 'file',
         fileBytes: imageBytes,
         fileName:  fileName,
         fields:    {'user_id': userId},
