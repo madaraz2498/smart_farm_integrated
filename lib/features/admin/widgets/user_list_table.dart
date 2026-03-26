@@ -36,57 +36,59 @@ class _UserListTableState extends State<UserListTable> {
           u.email.toLowerCase().contains(q);
     }).toList();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final tableWidth =
-              constraints.maxWidth < 700 ? 700.0 : constraints.maxWidth;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const tableWidth = 484.0;
 
-          return Scrollbar(
-            controller: _horizontalController,
-            thumbVisibility: true,
-            child: SingleChildScrollView(
+            return Scrollbar(
               controller: _horizontalController,
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: tableWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTableHeaders(l10n),
-                    if (filteredUsers.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(32),
-                        child: Center(child: Text('No users found.')),
-                      )
-                    else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: filteredUsers.length,
-                        separatorBuilder: (_, __) =>
-                            Divider(height: 1, color: Colors.grey.shade50),
-                        itemBuilder: (context, index) =>
-                            _buildUserRow(context, filteredUsers[index], l10n),
-                      ),
-                  ],
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                controller: _horizontalController,
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: tableWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildTableHeaders(l10n),
+                      if (filteredUsers.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(child: Text('No users found.')),
+                        )
+                      else
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: filteredUsers.length,
+                          separatorBuilder: (_, __) =>
+                              Divider(height: 1, color: Colors.grey.shade50),
+                          itemBuilder: (context, index) => _buildUserRow(
+                              context, filteredUsers[index], l10n),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildTableHeaders(AppLocalizations l10n) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -94,8 +96,8 @@ class _UserListTableState extends State<UserListTable> {
       ),
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
+          SizedBox(
+            width: 220,
             child: Text(
               l10n.user_name_email.toUpperCase(),
               style: TextStyle(
@@ -105,8 +107,8 @@ class _UserListTableState extends State<UserListTable> {
                   letterSpacing: 0.5),
             ),
           ),
-          Expanded(
-            flex: 1,
+          SizedBox(
+            width: 70,
             child: Center(
               child: Text(
                 l10n.role.toUpperCase(),
@@ -118,8 +120,8 @@ class _UserListTableState extends State<UserListTable> {
               ),
             ),
           ),
-          Expanded(
-            flex: 1,
+          SizedBox(
+            width: 90,
             child: Center(
               child: Text(
                 l10n.status.toUpperCase(),
@@ -131,8 +133,8 @@ class _UserListTableState extends State<UserListTable> {
               ),
             ),
           ),
-          Expanded(
-            flex: 1,
+          SizedBox(
+            width: 70,
             child: Center(
               child: Text(
                 l10n.actions.toUpperCase(),
@@ -152,41 +154,41 @@ class _UserListTableState extends State<UserListTable> {
   Widget _buildUserRow(
       BuildContext context, AdminUser u, AppLocalizations l10n) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
+          SizedBox(
+            width: 220,
             child: Row(
               children: [
                 _buildAvatar(u),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(u.displayName,
                           style: const TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 14)),
+                              fontWeight: FontWeight.w600, fontSize: 13)),
                       Text(u.email,
                           style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade500)),
+                              fontSize: 11, color: Colors.grey.shade500)),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          Expanded(
-            flex: 1,
+          SizedBox(
+            width: 70,
             child: Center(child: _RoleBadge(user: u)),
           ),
-          Expanded(
-            flex: 1,
+          SizedBox(
+            width: 90,
             child: Center(child: _StatusBadge(isActive: u.isActive)),
           ),
-          Expanded(
-            flex: 1,
+          SizedBox(
+            width: 70,
             child: Center(
               child: TextButton(
                 onPressed: () => widget.onEdit(u),
@@ -194,13 +196,13 @@ class _UserListTableState extends State<UserListTable> {
                   backgroundColor: const Color(0xFFF3F4F6),
                   foregroundColor: Colors.black87,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                 ),
                 child: Text(l10n.edit,
                     style: const TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w600)),
+                        fontSize: 10, fontWeight: FontWeight.w600)),
               ),
             ),
           ),
@@ -211,11 +213,11 @@ class _UserListTableState extends State<UserListTable> {
 
   Widget _buildAvatar(AdminUser u) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Center(
         child: Text(
@@ -223,7 +225,7 @@ class _UserListTableState extends State<UserListTable> {
           style: const TextStyle(
               color: Color(0xFF10B981),
               fontWeight: FontWeight.bold,
-              fontSize: 16),
+              fontSize: 14),
         ),
       ),
     );
