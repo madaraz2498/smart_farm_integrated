@@ -38,12 +38,6 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
     return [
       StatCardData(
-        label: l10n.active_users_label,
-        value: '$activeCount',
-        svgPath: 'assets/images/icons/active users.svg',
-        color: const Color(0xFF10B981),
-      ),
-      StatCardData(
         label: l10n.total_users_label,
         value: '$totalCount',
         svgPath: 'assets/images/icons/total users.svg',
@@ -54,6 +48,12 @@ class _UserManagementPageState extends State<UserManagementPage> {
         value: '$adminCount',
         svgPath: 'assets/images/icons/admin.svg',
         color: const Color(0xFF7C3AED),
+      ),
+      StatCardData(
+        label: l10n.active_users_label,
+        value: '$activeCount',
+        svgPath: 'assets/images/icons/active users.svg',
+        color: const Color(0xFF10B981),
       ),
       StatCardData(
         label: l10n.inactive_users_label,
@@ -271,21 +271,14 @@ class _StatCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: data.color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: data.svgPath != null
-                    ? SvgPicture.asset(
-                        data.svgPath!,
-                        width: 18,
-                        height: 18,
-                        // Removed colorFilter to show original colorful icons
-                      )
-                    : Icon(data.icon, color: data.color, size: 18),
-              ),
+              if (data.svgPath != null)
+                SvgPicture.asset(
+                  data.svgPath!,
+                  width: 32,
+                  height: 32,
+                )
+              else
+                Icon(data.icon, color: data.color, size: 32),
             ],
           ),
           const SizedBox(height: 8),
