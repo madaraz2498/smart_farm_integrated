@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/admin_provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/sf_button.dart';
@@ -15,10 +16,10 @@ class _SystemManagementPageState extends State<SystemManagementPage>
   late final TabController _tab;
 
   // AI model toggles
-  final _services = {
+  Map<String, bool> _services = {
     'plant_disease': true,
     'animal_weight': true,
-    'crop_rec': false,
+    'crop_rec': true,
     'soil_analysis': true,
     'fruit_quality': true,
     'chatbot': true,
@@ -31,6 +32,31 @@ class _SystemManagementPageState extends State<SystemManagementPage>
   void initState() {
     super.initState();
     _tab = TabController(length: 2, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  Future<void> _loadData() async {
+    final provider = context.read<AdminProvider>();
+    await provider.loadSystemStatus();
+
+    setState(() {
+      if (provider.servicesStatus.isNotEmpty) {
+        _services = Map<String, bool>.from(provider.servicesStatus);
+      }
+
+      final settings = provider.systemSettings;
+      if (settings.containsKey('maintenance_mode')) {
+        _maintenance = settings['maintenance_mode']!;
+      }
+      if (settings.containsKey('email_notifications')) {
+        _emailNotif = settings['email_notifications']!;
+      }
+      if (settings.containsKey('auto_backup')) {
+        _autoBackup = settings['auto_backup']!;
+      }
+    });
   }
 
   @override
@@ -41,13 +67,14 @@ class _SystemManagementPageState extends State<SystemManagementPage>
 
   Future<void> _toggleService(String key, bool val) async {
     setState(() => _services[key] = val);
+    debugPrint('[SystemManagementPage] Calling AdminProvider.toggleService for $key');
     await context.read<AdminProvider>().toggleService(key);
   }
 
   Future<void> _toggleSetting(String key, bool val) async {
     // Local state update
-    if (key == 'maintenance') _maintenance = val;
-    if (key == 'email_notif') _emailNotif = val;
+    if (key == 'maintenance_mode') _maintenance = val;
+    if (key == 'email_notifications') _emailNotif = val;
     if (key == 'auto_backup') _autoBackup = val;
     setState(() {});
 
@@ -60,7 +87,7 @@ class _SystemManagementPageState extends State<SystemManagementPage>
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
+      onRefresh: _loadData,
       color: AppColors.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -94,8 +121,17 @@ class _SystemManagementPageState extends State<SystemManagementPage>
           const SizedBox(height: 20),
           AnimatedBuilder(
               animation: _tab,
-              builder: (_, __) =>
-                  _tab.index == 0 ? _buildAITab() : _buildGeneralTab()),
+              builder: (_, __) {
+                final loading = context.watch<AdminProvider>().systemLoading;
+                if (loading && _services.isEmpty) {
+                  return const Center(
+                      child: Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: CircularProgressIndicator(),
+                  ));
+                }
+                return _tab.index == 0 ? _buildAITab() : _buildGeneralTab();
+              }),
         ]),
       ),
     );
@@ -152,7 +188,10 @@ class _SystemManagementPageState extends State<SystemManagementPage>
           )),
       SfPrimaryButton(
           label: 'Save AI Configuration',
-          onPressed: () => _snack('AI configuration saved!')),
+          onPressed: () {
+            context.read<AdminProvider>().logAIConfigurationUpdate();
+            _snack('AI configuration saved!');
+          }),
     ]);
   }
 
@@ -173,13 +212,13 @@ class _SystemManagementPageState extends State<SystemManagementPage>
                 'Disable user access temporarily',
                 _maintenance,
                 AppColors.error,
-                (v) => _toggleSetting('maintenance', v)),
+                (v) => _toggleSetting('maintenance_mode', v)),
             _ToggleRow(
                 'Email Notifications',
                 'System alerts via email',
                 _emailNotif,
                 AppColors.info,
-                (v) => _toggleSetting('email_notif', v)),
+                (v) => _toggleSetting('email_notifications', v)),
             _ToggleRow(
                 'Auto Backup',
                 'Daily database snapshots',
@@ -190,7 +229,28 @@ class _SystemManagementPageState extends State<SystemManagementPage>
       const SizedBox(height: 16),
       SfPrimaryButton(
           label: 'Save General Settings',
-          onPressed: () => _snack('General settings saved!')),
+          onPressed: () async {
+            final userId = context.read<AuthProvider>().currentUser?.id;
+            if (userId == null) {
+              _snack('Error: User not found');
+              return;
+            }
+
+            final success = await context
+                .read<AdminProvider>()
+                .updateAdminNotificationSettings(userId, {
+              'maintenance_mode': _maintenance,
+              'email_notifications': _emailNotif,
+              'auto_backup': _autoBackup,
+            });
+
+            if (success) {
+              _snack('General settings saved!');
+            } else {
+              final error = context.read<AdminProvider>().statsError;
+              _snack(error ?? 'Failed to save settings');
+            }
+          }),
     ]);
   }
 }

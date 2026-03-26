@@ -119,20 +119,27 @@ class AuthService {
 
   Future<bool> updateProfile({
     required String userId,
-    required String name,
-    required String email,
+    String? name,
+    String? email,
     String? phone,
+    List<int>? imageBytes,
+    String? imageName,
   }) async {
     final path = '/save-all-settings/$userId';
-    final body = {
-      'name': name,
-      'email': email,
+    final fields = {
+      if (name != null) 'full_name': name,
+      if (email != null) 'email': email,
       if (phone != null) 'phone': phone,
     };
-    debugPrint('[AuthService] PUT $path body: $body');
+    debugPrint('[AuthService] PUT-MULTIPART $path fields: $fields');
     try {
-      await _c.put(path, body: body);
-      // Update local storage if needed
+      await _c.putMultipart(
+        path,
+        fields: fields,
+        fileField: imageBytes != null ? 'profile_img' : null,
+        fileBytes: imageBytes,
+        fileName: imageName,
+      );
       return true;
     } catch (e) {
       debugPrint('[AuthService] updateProfile error: $e');
@@ -152,6 +159,7 @@ class AuthService {
       final email = stored['email'] ?? '';
       final id = stored['id'] ?? '';
       final role = (stored['role'] ?? 'farmer').toLowerCase();
+      final profileImg = stored['profile_img'];
 
       // Guard: if cached data is corrupted (id missing or "0"), force re-login.
       // This cleans up stale cache written before the _parse() fix.
@@ -175,6 +183,7 @@ class AuthService {
         name: name.isNotEmpty ? name : email.split('@').first,
         email: email,
         role: role == 'admin' ? UserRole.admin : UserRole.farmer,
+        profileImg: profileImg,
       );
     } catch (_) {
       await _clear();
@@ -252,12 +261,14 @@ class AuthService {
       userName: resp.displayName,
       userEmail: email,
       userRole: resp.role,
+      profileImg: resp.profileImg,
     );
     return AuthResult.ok(UserModel(
       id: resp.userId,
       name: resp.displayName,
       email: email,
       role: resp.userRole,
+      profileImg: resp.profileImg,
     ));
   }
 

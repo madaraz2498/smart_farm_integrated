@@ -714,4 +714,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirm_button => 'Confirm';
+
+  @override
+  String get personal_information => 'Personal Information';
+
+  @override
+  String get change_password => 'Change Password';
+
+  @override
+  String get current_password => 'Current Password';
+
+  @override
+  String get new_password => 'New Password';
+
+  @override
+  String get update_password => 'Update Password';
+
+  @override
+  String get save_changes => 'Save Changes';
+
+  @override
+  String get edit_profile => 'Edit Profile';
+
+  @override
+  String get profile_picture_updated => 'Profile picture updated!';
+
+  @override
+  String get failed_to_update_profile_picture =>
+      'Failed to update profile picture.';
+
+  @override
+  String get failed_to_save_changes => 'Failed to save changes';
+
+  @override
+  String get password_changed_success => 'Password changed successfully';
 }

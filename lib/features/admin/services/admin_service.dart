@@ -17,6 +17,8 @@ import '../models/admin_models.dart';
 ///   POST   /admin/users/promote-to-admin   query: { "email": "..." }
 ///   PATCH  /admin/users/settings/notifications/{user_id}
 ///
+///   PATCH  /notifications/notifications/admin-settings/{user_id}
+///
 /// ── System ─────────────────────────────────────────────────────────────────
 ///   GET    /admin/system/admin/system/status
 ///   GET    /admin/system/admin/system/settings
@@ -145,6 +147,19 @@ class AdminService {
     }
   }
 
+  Future<void> updateAdminNotificationSettings(
+      String userId, Map<String, dynamic> settings) async {
+    final path = '/notifications/notifications/admin-settings/$userId';
+    debugPrint('[AdminService] PATCH $path  body: $settings');
+    try {
+      await _c.patch(path, body: settings);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to update admin notification settings.');
+    }
+  }
+
   // ── System ────────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getSystemStatus() async {
@@ -183,13 +198,16 @@ class AdminService {
     }
   }
 
-  Future<void> toggleService(String moduleName) async {
+  Future<Map<String, dynamic>> toggleService(String moduleName) async {
     final path = '/admin/system/toggle-service/$moduleName';
     debugPrint('[AdminService] POST $path');
     try {
-      await _c.post(path);
-    } catch (e) {
-      debugPrint('[AdminService] toggleService non-critical: $e');
+      final r = await _c.post(path);
+      return r is Map<String, dynamic> ? r : {};
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Failed to toggle service.');
     }
   }
 

@@ -9,7 +9,6 @@ import '../../../providers/locale_provider.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/sf_button.dart';
-import '../../../shared/widgets/sf_text_field.dart';
 
 class AdminSettingsPage extends StatefulWidget {
   const AdminSettingsPage({super.key});
@@ -18,22 +17,13 @@ class AdminSettingsPage extends StatefulWidget {
 }
 
 class _AdminSettingsPageState extends State<AdminSettingsPage> {
-  late final TextEditingController _nameCtrl, _emailCtrl, _phoneCtrl;
-
   @override
   void initState() {
     super.initState();
-    final user = context.read<AuthProvider>().currentUser;
-    _nameCtrl = TextEditingController(text: user?.name ?? 'Farmer');
-    _emailCtrl = TextEditingController(text: user?.email ?? 'farmer@gmail.com');
-    _phoneCtrl = TextEditingController(text: '');
   }
 
   @override
   void dispose() {
-    _nameCtrl.dispose();
-    _emailCtrl.dispose();
-    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -79,55 +69,6 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               ],
             ),
             const SizedBox(height: 32),
-
-            // Profile Settings
-            _buildSection(
-              icon: Icons.person_outline,
-              title: l10n.profile_settings,
-              child: Column(
-                children: [
-                  SfTextField(
-                      controller: _nameCtrl,
-                      hint: l10n.full_name,
-                      label: l10n.full_name),
-                  const SizedBox(height: 16),
-                  SfTextField(
-                      controller: _emailCtrl,
-                      hint: l10n.email,
-                      label: l10n.email,
-                      keyboardType: TextInputType.emailAddress),
-                  const SizedBox(height: 16),
-                  SfTextField(
-                      controller: _phoneCtrl,
-                      hint: l10n.phone_number,
-                      label: l10n.phone_number,
-                      keyboardType: TextInputType.phone),
-                  const SizedBox(height: 24),
-                  SfPrimaryButton(
-                    label: l10n.save_profile,
-                    onPressed: () async {
-                      final auth = context.read<AuthProvider>();
-                      final ok = await auth.updateProfile(
-                        name: _nameCtrl.text,
-                        email: _emailCtrl.text,
-                        phone: _phoneCtrl.text,
-                      );
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(ok
-                                  ? l10n.profile_saved
-                                  : (auth.errorMsg ?? 'Failed to update')),
-                              backgroundColor:
-                                  ok ? AppColors.primary : AppColors.error),
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
 
             // Theme Preference
             _buildSection(

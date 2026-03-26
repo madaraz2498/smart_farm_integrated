@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../auth/providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import '../models/notification_model.dart';
 import '../screens/notifications_screen.dart';
@@ -17,20 +16,9 @@ class NotificationQuickDialog extends StatefulWidget {
 
 class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId = context.read<AuthProvider>().currentUser?.id;
-      if (userId != null) {
-        context.read<NotificationProvider>().fetchNotifications(userId: userId);
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final provider = context.watch<NotificationProvider>();
-    final notifications = provider.notifications.take(3).toList();
+    final notifications = provider.notifications.take(5).toList();
     final l10n = AppLocalizations.of(context)!;
 
     return Container(

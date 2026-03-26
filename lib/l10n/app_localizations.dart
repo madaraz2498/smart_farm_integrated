@@ -1465,6 +1465,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm'**
   String get confirm_button;
+
+  /// No description provided for @personal_information.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get personal_information;
+
+  /// No description provided for @change_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get change_password;
+
+  /// No description provided for @current_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Password'**
+  String get current_password;
+
+  /// No description provided for @new_password.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get new_password;
+
+  /// No description provided for @update_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Password'**
+  String get update_password;
+
+  /// No description provided for @save_changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get save_changes;
+
+  /// No description provided for @edit_profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get edit_profile;
+
+  /// No description provided for @profile_picture_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile picture updated!'**
+  String get profile_picture_updated;
+
+  /// No description provided for @failed_to_update_profile_picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update profile picture.'**
+  String get failed_to_update_profile_picture;
+
+  /// No description provided for @failed_to_save_changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save changes'**
+  String get failed_to_save_changes;
+
+  /// No description provided for @password_changed_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed successfully'**
+  String get password_changed_success;
 }
 
 class _AppLocalizationsDelegate

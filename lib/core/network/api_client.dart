@@ -139,23 +139,59 @@ class ApiClient {
 
   Future<dynamic> postMultipart(
     String path, {
-    required String      fileField,
-    required List<int>   fileBytes,
-    required String      fileName,
+    required String fileField,
+    required List<int> fileBytes,
+    required String fileName,
+    Map<String, String>? fields,
+  }) async =>
+      _multipart('POST', path,
+          fileField: fileField,
+          fileBytes: fileBytes,
+          fileName: fileName,
+          fields: fields);
+
+  Future<dynamic> putMultipart(
+    String path, {
+    String? fileField,
+    List<int>? fileBytes,
+    String? fileName,
+    Map<String, String>? fields,
+  }) async =>
+      _multipart('PUT', path,
+          fileField: fileField,
+          fileBytes: fileBytes,
+          fileName: fileName,
+          fields: fields);
+
+  Future<dynamic> _multipart(
+    String method,
+    String path, {
+    String? fileField,
+    List<int>? fileBytes,
+    String? fileName,
     Map<String, String>? fields,
   }) async {
     final uri = _uri(path);
-    debugPrint('[MULTIPART] $uri  field=$fileField');
+    debugPrint('[$method-MULTIPART] $uri  field=$fileField');
     try {
-      final req = http.MultipartRequest('POST', uri);
+      final req = http.MultipartRequest(method, uri);
       if (_token != null) req.headers['Authorization'] = 'Bearer $_token';
       req.headers['Accept'] = 'application/json';
       if (fields != null) req.fields.addAll(fields);
-      req.files.add(http.MultipartFile.fromBytes(fileField, fileBytes, filename: fileName));
-      final resp = await http.Response.fromStream(await req.send().timeout(_uploadTimeout));
+
+      if (fileField != null && fileBytes != null && fileName != null) {
+        req.files.add(
+            http.MultipartFile.fromBytes(fileField, fileBytes, filename: fileName));
+      }
+
+      final resp =
+          await http.Response.fromStream(await req.send().timeout(_uploadTimeout));
       return _handle(resp);
-    } on SocketException  { throw const ApiException('No internet connection.', statusCode: 0); }
-    on TimeoutException   { throw const ApiException('Upload timed out.',        statusCode: 408); }
+    } on SocketException {
+      throw const ApiException('No internet connection.', statusCode: 0);
+    } on TimeoutException {
+      throw const ApiException('Upload timed out.', statusCode: 408);
+    }
   }
 
   // ── Response handler ───────────────────────────────────────────────────────

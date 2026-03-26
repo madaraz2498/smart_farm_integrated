@@ -713,4 +713,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get confirm_button => 'تأكيد';
+
+  @override
+  String get personal_information => 'المعلومات الشخصية';
+
+  @override
+  String get change_password => 'تغيير كلمة المرور';
+
+  @override
+  String get current_password => 'كلمة المرور الحالية';
+
+  @override
+  String get new_password => 'كلمة المرور الجديدة';
+
+  @override
+  String get update_password => 'تحديث كلمة المرور';
+
+  @override
+  String get save_changes => 'حفظ التغييرات';
+
+  @override
+  String get edit_profile => 'تعديل الملف الشخصي';
+
+  @override
+  String get profile_picture_updated => 'تم تحديث الصورة الشخصية!';
+
+  @override
+  String get failed_to_update_profile_picture => 'فشل تحديث الصورة الشخصية.';
+
+  @override
+  String get failed_to_save_changes => 'فشل حفظ التغييرات';
+
+  @override
+  String get password_changed_success => 'تم تغيير كلمة المرور بنجاح';
 }

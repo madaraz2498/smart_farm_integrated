@@ -5,10 +5,18 @@ import '../models/admin_models.dart';
 import '../services/admin_service.dart';
 
 class AdminProvider extends ChangeNotifier {
+  AdminProvider() {
+    debugPrint('[AdminProvider] Constructor called');
+  }
+
   final AdminService _svc = AdminService.instance;
   NotificationProvider? _notif;
 
-  void updateNotif(NotificationProvider? n) => _notif = n;
+  void updateNotif(NotificationProvider? n) {
+    debugPrint(
+        '[AdminProvider] updateNotif called. New provider is: ${n != null ? 'Present' : 'NULL'}');
+    _notif = n;
+  }
 
   // ── Stats ─────────────────────────────────────────────────────────────────
   DashboardStats? _stats;
@@ -27,6 +35,40 @@ class AdminProvider extends ChangeNotifier {
   List<AdminUser> get users => List.unmodifiable(_users);
   bool get usersLoading => _usersLoading;
   String? get usersError => _usersError;
+
+  // ── System Status ──────────────────────────────────────────────────────────
+  Map<String, bool> _servicesStatus = {};
+  Map<String, bool> _systemSettings = {};
+  bool _systemLoading = false;
+
+  Map<String, bool> get servicesStatus => _servicesStatus;
+  Map<String, bool> get systemSettings => _systemSettings;
+  bool get systemLoading => _systemLoading;
+
+  // ── Load System Status ─────────────────────────────────────────────────────
+  Future<void> loadSystemStatus() async {
+    _systemLoading = true;
+    notifyListeners();
+
+    try {
+      final status = await _svc.getSystemStatus();
+      final settings = await _svc.getSystemSettings();
+
+      // Assuming API returns something like {'plant_disease': true, ...}
+      if (status['services'] is Map) {
+        _servicesStatus = Map<String, bool>.from(status['services']);
+      }
+
+      if (settings['settings'] is Map) {
+        _systemSettings = Map<String, bool>.from(settings['settings']);
+      }
+    } catch (e) {
+      debugPrint('[AdminProvider] loadSystemStatus error: $e');
+    } finally {
+      _systemLoading = false;
+      notifyListeners();
+    }
+  }
 
   // ── Load stats ─────────────────────────────────────────────────────────────
   Future<void> loadStats({bool force = false}) async {
@@ -89,8 +131,8 @@ class AdminProvider extends ChangeNotifier {
       notifyListeners();
 
       _notif?.addSystemNotification(
-        title: 'User Management',
-        body: 'User $userId has been deleted.',
+        title: 'User Deleted',
+        body: 'User account ($userId) has been permanently removed.',
       );
 
       return true;
@@ -117,8 +159,8 @@ class AdminProvider extends ChangeNotifier {
       notifyListeners();
 
       _notif?.addSystemNotification(
-        title: 'User Management',
-        body: 'User $userId has been ${active ? 'activated' : 'deactivated'}.',
+        title: active ? 'User Activated' : 'User Deactivated',
+        body: 'Account for $userId is now ${active ? 'Active' : 'Inactive'}.',
       );
 
       return true;
@@ -135,8 +177,8 @@ class AdminProvider extends ChangeNotifier {
       await loadUsers(force: true);
 
       _notif?.addSystemNotification(
-        title: 'User Management',
-        body: 'User $email has been promoted to Admin.',
+        title: 'User Promoted',
+        body: '$email is now an Administrator.',
       );
 
       return true;
@@ -165,11 +207,15 @@ class AdminProvider extends ChangeNotifier {
   // ── System Toggle Actions ──────────────────────────────────────────────────
   Future<void> toggleService(String moduleName) async {
     try {
-      await _svc.toggleService(moduleName);
+      final res = await _svc.toggleService(moduleName);
+      final status = res['new_status'] ?? 'updated';
+
+      debugPrint(
+          '[AdminProvider] Toggled $moduleName. Notif provider is: ${_notif != null ? 'Present' : 'NULL'}');
 
       _notif?.addSystemNotification(
-        title: 'System Update',
-        body: 'Service $moduleName has been toggled.',
+        title: 'Module Toggled',
+        body: 'AI Service ($moduleName) is now $status.',
       );
     } catch (e) {
       _statsError = 'Failed to toggle service.';
@@ -181,14 +227,45 @@ class AdminProvider extends ChangeNotifier {
     try {
       await _svc.toggleSystemSetting(settingName);
 
+      debugPrint(
+          '[AdminProvider] Toggled setting: $settingName. Notif provider is: ${_notif != null ? 'Present' : 'NULL'}');
+
       _notif?.addSystemNotification(
-        title: 'System Update',
-        body: 'System setting $settingName has been toggled.',
+        title: 'Setting Changed',
+        body: 'System setting ($settingName) has been modified.',
       );
     } catch (e) {
       _statsError = 'Failed to toggle setting.';
       notifyListeners();
     }
+  }
+
+  Future<bool> updateAdminNotificationSettings(
+      String userId, Map<String, dynamic> settings) async {
+    try {
+      await _svc.updateAdminNotificationSettings(userId, settings);
+
+      _notif?.addSystemNotification(
+        title: 'Settings Updated',
+        body: 'Admin notification settings have been updated.',
+      );
+      return true;
+    } on ApiException catch (e) {
+      _statsError = e.message;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _statsError = 'Failed to update admin settings.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  void logAIConfigurationUpdate() {
+    _notif?.addSystemNotification(
+      title: 'AI Models Updated',
+      body: 'AI service configuration has been updated.',
+    );
   }
 
   // ── Refresh all ────────────────────────────────────────────────────────────

@@ -11,21 +11,21 @@ import '../../providers/navigation_provider.dart';
 import '../../shared/theme/app_theme.dart';
 
 IconData _icon(String name) => switch (name) {
-  'home_outlined'                  => Icons.home_outlined,
-  'local_florist_outlined'         => Icons.local_florist_outlined,
-  'monitor_weight_outlined'        => Icons.monitor_weight_outlined,
-  'grass_outlined'                 => Icons.grass_outlined,
-  'layers_outlined'                => Icons.layers_outlined,
-  'apple_outlined'                 => Icons.apple_outlined,
-  'chat_bubble_outline'            => Icons.chat_bubble_outline,
-  'bar_chart_outlined'             => Icons.bar_chart_outlined,
-  'settings_outlined'              => Icons.settings_outlined,
-  'dashboard_outlined'             => Icons.dashboard_outlined,
-  'people_outline'                 => Icons.people_outline,
-  'settings_applications_outlined' => Icons.settings_applications_outlined,
-  'tune_outlined'                  => Icons.tune_outlined,
-  _                                => Icons.circle_outlined,
-};
+      'home_outlined' => Icons.home_outlined,
+      'local_florist_outlined' => Icons.local_florist_outlined,
+      'monitor_weight_outlined' => Icons.monitor_weight_outlined,
+      'grass_outlined' => Icons.grass_outlined,
+      'layers_outlined' => Icons.layers_outlined,
+      'apple_outlined' => Icons.apple_outlined,
+      'chat_bubble_outline' => Icons.chat_bubble_outline,
+      'bar_chart_outlined' => Icons.bar_chart_outlined,
+      'settings_outlined' => Icons.settings_outlined,
+      'dashboard_outlined' => Icons.dashboard_outlined,
+      'people_outline' => Icons.people_outline,
+      'settings_applications_outlined' => Icons.settings_applications_outlined,
+      'tune_outlined' => Icons.tune_outlined,
+      _ => Icons.circle_outlined,
+    };
 
 class AppSidebar extends StatelessWidget {
   const AppSidebar({super.key, this.insideDrawer = false});
@@ -35,14 +35,14 @@ class AppSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth    = context.watch<AuthProvider>();
-    final nav     = context.watch<NavigationProvider>();
+    final auth = context.watch<AuthProvider>();
+    final nav = context.watch<NavigationProvider>();
     final isAdmin = auth.isAdmin;
 
     final content = _SidebarContent(
-      isAdmin:      isAdmin,
-      userName:     auth.displayName,
-      nav:          nav,
+      isAdmin: isAdmin,
+      userName: auth.displayName,
+      nav: nav,
       insideDrawer: insideDrawer,
     );
 
@@ -53,8 +53,9 @@ class AppSidebar extends StatelessWidget {
     return Container(
       width: AppSizes.sidebarWidth,
       decoration: const BoxDecoration(
-        color:  AppColors.surface,
-        border: Border(right: BorderSide(color: AppColors.cardBorder, width: 1.33)),
+        color: AppColors.surface,
+        border:
+            Border(right: BorderSide(color: AppColors.cardBorder, width: 1.33)),
       ),
       child: content,
     );
@@ -68,10 +69,10 @@ class _SidebarContent extends StatelessWidget {
     required this.nav,
     required this.insideDrawer,
   });
-  final bool               isAdmin;
-  final String             userName;
+  final bool isAdmin;
+  final String userName;
   final NavigationProvider nav;
-  final bool               insideDrawer;
+  final bool insideDrawer;
 
   @override
   Widget build(BuildContext context) {
@@ -86,8 +87,11 @@ class _SidebarContent extends StatelessWidget {
           alignment: isRtl ? Alignment.centerRight : Alignment.centerLeft,
           child: Text(
             isAdmin ? l10n.admin_panel : l10n.main_menu,
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
-                letterSpacing: 1.2, color: AppColors.textSubtle),
+            style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+                color: AppColors.textSubtle),
           ),
         ),
       ),
@@ -111,6 +115,7 @@ class _SidebarContent extends StatelessWidget {
         AdminPage.systemManagement => l10n.system_management,
         AdminPage.systemReports => l10n.nav_reports,
         AdminPage.settings => l10n.settings,
+        AdminPage.profile => l10n.profile_settings,
       };
       return Padding(
         padding: const EdgeInsets.only(bottom: 4),
@@ -163,34 +168,59 @@ class _SidebarContent extends StatelessWidget {
 
 class _SidebarHeader extends StatelessWidget {
   const _SidebarHeader({required this.isAdmin, required this.userName});
-  final bool   isAdmin;
+  final bool isAdmin;
   final String userName;
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().currentUser;
+    final imgUrl = user?.profileImg;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
       decoration: const BoxDecoration(
-        color:  AppColors.primary,
-        border: Border(bottom: BorderSide(color: AppColors.primaryDark, width: 1)),
+        color: AppColors.primary,
+        border:
+            Border(bottom: BorderSide(color: AppColors.primaryDark, width: 1)),
       ),
       child: Row(children: [
         Container(
-          width: 44, height: 44,
-          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
-          child: Icon(
-            isAdmin ? Icons.admin_panel_settings_rounded : Icons.eco_rounded,
-            color: Colors.white, size: 24,
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+            image: imgUrl != null && imgUrl.isNotEmpty
+                ? DecorationImage(
+                    image: NetworkImage(imgUrl.startsWith('http')
+                        ? imgUrl
+                        : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl'),
+                    fit: BoxFit.cover)
+                : null,
           ),
+          child: imgUrl == null || imgUrl.isEmpty
+              ? Icon(
+                  isAdmin
+                      ? Icons.admin_panel_settings_rounded
+                      : Icons.eco_rounded,
+                  color: Colors.white,
+                  size: 24,
+                )
+              : null,
         ),
         const SizedBox(width: 12),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Smart Farm AI', style: TextStyle(color: Colors.white, fontSize: 15,
-              fontWeight: FontWeight.w700)),
+        Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Smart Farm AI',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700)),
           const SizedBox(height: 2),
-          Text(userName, overflow: TextOverflow.ellipsis,
+          Text(userName,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.white70, fontSize: 12)),
         ])),
       ]),
@@ -200,51 +230,68 @@ class _SidebarHeader extends StatelessWidget {
 
 class _NavTile extends StatelessWidget {
   const _NavTile({
-    required this.icon, required this.label,
-    required this.isSelected, required this.onTap,
-    this.svgAsset, this.badge,
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    this.svgAsset,
+    this.badge,
   });
-  final IconData     icon;
-  final String       label;
-  final bool         isSelected;
+  final IconData icon;
+  final String label;
+  final bool isSelected;
   final VoidCallback onTap;
-  final String?      svgAsset;
-  final String?      badge;
+  final String? svgAsset;
+  final String? badge;
 
   @override
   Widget build(BuildContext context) {
     final isLong = label.length > 20;
     return InkWell(
-      onTap: onTap, borderRadius: BorderRadius.circular(99),
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(99),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color:        isSelected ? AppColors.primary : Colors.transparent,
+          color: isSelected ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(99),
         ),
         child: Row(children: [
           if (svgAsset != null)
-            SvgPicture.asset(svgAsset!, width: 20, height: 20,
+            SvgPicture.asset(svgAsset!,
+                width: 20,
+                height: 20,
                 colorFilter: ColorFilter.mode(
-                    isSelected ? Colors.white : AppColors.primary, BlendMode.srcIn))
+                    isSelected ? Colors.white : AppColors.primary,
+                    BlendMode.srcIn))
           else
-            Icon(icon, size: 20, color: isSelected ? Colors.white : AppColors.primary),
+            Icon(icon,
+                size: 20, color: isSelected ? Colors.white : AppColors.primary),
           const SizedBox(width: 12),
-          Flexible(child: Text(label, overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: isLong ? 12.5 : 14,
-                  color: isSelected ? Colors.white : AppColors.textDark,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400))),
+          Flexible(
+              child: Text(label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: isLong ? 12.5 : 14,
+                      color: isSelected ? Colors.white : AppColors.textDark,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400))),
           if (badge != null) ...[
             const SizedBox(width: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white.withValues(alpha: 0.25) : AppColors.primary.withValues(alpha: 0.1),
+                color: isSelected
+                    ? Colors.white.withValues(alpha: 0.25)
+                    : AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Text(badge!, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : AppColors.primary)),
+              child: Text(badge!,
+                  style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? Colors.white : AppColors.primary)),
             ),
           ],
         ]),

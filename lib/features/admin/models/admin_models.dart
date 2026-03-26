@@ -91,6 +91,7 @@ class AdminUser {
     required this.isActive,
     this.role = 'Farmer',
     this.isAdmin = false,
+    this.profileImg,
     this.createdAt,
   });
 
@@ -101,11 +102,13 @@ class AdminUser {
         isActive: j['is_active'] as bool? ?? true,
         role: j['role'] as String? ?? 'Farmer',
         isAdmin: j['is_admin'] as bool? ?? false,
+        profileImg: j['profile_img'] as String?,
         createdAt: j['created_at'] as String?,
       );
 
   final String id, username, email, role;
   final bool isActive, isAdmin;
+  final String? profileImg;
   final String? createdAt;
 
   String get displayName =>

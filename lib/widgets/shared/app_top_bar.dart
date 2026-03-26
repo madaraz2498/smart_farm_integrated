@@ -97,7 +97,14 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                 )),
         ]),
         const SizedBox(width: 4),
-        _AvatarChip(userName: userName, isAdmin: isAdmin),
+        GestureDetector(
+          onTap: () {
+            if (isAdmin) {
+              nav.goToAdminPage(AdminPage.profile);
+            }
+          },
+          child: _AvatarChip(userName: userName, isAdmin: isAdmin),
+        ),
         const SizedBox(width: 4),
       ]),
     );
@@ -111,6 +118,11 @@ class _AvatarChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final user = auth.currentUser;
+    final imgUrl = user?.profileImg;
+    final localBytes = auth.localProfileImage;
+
     return Row(mainAxisSize: MainAxisSize.min, children: [
       Container(
         width: 34,
@@ -118,14 +130,27 @@ class _AvatarChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isAdmin ? AppColors.adminAccent : AppColors.primary,
           shape: BoxShape.circle,
+          image: localBytes != null
+              ? DecorationImage(
+                  image: MemoryImage(localBytes), fit: BoxFit.cover)
+              : (imgUrl != null && imgUrl.isNotEmpty
+                  ? DecorationImage(
+                      image: NetworkImage(imgUrl.startsWith('http')
+                          ? imgUrl
+                          : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl'),
+                      fit: BoxFit.cover,
+                      onError: (e, s) => debugPrint('TopBar image error: $e'))
+                  : null),
         ),
-        child: Center(
-            child: isAdmin
-                ? const Text('A',
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold))
-                : const Icon(Icons.person_rounded,
-                    color: Colors.white, size: 18)),
+        child: (localBytes == null && (imgUrl == null || imgUrl.isEmpty))
+            ? Center(
+                child: isAdmin
+                    ? const Text('A',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold))
+                    : const Icon(Icons.person_rounded,
+                        color: Colors.white, size: 18))
+            : null,
       ),
       const SizedBox(width: 8),
       ConstrainedBox(

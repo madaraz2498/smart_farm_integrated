@@ -42,6 +42,7 @@ class AuthResponse {
     required this.username,
     required this.email,
     this.role = 'farmer',
+    this.profileImg,
     this.message,
   });
 
@@ -51,10 +52,12 @@ class AuthResponse {
         username:    j['username']  as String? ?? j['name'] as String? ?? '',
         email:       j['email']     as String? ?? '',
         role:        j['role']      as String? ?? 'farmer',
+        profileImg:  j['profile_img'] as String?,
         message:     j['message']   as String? ?? j['detail'] as String?,
       );
 
   final String  accessToken, userId, username, email, role;
+  final String? profileImg;
   final String? message;
 
   bool   get hasToken    => accessToken.isNotEmpty;

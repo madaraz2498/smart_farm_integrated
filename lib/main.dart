@@ -31,7 +31,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProxyProvider<NotificationProvider, AuthProvider>(
           create: (_) => AuthProvider(),
-          update: (_, notif, auth) => auth!..updateNotif(notif),
+          update: (_, notif, auth) =>
+              auth!..updateNotificationProvider(notif),
         ),
         ChangeNotifierProxyProvider<AuthProvider, ChatbotProvider>(
           create: (_) => ChatbotProvider('0'),
@@ -71,7 +72,10 @@ void main() {
         ChangeNotifierProvider(create: (_) => AdminReportProvider()),
         ChangeNotifierProxyProvider<NotificationProvider, AdminProvider>(
           create: (_) => AdminProvider(),
-          update: (_, notif, admin) => admin!..updateNotif(notif),
+          update: (_, notif, admin) {
+            debugPrint('[Main] Updating AdminProvider with NotificationProvider');
+            return admin!..updateNotif(notif);
+          },
         ),
       ],
       child: const SmartFarmApp(),

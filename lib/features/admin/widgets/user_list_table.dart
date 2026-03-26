@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../models/admin_models.dart';
 
 class UserListTable extends StatefulWidget {
@@ -212,22 +214,39 @@ class _UserListTableState extends State<UserListTable> {
   }
 
   Widget _buildAvatar(AdminUser u) {
+    final auth = context.watch<AuthProvider>();
+    final isMe = auth.currentUser?.id == u.id;
+    final localBytes = isMe ? auth.localProfileImage : null;
+    final imgUrl = u.profileImg;
+
     return Container(
       width: 32,
       height: 32,
       decoration: BoxDecoration(
         color: const Color(0xFFF0FDF4),
         borderRadius: BorderRadius.circular(8),
+        image: localBytes != null
+            ? DecorationImage(image: MemoryImage(localBytes), fit: BoxFit.cover)
+            : (imgUrl != null && imgUrl.isNotEmpty
+                ? DecorationImage(
+                    image: NetworkImage(imgUrl.startsWith('http')
+                        ? imgUrl
+                        : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl'),
+                    fit: BoxFit.cover,
+                    onError: (e, s) => debugPrint('Table image error: $e'))
+                : null),
       ),
-      child: Center(
-        child: Text(
-          u.displayName.isNotEmpty ? u.displayName[0].toUpperCase() : '?',
-          style: const TextStyle(
-              color: Color(0xFF10B981),
-              fontWeight: FontWeight.bold,
-              fontSize: 14),
-        ),
-      ),
+      child: (localBytes == null && (imgUrl == null || imgUrl.isEmpty))
+          ? Center(
+              child: Text(
+                u.displayName.isNotEmpty ? u.displayName[0].toUpperCase() : '?',
+                style: const TextStyle(
+                    color: Color(0xFF10B981),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14),
+              ),
+            )
+          : null,
     );
   }
 }

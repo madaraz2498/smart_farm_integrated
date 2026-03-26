@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../reports/models/report_model.dart';
+import '../reports/utils/label_mapper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminChartCard — A professional container for all dashboard charts.
@@ -125,7 +126,9 @@ class UserGrowthChart extends StatelessWidget {
                         }
                         return Padding(
                           padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(data[value.toInt()].month,
+                          child: Text(
+                              LabelMapper.getLocalizedMonth(
+                                  data[value.toInt()].month, l10n),
                               style: const TextStyle(fontSize: 10)),
                         );
                       },
@@ -189,7 +192,7 @@ class ServiceDistributionChart extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _buildLegend(),
+                      children: _buildLegend(l10n),
                     ),
                   ),
                 ),
@@ -218,7 +221,7 @@ class ServiceDistributionChart extends StatelessWidget {
     });
   }
 
-  List<Widget> _buildLegend() {
+  List<Widget> _buildLegend(AppLocalizations l10n) {
     final total = data.fold(0, (sum, e) => sum + e.count);
     return List.generate(data.length, (i) {
       final item = data[i];
@@ -237,7 +240,7 @@ class ServiceDistributionChart extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                item.service,
+                LabelMapper.getLocalizedService(item.service, l10n),
                 style:
                     const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
                 overflow: TextOverflow.ellipsis,
@@ -306,8 +309,11 @@ class WeeklyActivityChart extends StatelessWidget {
                           return const SizedBox();
                         }
                         final day = data[value.toInt()].day;
-                        final label =
-                            day.length > 3 ? day.substring(0, 3) : day;
+                        final localizedDay =
+                            LabelMapper.getLocalizedDay(day, l10n);
+                        final label = localizedDay.length > 3
+                            ? localizedDay.substring(0, 3)
+                            : localizedDay;
                         return SideTitleWidget(
                           axisSide: meta.axisSide,
                           space: 10,

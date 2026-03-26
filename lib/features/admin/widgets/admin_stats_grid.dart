@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_farm/core/constants/app_assets.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
+import '../../notifications/providers/notification_provider.dart';
+import '../../notifications/models/notification_model.dart';
 import '../providers/admin_provider.dart';
 import '../../../shared/theme/app_theme.dart';
 
@@ -133,17 +135,17 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-/// Recent activity list (static — replace with live endpoint when available).
+/// Recent activity list (Real — connected to system notifications).
 class RecentActivityList extends StatelessWidget {
   const RecentActivityList({super.key});
 
-  static const _items = [
-    ('John Farmer', 'Used Plant Disease Detection', '2 minutes ago'),
-    ('Sarah Miller', 'Completed Soil Analysis', '15 minutes ago'),
-    ('Mike Johnson', 'Requested Crop Recommendation', '1 hour ago'),
-    ('Emma Wilson', 'Used Animal Weight Estimation', '2 hours ago'),
-    ('David Brown', 'Analyzed Fruit Quality', '3 hours ago'),
-  ];
+  String _timeAgo(DateTime dt, AppLocalizations l10n) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inDays > 0) return '${diff.inDays}d ago';
+    if (diff.inHours > 0) return '${diff.inHours}h ago';
+    if (diff.inMinutes > 0) return '${diff.inMinutes}m ago';
+    return 'Just now';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,38 +164,69 @@ class RecentActivityList extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(l10n.recent_activity, style: AppTextStyles.cardTitle),
         const SizedBox(height: 16),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _items.length,
-          separatorBuilder: (_, __) =>
-              const Divider(height: 1, color: AppColors.cardBorder),
-          itemBuilder: (_, i) {
-            final (user, action, time) = _items[i];
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(children: [
-                Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
-                        shape: BoxShape.circle),
-                    child: const Icon(Icons.person_outline,
-                        color: AppColors.primary, size: 20)),
-                const SizedBox(width: 16),
-                Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                      Text(user,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: AppColors.textDark)),
-                      Text(action, style: AppTextStyles.caption),
-                    ])),
-                Text(time, style: AppTextStyles.caption.copyWith(fontSize: 11)),
-              ]),
+        Consumer<NotificationProvider>(
+          builder: (context, prov, _) {
+            final activities = prov.notifications
+                .where((n) =>
+                    n.type == NotificationType.system ||
+                    n.type == NotificationType.user)
+                .take(5)
+                .toList();
+
+            if (activities.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text(
+                    'No recent activity',
+                    style: AppTextStyles.caption,
+                  ),
+                ),
+              );
+            }
+
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: activities.length,
+              separatorBuilder: (_, __) =>
+                  const Divider(height: 1, color: AppColors.cardBorder),
+              itemBuilder: (_, i) {
+                final activity = activities[i];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(children: [
+                    Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            color: AppColors.primarySurface,
+                            shape: BoxShape.circle),
+                        child: Icon(
+                            activity.type == NotificationType.system
+                                ? Icons.settings_outlined
+                                : Icons.person_outline,
+                            color: AppColors.primary,
+                            size: 20)),
+                    const SizedBox(width: 16),
+                    Expanded(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                          Text(activity.title,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppColors.textDark)),
+                          Text(activity.body,
+                              style: AppTextStyles.caption,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                        ])),
+                    Text(_timeAgo(activity.createdAt, l10n),
+                        style: AppTextStyles.caption.copyWith(fontSize: 11)),
+                  ]),
+                );
+              },
             );
           },
         ),

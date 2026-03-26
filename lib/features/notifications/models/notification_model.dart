@@ -33,6 +33,18 @@ class AppNotification {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'title': title,
+      'body': body,
+      'created_at': createdAt.toIso8601String(),
+      'is_read': isRead,
+      'type': type.name,
+    };
+  }
+
   factory AppNotification.fromJson(Map<String, dynamic> json) {
     return AppNotification(
       id: json['id']?.toString() ?? '',

@@ -1,5 +1,7 @@
 // lib/features/auth/providers/auth_provider.dart
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import '../../../core/network/token_storage.dart';
 import '../../../shared/models/user_model.dart';
 import '../../notifications/providers/notification_provider.dart';
 import '../../notifications/models/notification_model.dart';
@@ -17,15 +19,19 @@ class AuthProvider extends ChangeNotifier {
   final AuthService _svc = AuthService.instance;
   NotificationProvider? _notif;
 
-  void updateNotif(NotificationProvider? n) => _notif = n;
+  void updateNotificationProvider(NotificationProvider? notif) {
+    _notif = notif;
+  }
 
   AuthStatus _status = AuthStatus.unknown;
   UserModel? _user;
+  Uint8List? _localProfileImage;
   bool _loading = false;
   String? _error;
 
   AuthStatus get status => _status;
   UserModel? get currentUser => _user;
+  Uint8List? get localProfileImage => _localProfileImage;
   bool get isLoading => _loading;
   String? get errorMsg => _error;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
@@ -45,6 +51,81 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.unauthenticated;
     }
     notifyListeners();
+  }
+
+  Future<bool> updateProfile({
+    String? name,
+    String? email,
+    String? phone,
+    List<int>? imageBytes,
+    String? imageName,
+  }) async {
+    if (_user == null) return false;
+    _begin();
+
+    // Store local bytes for instant preview if available
+    if (imageBytes != null) {
+      _localProfileImage = Uint8List.fromList(imageBytes);
+      notifyListeners();
+    }
+
+    try {
+      final success = await _svc.updateProfile(
+        userId: _user!.id,
+        name: name,
+        email: email,
+        phone: phone,
+        imageBytes: imageBytes,
+        imageName: imageName,
+      );
+
+      if (success) {
+        // Handle profile image update with cache busting
+        String? newImg = _user!.profileImg;
+        if (imageBytes != null && newImg != null) {
+          final ts = DateTime.now().millisecondsSinceEpoch;
+          final base = newImg.split('?').first;
+          newImg = '$base?t=$ts';
+        }
+
+        // Optimistically update local user model
+        _user = _user!.copyWith(
+          name: name ?? _user!.name,
+          email: email ?? _user!.email,
+          phone: phone ?? _user!.phone,
+          profileImg: newImg,
+        );
+
+        // Persist updated data locally
+        final token = await TokenStorage.getToken();
+        if (token != null) {
+          await TokenStorage.save(
+            token: token,
+            userId: _user!.id,
+            userName: _user!.name,
+            userEmail: _user!.email,
+            userRole: _user!.role == UserRole.admin ? 'admin' : 'farmer',
+            profileImg: _user!.profileImg,
+          );
+        }
+
+        _error = null;
+        notifyListeners(); // Force UI update across app
+        return true;
+      } else {
+        _localProfileImage = null; // Clear preview on failure
+        _error = 'Failed to update profile settings.';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _localProfileImage = null; // Clear preview on error
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    } finally {
+      _end();
+    }
   }
 
   Future<AuthResult> login(
@@ -99,39 +180,10 @@ class AuthProvider extends ChangeNotifier {
     await _svc.logout();
     onBeforeReset?.call();
     _user = null;
+    _localProfileImage = null;
     _error = null;
     _status = AuthStatus.unauthenticated;
     notifyListeners();
-  }
-
-  Future<bool> updateProfile({
-    required String name,
-    required String email,
-    String? phone,
-  }) async {
-    if (_user == null) return false;
-    _loading = true;
-    _error = null;
-    notifyListeners();
-    try {
-      final ok = await _svc.updateProfile(
-        userId: _user!.id,
-        name: name,
-        email: email,
-        phone: phone,
-      );
-      if (ok) {
-        _user = _user!.copyWith(name: name, email: email);
-        notifyListeners();
-      }
-      return ok;
-    } catch (e) {
-      _error = 'Failed to update profile.';
-      return false;
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
   }
 
   void clearError() {

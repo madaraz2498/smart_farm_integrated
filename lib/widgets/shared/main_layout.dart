@@ -26,6 +26,7 @@ import '../../features/admin/pages/system_management_page.dart';
 import '../../features/admin/pages/admin_settings_page.dart';
 import '../../features/admin/reports/screens/admin_reports_screen.dart';
 import '../../features/admin/providers/admin_provider.dart';
+import '../../features/profile/pages/profile_page.dart';
 
 // ── Shared shell widgets ──────────────────────────────────────────────────────
 import 'app_sidebar.dart';
@@ -50,6 +51,7 @@ const List<Widget> _adminPages = [
   SystemManagementPage(), // AdminPage.systemManagement
   AdminReportsScreen(), // AdminPage.systemReports (Replaced SystemReportsPage)
   AdminSettingsPage(), // AdminPage.settings
+  ProfilePage(), // AdminPage.profile
 ];
 
 class MainLayout extends StatelessWidget {

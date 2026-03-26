@@ -22,6 +22,7 @@ enum AdminPage {
   systemManagement,
   systemReports,
   settings,
+  profile,
 }
 
 class FarmerPageMeta {
@@ -173,5 +174,6 @@ class NavigationProvider extends ChangeNotifier {
         AdminPage.systemManagement => l10n.system_management,
         AdminPage.systemReports => l10n.nav_reports,
         AdminPage.settings => l10n.settings,
+        AdminPage.profile => l10n.profile_settings,
       };
 }

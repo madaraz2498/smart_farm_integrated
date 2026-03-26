@@ -246,5 +246,16 @@
   "confirm_deactivate_desc": "The user account will be disabled and they will be prevented from logging in. Do you want to continue?",
   "confirm_activate_desc": "The user account will be reactivated and they will be allowed to log in. Do you want to continue?",
   "confirm_delete_desc": "All user data will be permanently deleted from the system. This action cannot be undone!",
-  "confirm_button": "Confirm"
+  "confirm_button": "Confirm",
+  "personal_information": "Personal Information",
+  "change_password": "Change Password",
+  "current_password": "Current Password",
+  "new_password": "New Password",
+  "update_password": "Update Password",
+  "save_changes": "Save Changes",
+  "edit_profile": "Edit Profile",
+  "profile_picture_updated": "Profile picture updated!",
+  "failed_to_update_profile_picture": "Failed to update profile picture.",
+  "failed_to_save_changes": "Failed to save changes",
+  "password_changed_success": "Password changed successfully"
 }

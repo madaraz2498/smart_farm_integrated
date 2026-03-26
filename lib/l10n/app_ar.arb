@@ -246,5 +246,16 @@
   "confirm_deactivate_desc": "سيتم تعطيل حساب المستخدم ومنعه من تسجيل الدخول. هل تريد المتابعة؟",
   "confirm_activate_desc": "سيتم إعادة تنشيط حساب المستخدم والسماح له بالدخول. هل تريد المتابعة؟",
   "confirm_delete_desc": "سيتم حذف كافة بيانات المستخدم نهائياً من النظام. هذا الإجراء لا يمكن التراجع عنه!",
-  "confirm_button": "تأكيد"
+  "confirm_button": "تأكيد",
+  "personal_information": "المعلومات الشخصية",
+  "change_password": "تغيير كلمة المرور",
+  "current_password": "كلمة المرور الحالية",
+  "new_password": "كلمة المرور الجديدة",
+  "update_password": "تحديث كلمة المرور",
+  "save_changes": "حفظ التغييرات",
+  "edit_profile": "تعديل الملف الشخصي",
+  "profile_picture_updated": "تم تحديث الصورة الشخصية!",
+  "failed_to_update_profile_picture": "فشل تحديث الصورة الشخصية.",
+  "failed_to_save_changes": "فشل حفظ التغييرات",
+  "password_changed_success": "تم تغيير كلمة المرور بنجاح"
 }
