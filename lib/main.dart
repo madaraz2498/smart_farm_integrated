@@ -19,6 +19,8 @@ import 'package:smart_farm/features/crops/providers/crop_provider.dart';
 import 'package:smart_farm/features/admin/providers/admin_provider.dart';
 import 'package:smart_farm/features/admin/reports/providers/report_provider.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
+import 'package:smart_farm/features/admin/providers/message_provider.dart';
+import 'package:smart_farm/features/farmer/providers/message_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,8 +33,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProxyProvider<NotificationProvider, AuthProvider>(
           create: (_) => AuthProvider(),
-          update: (_, notif, auth) =>
-              auth!..updateNotificationProvider(notif),
+          update: (_, notif, auth) => auth!..updateNotificationProvider(notif),
         ),
         ChangeNotifierProxyProvider<AuthProvider, ChatbotProvider>(
           create: (_) => ChatbotProvider('0'),
@@ -73,10 +74,13 @@ void main() {
         ChangeNotifierProxyProvider<NotificationProvider, AdminProvider>(
           create: (_) => AdminProvider(),
           update: (_, notif, admin) {
-            debugPrint('[Main] Updating AdminProvider with NotificationProvider');
+            debugPrint(
+                '[Main] Updating AdminProvider with NotificationProvider');
             return admin!..updateNotif(notif);
           },
         ),
+        ChangeNotifierProvider(create: (_) => AdminMessageProvider()),
+        ChangeNotifierProvider(create: (_) => FarmerMessageProvider()),
       ],
       child: const SmartFarmApp(),
     ),

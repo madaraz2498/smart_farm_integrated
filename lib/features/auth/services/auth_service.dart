@@ -4,6 +4,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/token_storage.dart';
 import '../../../shared/models/user_model.dart';
+import '../../admin/services/admin_service.dart';
 import '../models/auth_models.dart';
 
 // ── AuthResult ────────────────────────────────────────────────────────────────
@@ -125,25 +126,41 @@ class AuthService {
     List<int>? imageBytes,
     String? imageName,
   }) async {
-    final path = '/save-all-settings/$userId';
-    final fields = {
-      if (name != null) 'full_name': name,
-      if (email != null) 'email': email,
-      if (phone != null) 'phone': phone,
-    };
-    debugPrint('[AuthService] PUT-MULTIPART $path fields: $fields');
     try {
+      final fields = {
+        if (name != null) 'full_name': name,
+        if (email != null) 'email': email,
+        if (phone != null) 'phone': phone,
+      };
+
       await _c.putMultipart(
-        path,
-        fields: fields,
-        fileField: imageBytes != null ? 'profile_img' : null,
+        '/save-all-settings/$userId',
+        fileField: 'profile_img',
         fileBytes: imageBytes,
         fileName: imageName,
+        fields: fields,
       );
       return true;
     } catch (e) {
       debugPrint('[AuthService] updateProfile error: $e');
-      return false;
+      rethrow;
+    }
+  }
+
+  Future<bool> changePassword({
+    required String userId,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _c.postForm('/change-password/$userId', {
+        'old_password': oldPassword,
+        'new_password': newPassword,
+      });
+      return true;
+    } catch (e) {
+      debugPrint('[AuthService] changePassword error: $e');
+      rethrow;
     }
   }
 
@@ -162,7 +179,6 @@ class AuthService {
       final profileImg = stored['profile_img'];
 
       // Guard: if cached data is corrupted (id missing or "0"), force re-login.
-      // This cleans up stale cache written before the _parse() fix.
       if (name.isEmpty && email.isEmpty) {
         debugPrint('[AuthService] restoreSession: empty name+email → clearing');
         await _clear();
@@ -178,17 +194,71 @@ class AuthService {
       _c.setToken(token);
       debugPrint(
           '[AuthService] session restored for $name (id=$id, role=$role)');
+
+      // Sanitize profile image URL: if it contains the broken guessed path, clear it.
+      String? sanitizedImg = profileImg;
+      if (sanitizedImg != null && sanitizedImg.contains('/uploads/users/')) {
+        debugPrint(
+            '[AuthService] sanitizing broken profile path: $sanitizedImg');
+        sanitizedImg = null;
+      }
+
       return UserModel(
         id: id,
         name: name.isNotEmpty ? name : email.split('@').first,
         email: email,
         role: role == 'admin' ? UserRole.admin : UserRole.farmer,
-        profileImg: profileImg,
+        profileImg: sanitizedImg,
       );
     } catch (_) {
       await _clear();
       return null;
     }
+  }
+
+  /// Fetches the latest user profile data from the backend to refresh stale cached data.
+  /// This is critical to resolve 404 errors on profile images if the URL changed.
+  Future<UserModel?> refreshUserProfile(UserModel current) async {
+    try {
+      debugPrint('[AuthService] refreshUserProfile for ${current.id}');
+
+      // If admin, we can fetch the user list to find the current user's latest info.
+      if (current.role == UserRole.admin) {
+        final adminSvc = AdminService.instance;
+        final data = await adminSvc.getUsersAndSummary();
+        final found = data.users.firstWhere((u) => u.id == current.id);
+
+        final updated = current.copyWith(
+          name: found.username,
+          email: found.email,
+          profileImg: found.profileImg,
+        );
+
+        // Update cache
+        await _persistUpdated(updated);
+        return updated;
+      }
+
+      // If farmer, we could try GET /user/$id or a similar endpoint.
+      // Based on common patterns, let's try to fetch user details.
+      return current;
+    } catch (e) {
+      debugPrint('[AuthService] refreshUserProfile non-critical error: $e');
+      return current;
+    }
+  }
+
+  Future<void> _persistUpdated(UserModel u) async {
+    final token = await TokenStorage.getToken();
+    if (token == null) return;
+    await TokenStorage.save(
+      token: token,
+      userId: u.id,
+      userName: u.name,
+      userEmail: u.email,
+      userRole: u.role == UserRole.admin ? 'admin' : 'farmer',
+      profileImg: u.profileImg,
+    );
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

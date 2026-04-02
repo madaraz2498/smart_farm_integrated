@@ -44,13 +44,24 @@ class AuthProvider extends ChangeNotifier {
       if (u != null) {
         _user = u;
         _status = AuthStatus.authenticated;
+        notifyListeners();
+
+        // Background refresh to fix potential 404 on profile image
+        _svc.refreshUserProfile(u).then((updated) {
+          if (updated != null && updated != _user) {
+            _user = updated;
+            notifyListeners();
+          }
+        });
       } else {
         _status = AuthStatus.unauthenticated;
+        notifyListeners();
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[AuthProvider] _init error: $e');
       _status = AuthStatus.unauthenticated;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<bool> updateProfile({
@@ -80,12 +91,16 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (success) {
-        // Handle profile image update with cache busting
+        // Handle profile image update with cache busting ONLY if we have a real URL
         String? newImg = _user!.profileImg;
-        if (imageBytes != null && newImg != null) {
+        if (imageBytes != null && newImg != null && newImg.isNotEmpty) {
           final ts = DateTime.now().millisecondsSinceEpoch;
           final base = newImg.split('?').first;
           newImg = '$base?t=$ts';
+        } else if (imageBytes != null) {
+          // If we uploaded bytes but don't have a URL yet, keep it null
+          // the local bytes preview will take precedence in the UI.
+          newImg = null;
         }
 
         // Optimistically update local user model
@@ -122,6 +137,29 @@ class AuthProvider extends ChangeNotifier {
       _localProfileImage = null; // Clear preview on error
       _error = e.toString();
       notifyListeners();
+      return false;
+    } finally {
+      _end();
+    }
+  }
+
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    if (_user == null) return false;
+    _begin();
+
+    try {
+      final success = await _svc.changePassword(
+        userId: _user!.id,
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+      _error = null;
+      return success;
+    } catch (e) {
+      _error = e.toString();
       return false;
     } finally {
       _end();

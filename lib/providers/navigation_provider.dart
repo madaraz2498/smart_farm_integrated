@@ -12,6 +12,7 @@ enum FarmerPage {
   soilAnalysis,
   fruitQuality,
   chatbot,
+  messages,
   reports,
   settings,
 }
@@ -21,6 +22,7 @@ enum AdminPage {
   userManagement,
   systemManagement,
   systemReports,
+  messages,
   settings,
   profile,
 }
@@ -126,6 +128,8 @@ class NavigationProvider extends ChangeNotifier {
         icon: 'chat_bubble_outline',
         svgAsset: AppAssets.chatIcon),
     FarmerPageMeta(
+        page: FarmerPage.messages, label: 'Messages', icon: 'email_outlined'),
+    FarmerPageMeta(
         page: FarmerPage.reports, label: 'Reports', icon: 'bar_chart_outlined'),
     FarmerPageMeta(
         page: FarmerPage.settings,
@@ -153,6 +157,8 @@ class NavigationProvider extends ChangeNotifier {
         label: 'System Reports',
         icon: 'bar_chart_outlined'),
     AdminPageMeta(
+        page: AdminPage.messages, label: 'Messages', icon: 'email_outlined'),
+    AdminPageMeta(
         page: AdminPage.settings, label: 'Settings', icon: 'tune_outlined'),
   ];
 
@@ -164,6 +170,7 @@ class NavigationProvider extends ChangeNotifier {
         FarmerPage.soilAnalysis => l10n.nav_soil_analysis,
         FarmerPage.fruitQuality => l10n.nav_fruit_quality,
         FarmerPage.chatbot => l10n.nav_chatbot,
+        FarmerPage.messages => l10n.messages,
         FarmerPage.reports => l10n.nav_reports,
         FarmerPage.settings => l10n.settings,
       };
@@ -173,6 +180,7 @@ class NavigationProvider extends ChangeNotifier {
         AdminPage.userManagement => l10n.user_management,
         AdminPage.systemManagement => l10n.system_management,
         AdminPage.systemReports => l10n.nav_reports,
+        AdminPage.messages => l10n.messages,
         AdminPage.settings => l10n.settings,
         AdminPage.profile => l10n.profile_settings,
       };

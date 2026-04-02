@@ -20,39 +20,52 @@ class FarmerWelcomeScreen extends StatelessWidget {
     final features = [
       (
         svg: AppAssets.plantIcon,
+        icon: null as IconData?,
         title: l10n.nav_plant_disease,
         desc: l10n.plant_disease_card_desc,
         page: FarmerPage.plantDisease
       ),
       (
         svg: AppAssets.animalIcon,
+        icon: null as IconData?,
         title: l10n.nav_animal_weight,
         desc: l10n.animal_weight_card_desc,
         page: FarmerPage.animalWeight
       ),
       (
         svg: AppAssets.cropIcon,
+        icon: null as IconData?,
         title: l10n.nav_crop_recommendation,
         desc: l10n.crop_recommendation_card_desc,
         page: FarmerPage.cropRecommendation
       ),
       (
         svg: AppAssets.soilIcon,
+        icon: null as IconData?,
         title: l10n.nav_soil_analysis,
         desc: l10n.soil_analysis_card_desc,
         page: FarmerPage.soilAnalysis
       ),
       (
         svg: AppAssets.fruitIcon,
+        icon: null as IconData?,
         title: l10n.nav_fruit_quality,
         desc: l10n.fruit_quality_card_desc,
         page: FarmerPage.fruitQuality
       ),
       (
         svg: AppAssets.chatIcon,
+        icon: null as IconData?,
         title: l10n.nav_chatbot,
         desc: l10n.chatbot_card_desc,
         page: FarmerPage.chatbot
+      ),
+      (
+        svg: null as String?,
+        icon: Icons.email_outlined,
+        title: l10n.messages,
+        desc: l10n.manage_account_preferences,
+        page: FarmerPage.messages
       ),
     ];
 
@@ -82,8 +95,9 @@ class FarmerWelcomeScreen extends StatelessWidget {
                                 1.9, // تم تقليل النسبة قليلاً لزيادة الارتفاع ومنع التداخل
                             child: _FeatureCard(
                                 svg: f.svg,
-                                title: f.title,
-                                desc: f.desc,
+                                icon: f.icon,
+                                title: f.title ?? '',
+                                desc: f.desc ?? '',
                                 fixedHeight: true,
                                 onTap: () => nav.goToFarmerPage(f.page)),
                           ),
@@ -101,8 +115,9 @@ class FarmerWelcomeScreen extends StatelessWidget {
                           aspectRatio: 1.6,
                           child: _FeatureCard(
                               svg: f.svg,
-                              title: f.title,
-                              desc: f.desc,
+                              icon: f.icon,
+                              title: f.title ?? '',
+                              desc: f.desc ?? '',
                               fixedHeight: true,
                               onTap: () => nav.goToFarmerPage(f.page)),
                         ),
@@ -116,12 +131,15 @@ class FarmerWelcomeScreen extends StatelessWidget {
 
 class _FeatureCard extends StatelessWidget {
   const _FeatureCard(
-      {required this.svg,
+      {this.svg,
+      this.icon,
       required this.title,
       required this.desc,
       required this.onTap,
       this.fixedHeight = false});
-  final String svg, title, desc;
+  final String? svg;
+  final String title, desc;
+  final IconData? icon;
   final VoidCallback onTap;
   final bool fixedHeight;
 
@@ -155,7 +173,10 @@ class _FeatureCard extends StatelessWidget {
                       color: AppColors.primarySurface,
                       borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
                   child: Center(
-                      child: SvgPicture.asset(svg, width: 24, height: 24))),
+                      child: svg != null
+                          ? SvgPicture.asset(svg!, width: 24, height: 24)
+                          : Icon(icon ?? Icons.help_outline,
+                              color: AppColors.primary, size: 24))),
               const SizedBox(height: AppSizes.itemPadding),
               Text(title, style: AppTextStyles.cardTitle),
               const SizedBox(height: 6),

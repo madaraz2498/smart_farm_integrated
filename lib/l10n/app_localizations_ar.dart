@@ -746,4 +746,116 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get password_changed_success => 'تم تغيير كلمة المرور بنجاح';
+
+  @override
+  String get system_management_title => 'إدارة النظام';
+
+  @override
+  String get system_management_subtitle =>
+      'تكوين خدمات الذكاء الاصطناعي وإعدادات المنصة';
+
+  @override
+  String get ai_models => 'نماذج الذكاء الاصطناعي';
+
+  @override
+  String get general_settings => 'الإعدادات العامة';
+
+  @override
+  String get platform_settings => 'إعدادات المنصة';
+
+  @override
+  String get maintenance_mode => 'وضع الصيانة';
+
+  @override
+  String get maintenance_mode_desc => 'تعطيل وصول المستخدمين مؤقتاً';
+
+  @override
+  String get auto_backup => 'النسخ الاحتياطي التلقائي';
+
+  @override
+  String get auto_backup_desc => 'لقطات يومية لقاعدة البيانات';
+
+  @override
+  String get save_ai_config => 'حفظ تكوين الذكاء الاصطناعي';
+
+  @override
+  String get save_general_settings => 'حفظ الإعدادات العامة';
+
+  @override
+  String get ai_config_saved => 'تم حفظ تكوين الذكاء الاصطناعي!';
+
+  @override
+  String get general_settings_saved => 'تم حفظ الإعدادات العامة!';
+
+  @override
+  String get error_user_not_found => 'خطأ: المستخدم غير موجود';
+
+  @override
+  String get messages => 'الرسائل';
+
+  @override
+  String get send_message => 'إرسال رسالة';
+
+  @override
+  String get subject => 'الموضوع';
+
+  @override
+  String get message_content => 'نص الرسالة';
+
+  @override
+  String get message_sent_success => 'تم إرسال الرسالة بنجاح';
+
+  @override
+  String get reply => 'الرد';
+
+  @override
+  String get admin_reply => 'رد الإدارة';
+
+  @override
+  String get replied => 'تم الرد';
+
+  @override
+  String get not_replied => 'لم يتم الرد';
+
+  @override
+  String get delete_message => 'حذف الرسالة';
+
+  @override
+  String get confirm_delete_message => 'هل أنت متأكد من حذف هذه الرسالة؟';
+
+  @override
+  String get no_messages_found => 'لا توجد رسائل';
+
+  @override
+  String get type_your_reply => 'اكتب ردك هنا...';
+
+  @override
+  String get farmer_messages => 'رسائل المزارعين';
+
+  @override
+  String get your_messages => 'رسائلك';
+
+  @override
+  String get communicate_with_admin => 'تواصل مع الإدارة';
+
+  @override
+  String get new_message => 'رسالة جديدة';
+
+  @override
+  String get message_type => 'نوع الرسالة';
+
+  @override
+  String get select_message_type => 'اختر نوع الرسالة...';
+
+  @override
+  String get complaint => 'شكوى';
+
+  @override
+  String get suggestion => 'اقتراح';
+
+  @override
+  String get inquiry => 'استفسار';
+
+  @override
+  String get other => 'أخرى';
 }

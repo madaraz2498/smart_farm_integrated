@@ -27,6 +27,8 @@ import '../../features/admin/pages/admin_settings_page.dart';
 import '../../features/admin/reports/screens/admin_reports_screen.dart';
 import '../../features/admin/providers/admin_provider.dart';
 import '../../features/profile/pages/profile_page.dart';
+import '../../features/admin/pages/messages_page.dart' as admin;
+import '../../features/farmer/pages/messages_page.dart' as farmer;
 
 // ── Shared shell widgets ──────────────────────────────────────────────────────
 import 'app_sidebar.dart';
@@ -41,6 +43,7 @@ const List<Widget> _farmerPages = [
   SoilAnalysisScreen(), // FarmerPage.soilAnalysis
   FruitQualityScreen(), // FarmerPage.fruitQuality
   ChatbotScreen(), // FarmerPage.chatbot
+  farmer.FarmerMessagesPage(), // FarmerPage.messages
   ReportsScreen(), // FarmerPage.reports
   FarmerSettingsScreen(), // FarmerPage.settings
 ];
@@ -50,6 +53,7 @@ const List<Widget> _adminPages = [
   UserManagementPage(), // AdminPage.userManagement
   SystemManagementPage(), // AdminPage.systemManagement
   AdminReportsScreen(), // AdminPage.systemReports (Replaced SystemReportsPage)
+  admin.AdminMessagesPage(), // AdminPage.messages
   AdminSettingsPage(), // AdminPage.settings
   ProfilePage(), // AdminPage.profile
 ];

@@ -130,27 +130,21 @@ class _AvatarChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isAdmin ? AppColors.adminAccent : AppColors.primary,
           shape: BoxShape.circle,
-          image: localBytes != null
-              ? DecorationImage(
-                  image: MemoryImage(localBytes), fit: BoxFit.cover)
-              : (imgUrl != null && imgUrl.isNotEmpty
-                  ? DecorationImage(
-                      image: NetworkImage(imgUrl.startsWith('http')
-                          ? imgUrl
-                          : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl'),
-                      fit: BoxFit.cover,
-                      onError: (e, s) => debugPrint('TopBar image error: $e'))
-                  : null),
         ),
-        child: (localBytes == null && (imgUrl == null || imgUrl.isEmpty))
-            ? Center(
-                child: isAdmin
-                    ? const Text('A',
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold))
-                    : const Icon(Icons.person_rounded,
-                        color: Colors.white, size: 18))
-            : null,
+        child: ClipOval(
+          child: localBytes != null
+              ? Image.memory(localBytes, fit: BoxFit.cover)
+              : (imgUrl != null && imgUrl.isNotEmpty
+                  ? Image.network(
+                      imgUrl.startsWith('http')
+                          ? imgUrl
+                          : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildInitials(),
+                    )
+                  : _buildInitials()),
+        ),
       ),
       const SizedBox(width: 8),
       ConstrainedBox(
@@ -163,5 +157,15 @@ class _AvatarChip extends StatelessWidget {
                 color: AppColors.textDark)),
       ),
     ]);
+  }
+
+  Widget _buildInitials() {
+    return Center(
+      child: isAdmin
+          ? const Text('A',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+          : const Icon(Icons.person_rounded, color: Colors.white, size: 18),
+    );
   }
 }

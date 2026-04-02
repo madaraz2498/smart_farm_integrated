@@ -748,4 +748,117 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get password_changed_success => 'Password changed successfully';
+
+  @override
+  String get system_management_title => 'System Management';
+
+  @override
+  String get system_management_subtitle =>
+      'Configure AI services and platform settings';
+
+  @override
+  String get ai_models => 'AI Models';
+
+  @override
+  String get general_settings => 'General Settings';
+
+  @override
+  String get platform_settings => 'Platform Settings';
+
+  @override
+  String get maintenance_mode => 'Maintenance Mode';
+
+  @override
+  String get maintenance_mode_desc => 'Disable user access temporarily';
+
+  @override
+  String get auto_backup => 'Auto Backup';
+
+  @override
+  String get auto_backup_desc => 'Daily database snapshots';
+
+  @override
+  String get save_ai_config => 'Save AI Configuration';
+
+  @override
+  String get save_general_settings => 'Save General Settings';
+
+  @override
+  String get ai_config_saved => 'AI configuration saved!';
+
+  @override
+  String get general_settings_saved => 'General settings saved!';
+
+  @override
+  String get error_user_not_found => 'Error: User not found';
+
+  @override
+  String get messages => 'Messages';
+
+  @override
+  String get send_message => 'Send Message';
+
+  @override
+  String get subject => 'Subject';
+
+  @override
+  String get message_content => 'Message';
+
+  @override
+  String get message_sent_success => 'Message sent successfully';
+
+  @override
+  String get reply => 'Reply';
+
+  @override
+  String get admin_reply => 'Admin Reply';
+
+  @override
+  String get replied => 'Replied';
+
+  @override
+  String get not_replied => 'Not Replied';
+
+  @override
+  String get delete_message => 'Delete Message';
+
+  @override
+  String get confirm_delete_message =>
+      'Are you sure you want to delete this message?';
+
+  @override
+  String get no_messages_found => 'No messages found';
+
+  @override
+  String get type_your_reply => 'Type your reply...';
+
+  @override
+  String get farmer_messages => 'Farmer Messages';
+
+  @override
+  String get your_messages => 'Your Messages';
+
+  @override
+  String get communicate_with_admin => 'Communicate with admin';
+
+  @override
+  String get new_message => 'New Message';
+
+  @override
+  String get message_type => 'Message Type';
+
+  @override
+  String get select_message_type => 'Select message type...';
+
+  @override
+  String get complaint => 'Complaint';
+
+  @override
+  String get suggestion => 'Suggestion';
+
+  @override
+  String get inquiry => 'Inquiry';
+
+  @override
+  String get other => 'Other';
 }

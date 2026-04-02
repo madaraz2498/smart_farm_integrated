@@ -24,6 +24,7 @@ IconData _icon(String name) => switch (name) {
       'people_outline' => Icons.people_outline,
       'settings_applications_outlined' => Icons.settings_applications_outlined,
       'tune_outlined' => Icons.tune_outlined,
+      'email_outlined' => Icons.email_outlined,
       _ => Icons.circle_outlined,
     };
 
@@ -114,6 +115,7 @@ class _SidebarContent extends StatelessWidget {
         AdminPage.userManagement => l10n.user_management,
         AdminPage.systemManagement => l10n.system_management,
         AdminPage.systemReports => l10n.nav_reports,
+        AdminPage.messages => l10n.messages,
         AdminPage.settings => l10n.settings,
         AdminPage.profile => l10n.profile_settings,
       };
@@ -146,6 +148,7 @@ class _SidebarContent extends StatelessWidget {
         FarmerPage.soilAnalysis => l10n.nav_soil_analysis,
         FarmerPage.fruitQuality => l10n.nav_fruit_quality,
         FarmerPage.chatbot => l10n.nav_chatbot,
+        FarmerPage.messages => l10n.messages,
         FarmerPage.reports => l10n.nav_reports,
         FarmerPage.settings => l10n.settings,
       };

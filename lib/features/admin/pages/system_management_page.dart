@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/admin_provider.dart';
 import '../../../shared/theme/app_theme.dart';
@@ -67,7 +68,8 @@ class _SystemManagementPageState extends State<SystemManagementPage>
 
   Future<void> _toggleService(String key, bool val) async {
     setState(() => _services[key] = val);
-    debugPrint('[SystemManagementPage] Calling AdminProvider.toggleService for $key');
+    debugPrint(
+        '[SystemManagementPage] Calling AdminProvider.toggleService for $key');
     await context.read<AdminProvider>().toggleService(key);
   }
 
@@ -86,6 +88,7 @@ class _SystemManagementPageState extends State<SystemManagementPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return RefreshIndicator(
       onRefresh: _loadData,
       color: AppColors.primary,
@@ -93,16 +96,17 @@ class _SystemManagementPageState extends State<SystemManagementPage>
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppSizes.pagePadding),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('System Management', style: AppTextStyles.pageTitle),
+          Text(l10n.system_management_title, style: AppTextStyles.pageTitle),
           const SizedBox(height: 4),
-          const Text('Configure AI services and platform settings',
+          Text(l10n.system_management_subtitle,
               style: AppTextStyles.pageSubtitle),
           const SizedBox(height: 24),
           Container(
             decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-                border: Border.all(color: Colors.black.withOpacity(0.06))),
+                border:
+                    Border.all(color: Colors.black.withValues(alpha: 0.06))),
             child: TabBar(
               controller: _tab,
               indicator: BoxDecoration(
@@ -112,9 +116,9 @@ class _SystemManagementPageState extends State<SystemManagementPage>
               labelColor: Colors.white,
               unselectedLabelColor: AppColors.textSubtle,
               padding: const EdgeInsets.all(4),
-              tabs: const [
-                Tab(text: 'AI Models'),
-                Tab(text: 'General Settings')
+              tabs: [
+                Tab(text: l10n.ai_models),
+                Tab(text: l10n.general_settings)
               ],
             ),
           ),
@@ -130,29 +134,23 @@ class _SystemManagementPageState extends State<SystemManagementPage>
                     child: CircularProgressIndicator(),
                   ));
                 }
-                return _tab.index == 0 ? _buildAITab() : _buildGeneralTab();
+                return _tab.index == 0
+                    ? _buildAITab(l10n)
+                    : _buildGeneralTab(l10n);
               }),
         ]),
       ),
     );
   }
 
-  Widget _buildAITab() {
+  Widget _buildAITab(AppLocalizations l10n) {
     final models = [
-      (
-        'plant_disease',
-        'Plant Disease Detection',
-        Icons.local_florist_outlined
-      ),
-      (
-        'animal_weight',
-        'Animal Weight Estimation',
-        Icons.monitor_weight_outlined
-      ),
-      ('crop_rec', 'Crop Recommendation', Icons.grass_outlined),
-      ('soil_analysis', 'Soil Type Analysis', Icons.layers_outlined),
-      ('fruit_quality', 'Fruit Quality Analysis', Icons.apple_outlined),
-      ('chatbot', 'Smart Farm Chatbot', Icons.chat_bubble_outline),
+      ('plant_disease', l10n.nav_plant_disease, Icons.local_florist_outlined),
+      ('animal_weight', l10n.nav_animal_weight, Icons.monitor_weight_outlined),
+      ('crop_rec', l10n.nav_crop_recommendation, Icons.grass_outlined),
+      ('soil_analysis', l10n.nav_soil_analysis, Icons.layers_outlined),
+      ('fruit_quality', l10n.nav_fruit_quality, Icons.apple_outlined),
+      ('chatbot', l10n.nav_chatbot, Icons.chat_bubble_outline),
     ];
     return Column(children: [
       ...models.map((m) => Container(
@@ -161,7 +159,8 @@ class _SystemManagementPageState extends State<SystemManagementPage>
             decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-                border: Border.all(color: Colors.black.withOpacity(0.06))),
+                border:
+                    Border.all(color: Colors.black.withValues(alpha: 0.06))),
             child: Row(children: [
               Container(
                   padding: const EdgeInsets.all(10),
@@ -183,56 +182,56 @@ class _SystemManagementPageState extends State<SystemManagementPage>
               Switch(
                   value: _services[m.$1] ?? false,
                   onChanged: (v) => _toggleService(m.$1, v),
-                  activeColor: AppColors.primary),
+                  activeThumbColor: AppColors.primary),
             ]),
           )),
       SfPrimaryButton(
-          label: 'Save AI Configuration',
+          label: l10n.save_ai_config,
           onPressed: () {
             context.read<AdminProvider>().logAIConfigurationUpdate();
-            _snack('AI configuration saved!');
+            _snack(l10n.ai_config_saved);
           }),
     ]);
   }
 
-  Widget _buildGeneralTab() {
+  Widget _buildGeneralTab(AppLocalizations l10n) {
     return Column(children: [
       Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-              border: Border.all(color: Colors.black.withOpacity(0.06))),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.06))),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Platform Settings', style: AppTextStyles.cardTitle),
+            Text(l10n.platform_settings, style: AppTextStyles.cardTitle),
             const SizedBox(height: 16),
             _ToggleRow(
-                'Maintenance Mode',
-                'Disable user access temporarily',
+                l10n.maintenance_mode,
+                l10n.maintenance_mode_desc,
                 _maintenance,
                 AppColors.error,
                 (v) => _toggleSetting('maintenance_mode', v)),
             _ToggleRow(
-                'Email Notifications',
-                'System alerts via email',
+                l10n.email_notifications,
+                l10n.email_alerts,
                 _emailNotif,
                 AppColors.info,
                 (v) => _toggleSetting('email_notifications', v)),
             _ToggleRow(
-                'Auto Backup',
-                'Daily database snapshots',
+                l10n.auto_backup,
+                l10n.auto_backup_desc,
                 _autoBackup,
                 const Color(0xFF9C27B0),
                 (v) => _toggleSetting('auto_backup', v)),
           ])),
       const SizedBox(height: 16),
       SfPrimaryButton(
-          label: 'Save General Settings',
+          label: l10n.save_general_settings,
           onPressed: () async {
             final userId = context.read<AuthProvider>().currentUser?.id;
             if (userId == null) {
-              _snack('Error: User not found');
+              _snack(l10n.error_user_not_found);
               return;
             }
 
@@ -244,11 +243,13 @@ class _SystemManagementPageState extends State<SystemManagementPage>
               'auto_backup': _autoBackup,
             });
 
+            if (!mounted) return;
+
             if (success) {
-              _snack('General settings saved!');
+              _snack(l10n.general_settings_saved);
             } else {
               final error = context.read<AdminProvider>().statsError;
-              _snack(error ?? 'Failed to save settings');
+              _snack(error ?? l10n.error_msg);
             }
           }),
     ]);
@@ -272,9 +273,14 @@ class _ToggleRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                 Text(label, style: AppTextStyles.label),
-                Text(desc, style: AppTextStyles.caption),
+                Text(desc,
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.textSubtle)),
               ])),
-          Switch(value: value, onChanged: onChanged, activeColor: color),
+          Switch(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: AppColors.primary),
         ]),
       );
 }

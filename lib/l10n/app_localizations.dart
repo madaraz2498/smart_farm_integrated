@@ -1531,6 +1531,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Password changed successfully'**
   String get password_changed_success;
+
+  /// No description provided for @system_management_title.
+  ///
+  /// In en, this message translates to:
+  /// **'System Management'**
+  String get system_management_title;
+
+  /// No description provided for @system_management_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure AI services and platform settings'**
+  String get system_management_subtitle;
+
+  /// No description provided for @ai_models.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Models'**
+  String get ai_models;
+
+  /// No description provided for @general_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'General Settings'**
+  String get general_settings;
+
+  /// No description provided for @platform_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Settings'**
+  String get platform_settings;
+
+  /// No description provided for @maintenance_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance Mode'**
+  String get maintenance_mode;
+
+  /// No description provided for @maintenance_mode_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable user access temporarily'**
+  String get maintenance_mode_desc;
+
+  /// No description provided for @auto_backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Backup'**
+  String get auto_backup;
+
+  /// No description provided for @auto_backup_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily database snapshots'**
+  String get auto_backup_desc;
+
+  /// No description provided for @save_ai_config.
+  ///
+  /// In en, this message translates to:
+  /// **'Save AI Configuration'**
+  String get save_ai_config;
+
+  /// No description provided for @save_general_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Save General Settings'**
+  String get save_general_settings;
+
+  /// No description provided for @ai_config_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'AI configuration saved!'**
+  String get ai_config_saved;
+
+  /// No description provided for @general_settings_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'General settings saved!'**
+  String get general_settings_saved;
+
+  /// No description provided for @error_user_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: User not found'**
+  String get error_user_not_found;
+
+  /// No description provided for @messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messages;
+
+  /// No description provided for @send_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Message'**
+  String get send_message;
+
+  /// No description provided for @subject.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get subject;
+
+  /// No description provided for @message_content.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get message_content;
+
+  /// No description provided for @message_sent_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Message sent successfully'**
+  String get message_sent_success;
+
+  /// No description provided for @reply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get reply;
+
+  /// No description provided for @admin_reply.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Reply'**
+  String get admin_reply;
+
+  /// No description provided for @replied.
+  ///
+  /// In en, this message translates to:
+  /// **'Replied'**
+  String get replied;
+
+  /// No description provided for @not_replied.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Replied'**
+  String get not_replied;
+
+  /// No description provided for @delete_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Message'**
+  String get delete_message;
+
+  /// No description provided for @confirm_delete_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this message?'**
+  String get confirm_delete_message;
+
+  /// No description provided for @no_messages_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages found'**
+  String get no_messages_found;
+
+  /// No description provided for @type_your_reply.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your reply...'**
+  String get type_your_reply;
+
+  /// No description provided for @farmer_messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Farmer Messages'**
+  String get farmer_messages;
+
+  /// No description provided for @your_messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Messages'**
+  String get your_messages;
+
+  /// No description provided for @communicate_with_admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Communicate with admin'**
+  String get communicate_with_admin;
+
+  /// No description provided for @new_message.
+  ///
+  /// In en, this message translates to:
+  /// **'New Message'**
+  String get new_message;
+
+  /// No description provided for @message_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Message Type'**
+  String get message_type;
+
+  /// No description provided for @select_message_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Select message type...'**
+  String get select_message_type;
+
+  /// No description provided for @complaint.
+  ///
+  /// In en, this message translates to:
+  /// **'Complaint'**
+  String get complaint;
+
+  /// No description provided for @suggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion'**
+  String get suggestion;
+
+  /// No description provided for @inquiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Inquiry'**
+  String get inquiry;
+
+  /// No description provided for @other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get other;
 }
 
 class _AppLocalizationsDelegate

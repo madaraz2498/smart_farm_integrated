@@ -201,6 +201,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       obscure: _obscureOld,
                       onToggle: () =>
                           setState(() => _obscureOld = !_obscureOld),
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? l10n.field_required
+                          : (v.length < 6 ? l10n.password_too_short : null),
                     ),
                     const SizedBox(height: 16),
                     _buildPasswordField(
@@ -209,6 +212,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       obscure: _obscureNew,
                       onToggle: () =>
                           setState(() => _obscureNew = !_obscureNew),
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? l10n.field_required
+                          : (v.length < 6 ? l10n.password_too_short : null),
                     ),
                     const SizedBox(height: 16),
                     _buildPasswordField(
@@ -217,19 +223,33 @@ class _ProfilePageState extends State<ProfilePage> {
                       obscure: _obscureConfirm,
                       onToggle: () =>
                           setState(() => _obscureConfirm = !_obscureConfirm),
+                      validator: (v) => v != _newPassController.text
+                          ? l10n.passwords_dont_match
+                          : null,
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        onPressed: () {
-                          if (_passKey.currentState!.validate()) {
-                            _snack(l10n.password_changed_success);
-                            _oldPassController.clear();
-                            _newPassController.clear();
-                            _confirmPassController.clear();
-                          }
-                        },
+                        onPressed: auth.isLoading
+                            ? null
+                            : () async {
+                                if (_passKey.currentState!.validate()) {
+                                  final success = await auth.changePassword(
+                                    oldPassword: _oldPassController.text,
+                                    newPassword: _newPassController.text,
+                                  );
+
+                                  if (success) {
+                                    _snack(l10n.password_changed_success);
+                                    _oldPassController.clear();
+                                    _newPassController.clear();
+                                    _confirmPassController.clear();
+                                  } else {
+                                    _snack(auth.errorMsg ?? l10n.error_msg);
+                                  }
+                                }
+                              },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: AppColors.primary),
                           foregroundColor: AppColors.primary,
@@ -237,7 +257,16 @@ class _ProfilePageState extends State<ProfilePage> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: Text(l10n.update_password),
+                        child: auth.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              )
+                            : Text(l10n.update_password),
                       ),
                     ),
                   ],
@@ -272,30 +301,23 @@ class _ProfilePageState extends State<ProfilePage> {
                     blurRadius: 10,
                     offset: const Offset(0, 4)),
               ],
-              image: localBytes != null
-                  ? DecorationImage(
-                      image: MemoryImage(localBytes), fit: BoxFit.cover)
-                  : (imgUrl != null && imgUrl.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(imgUrl.startsWith('http')
-                              ? imgUrl
-                              : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl'),
-                          fit: BoxFit.cover,
-                          onError: (e, s) => debugPrint('Image load error: $e'))
-                      : null),
             ),
-            child: (localBytes == null && (imgUrl == null || imgUrl.isEmpty))
-                ? Center(
-                    child: isAdmin
-                        ? const Text('A',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 40,
-                                fontWeight: FontWeight.bold))
-                        : const Icon(Icons.person_rounded,
-                            color: Colors.white, size: 50),
-                  )
-                : null,
+            child: ClipOval(
+              child: localBytes != null
+                  ? Image.memory(localBytes, fit: BoxFit.cover)
+                  : (imgUrl != null && imgUrl.isNotEmpty
+                      ? Image.network(
+                          imgUrl.startsWith('http')
+                              ? imgUrl
+                              : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            debugPrint('Image load error: $error');
+                            return _buildInitials(isAdmin, name, size: 40);
+                          },
+                        )
+                      : _buildInitials(isAdmin, name, size: 40)),
+            ),
           ),
           Positioned(
             bottom: 0,
@@ -305,18 +327,33 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 4)
-                    ]),
-                child: const Icon(Icons.camera_alt_outlined,
-                    size: 20, color: AppColors.primary),
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black12, blurRadius: 4, spreadRadius: 1),
+                  ],
+                ),
+                child: Icon(Icons.camera_alt_outlined,
+                    size: 20,
+                    color: isAdmin ? AppColors.adminAccent : AppColors.primary),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInitials(bool isAdmin, String name, {double size = 40}) {
+    return Center(
+      child: isAdmin
+          ? Text('A',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: size,
+                  fontWeight: FontWeight.bold))
+          : Icon(Icons.person_rounded, color: Colors.white, size: size + 10),
     );
   }
 
@@ -387,7 +424,8 @@ class _ProfilePageState extends State<ProfilePage> {
       {required TextEditingController controller,
       required String label,
       required bool obscure,
-      required VoidCallback onToggle}) {
+      required VoidCallback onToggle,
+      String? Function(String?)? validator}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -398,6 +436,7 @@ class _ProfilePageState extends State<ProfilePage> {
         TextFormField(
           controller: controller,
           obscureText: obscure,
+          validator: validator,
           decoration: InputDecoration(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
