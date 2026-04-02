@@ -48,7 +48,17 @@ class _UserListTableState extends State<UserListTable> {
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            const tableWidth = 484.0;
+            // Reduced widths to minimize scrolling
+            const nameWidth = 180.0;
+            const roleWidth = 60.0;
+            const statusWidth = 80.0;
+            const actionsWidth = 60.0;
+            const horizontalPadding = 24.0; // 12 on each side
+            const totalWidth =
+                nameWidth + roleWidth + statusWidth + actionsWidth + horizontalPadding;
+
+            final tableWidth =
+                constraints.maxWidth < totalWidth ? totalWidth : constraints.maxWidth;
 
             return Scrollbar(
               controller: _horizontalController,
@@ -61,7 +71,7 @@ class _UserListTableState extends State<UserListTable> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTableHeaders(l10n),
+                      _buildTableHeaders(l10n, nameWidth, roleWidth, statusWidth, actionsWidth),
                       if (filteredUsers.isEmpty)
                         const Padding(
                           padding: EdgeInsets.all(32),
@@ -75,7 +85,7 @@ class _UserListTableState extends State<UserListTable> {
                           separatorBuilder: (_, __) =>
                               Divider(height: 1, color: Colors.grey.shade50),
                           itemBuilder: (context, index) => _buildUserRow(
-                              context, filteredUsers[index], l10n),
+                              context, filteredUsers[index], l10n, nameWidth, roleWidth, statusWidth, actionsWidth),
                         ),
                     ],
                   ),
@@ -88,9 +98,10 @@ class _UserListTableState extends State<UserListTable> {
     );
   }
 
-  Widget _buildTableHeaders(AppLocalizations l10n) {
+  Widget _buildTableHeaders(AppLocalizations l10n, double nameW, double roleW,
+      double statusW, double actionsW) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -99,50 +110,50 @@ class _UserListTableState extends State<UserListTable> {
       child: Row(
         children: [
           SizedBox(
-            width: 220,
+            width: nameW,
             child: Text(
               l10n.user_name_email.toUpperCase(),
               style: TextStyle(
                   color: Colors.grey.shade600,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5),
             ),
           ),
           SizedBox(
-            width: 70,
+            width: roleW,
             child: Center(
               child: Text(
                 l10n.role.toUpperCase(),
                 style: TextStyle(
                     color: Colors.grey.shade600,
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5),
               ),
             ),
           ),
           SizedBox(
-            width: 90,
+            width: statusW,
             child: Center(
               child: Text(
                 l10n.status.toUpperCase(),
                 style: TextStyle(
                     color: Colors.grey.shade600,
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5),
               ),
             ),
           ),
           SizedBox(
-            width: 70,
+            width: actionsW,
             child: Center(
               child: Text(
                 l10n.actions.toUpperCase(),
                 style: TextStyle(
                     color: Colors.grey.shade600,
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5),
               ),
@@ -153,14 +164,14 @@ class _UserListTableState extends State<UserListTable> {
     );
   }
 
-  Widget _buildUserRow(
-      BuildContext context, AdminUser u, AppLocalizations l10n) {
+  Widget _buildUserRow(BuildContext context, AdminUser u, AppLocalizations l10n,
+      double nameW, double roleW, double statusW, double actionsW) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Row(
         children: [
           SizedBox(
-            width: 220,
+            width: nameW,
             child: Row(
               children: [
                 _buildAvatar(u),
@@ -170,11 +181,15 @@ class _UserListTableState extends State<UserListTable> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(u.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               fontWeight: FontWeight.w600, fontSize: 13)),
                       Text(u.email,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              fontSize: 11, color: Colors.grey.shade500)),
+                              fontSize: 10, color: Colors.grey.shade500)),
                     ],
                   ),
                 ),
@@ -182,15 +197,15 @@ class _UserListTableState extends State<UserListTable> {
             ),
           ),
           SizedBox(
-            width: 70,
+            width: roleW,
             child: Center(child: _RoleBadge(user: u)),
           ),
           SizedBox(
-            width: 90,
+            width: statusW,
             child: Center(child: _StatusBadge(isActive: u.isActive)),
           ),
           SizedBox(
-            width: 70,
+            width: actionsW,
             child: Center(
               child: TextButton(
                 onPressed: () => widget.onEdit(u),
@@ -198,7 +213,7 @@ class _UserListTableState extends State<UserListTable> {
                   backgroundColor: const Color(0xFFF3F4F6),
                   foregroundColor: Colors.black87,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                 ),

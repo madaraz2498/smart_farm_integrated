@@ -9,15 +9,15 @@ import '../../providers/navigation_provider.dart';
 import '../../shared/theme/app_theme.dart';
 
 // ── Farmer pages ──────────────────────────────────────────────────────────────
-import '../../features/home/screens/farmer_welcome_screen.dart';
-import '../../features/home/screens/farmer_settings_screen.dart';
-import '../../features/plants/screens/plant_disease_screen.dart';
-import '../../features/animals/screens/animal_weight_screen.dart';
-import '../../features/crops/screens/crop_recommendation_screen.dart';
-import '../../features/soil/screens/soil_analysis_screen.dart';
-import '../../features/fruits/screens/fruit_quality_screen.dart';
-import '../../features/chatbot/screens/chatbot_screen.dart';
-import '../../features/reports/screens/reports_screen.dart';
+import '../../features/farmer/home/screens/farmer_welcome_screen.dart';
+import '../../features/farmer/home/screens/farmer_settings_screen.dart';
+import '../../features/farmer/plants/screens/plant_disease_screen.dart';
+import '../../features/farmer/animals/screens/animal_weight_screen.dart';
+import '../../features/farmer/crops/screens/crop_recommendation_screen.dart';
+import '../../features/farmer/soil/screens/soil_analysis_screen.dart';
+import '../../features/farmer/fruits/screens/fruit_quality_screen.dart';
+import '../../features/farmer/chatbot/screens/chatbot_screen.dart';
+import '../../features/farmer/reports/screens/reports_screen.dart';
 
 // ── Admin pages ───────────────────────────────────────────────────────────────
 import '../../features/admin/pages/admin_dashboard_page.dart';
@@ -26,9 +26,9 @@ import '../../features/admin/pages/system_management_page.dart';
 import '../../features/admin/pages/admin_settings_page.dart';
 import '../../features/admin/reports/screens/admin_reports_screen.dart';
 import '../../features/admin/providers/admin_provider.dart';
-import '../../features/profile/pages/profile_page.dart';
-import '../../features/admin/pages/messages_page.dart' as admin;
-import '../../features/farmer/pages/messages_page.dart' as farmer;
+import '../../features/shared/profile/pages/profile_page.dart';
+import '../../features/admin/messages/pages/messages_page.dart' as admin;
+import '../../features/farmer/messages/pages/messages_page.dart' as farmer;
 
 // ── Shared shell widgets ──────────────────────────────────────────────────────
 import 'app_sidebar.dart';

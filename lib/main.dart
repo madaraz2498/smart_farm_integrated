@@ -9,18 +9,18 @@ import 'package:smart_farm/features/auth/screens/auth_wrapper.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import 'package:smart_farm/providers/navigation_provider.dart';
 import 'package:smart_farm/providers/locale_provider.dart';
-import 'package:smart_farm/features/chatbot/providers/chatbot_provider.dart';
-import 'package:smart_farm/features/reports/providers/reports_provider.dart';
-import 'package:smart_farm/features/animals/providers/animal_provider.dart';
-import 'package:smart_farm/features/plants/providers/plant_provider.dart';
-import 'package:smart_farm/features/fruits/providers/fruit_provider.dart';
-import 'package:smart_farm/features/soil/providers/soil_provider.dart';
-import 'package:smart_farm/features/crops/providers/crop_provider.dart';
+import 'package:smart_farm/features/farmer/chatbot/providers/chatbot_provider.dart';
+import 'package:smart_farm/features/farmer/reports/providers/reports_provider.dart';
+import 'package:smart_farm/features/farmer/animals/providers/animal_provider.dart';
+import 'package:smart_farm/features/farmer/plants/providers/plant_provider.dart';
+import 'package:smart_farm/features/farmer/fruits/providers/fruit_provider.dart';
+import 'package:smart_farm/features/farmer/soil/providers/soil_provider.dart';
+import 'package:smart_farm/features/farmer/crops/providers/crop_provider.dart';
 import 'package:smart_farm/features/admin/providers/admin_provider.dart';
 import 'package:smart_farm/features/admin/reports/providers/report_provider.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
-import 'package:smart_farm/features/admin/providers/message_provider.dart';
-import 'package:smart_farm/features/farmer/providers/message_provider.dart';
+import 'package:smart_farm/features/admin/messages/providers/message_provider.dart';
+import 'package:smart_farm/features/farmer/messages/providers/message_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
