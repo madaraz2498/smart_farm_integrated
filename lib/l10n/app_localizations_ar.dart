@@ -374,6 +374,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد تقارير بعد. قم بإنشاء تقريرك الأول الآن.';
 
   @override
+  String get today => 'اليوم';
+
+  @override
+  String get weather => 'الطقس';
+
+  @override
+  String get use_ai_subtitle =>
+      'استخدم الذكاء الاصطناعي لتحسين قراراتك الزراعية';
+
+  @override
   String get system_reports_subtitle =>
       'تحليلات وتقارير شاملة لمنصة المزرعة الذكية';
 

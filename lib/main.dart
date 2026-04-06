@@ -21,6 +21,8 @@ import 'package:smart_farm/features/admin/reports/providers/report_provider.dart
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 import 'package:smart_farm/features/admin/providers/message_provider.dart';
 import 'package:smart_farm/features/farmer/providers/message_provider.dart';
+import 'package:smart_farm/features/farmer/providers/dashboard_provider.dart';
+import 'package:smart_farm/providers/location_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +33,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => LocationProvider()),
 
         // Auth — gets NotificationProvider
         ChangeNotifierProxyProvider<NotificationProvider, AuthProvider>(
@@ -123,6 +126,16 @@ void main() {
           create: (_) => FarmerMessageProvider(),
           update: (_, notif, msg) => msg!..updateNotifProvider(notif),
         ),
+
+        // Dashboard — gets Auth + Location + Locale
+        ChangeNotifierProxyProvider3<AuthProvider, LocationProvider,
+            LocaleProvider, DashboardProvider>(
+          create: (_) => DashboardProvider('0'),
+          update: (_, auth, loc, locale, dashboard) => dashboard!
+            ..updateUserId(auth.currentUser?.id ?? '0')
+            ..updateLocation(loc.lat, loc.lon)
+            ..updateLocale(locale.locale.languageCode),
+        ),
       ],
       child: const SmartFarmApp(),
     ),
@@ -135,7 +148,7 @@ class SmartFarmApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localeProvider = Provider.of<LocaleProvider>(context);
-    final themeProvider  = Provider.of<ThemeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
       title: 'Smart Farm AI',

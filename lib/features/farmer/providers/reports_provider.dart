@@ -27,16 +27,16 @@ class ReportsProvider extends ChangeNotifier {
 
   final ReportsService _svc = ReportsService.instance;
 
-  FarmerReportStats?    _stats;
+  FarmerReportStats? _stats;
   List<FarmerReportItem> _reports = [];
-  bool   _isLoading = false;
+  bool _isLoading = false;
   String? _error;
 
-  FarmerReportStats?     get stats       => _stats;
-  List<FarmerReportItem> get reports     => _reports;
-  bool                   get isLoading   => _isLoading;
-  bool                   get isGenerating => _isLoading && _reports.isNotEmpty;
-  String?                get error       => _error;
+  FarmerReportStats? get stats => _stats;
+  List<FarmerReportItem> get reports => _reports;
+  bool get isLoading => _isLoading;
+  bool get isGenerating => _isLoading && _reports.isNotEmpty;
+  String? get error => _error;
 
   Future<void> load() async {
     _isLoading = true;

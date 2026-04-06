@@ -84,19 +84,33 @@ class _ChatbotPageState extends State<ChatbotPage> {
               },
               chatLanguage: prov.chatLanguage),
         Expanded(
-          child: prov.messages.isEmpty
-              ? _EmptyState(chatLanguage: prov.chatLanguage)
-              : ListView.builder(
-                  controller: _scroll,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: prov.messages.length + (prov.isSending ? 1 : 0),
-                  itemBuilder: (_, i) {
-                    if (i == prov.messages.length) {
-                      return _TypingIndicator(chatLanguage: prov.chatLanguage);
-                    }
-                    return _Bubble(msg: prov.messages[i]);
-                  },
-                ),
+          child: RefreshIndicator(
+            onRefresh: () => prov.loadHistory(),
+            color: AppColors.primary,
+            child: prov.messages.isEmpty
+                ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.6,
+                        child: _EmptyState(chatLanguage: prov.chatLanguage),
+                      ),
+                    ],
+                  )
+                : ListView.builder(
+                    controller: _scroll,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: prov.messages.length + (prov.isSending ? 1 : 0),
+                    itemBuilder: (_, i) {
+                      if (i == prov.messages.length) {
+                        return _TypingIndicator(
+                            chatLanguage: prov.chatLanguage);
+                      }
+                      return _Bubble(msg: prov.messages[i]);
+                    },
+                  ),
+          ),
         ),
         _InputBar(
             ctrl: _ctrl,

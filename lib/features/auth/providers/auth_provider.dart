@@ -38,21 +38,22 @@ class AuthProvider extends ChangeNotifier {
   bool get isAdmin => _user?.role == UserRole.admin;
   String get displayName => _user?.displayName ?? 'Farmer';
 
+  // ── Session restore & Refresh ─────────────────────────────────────────────
+
   Future<void> _init() async {
     try {
       final u = await _svc.restoreSession();
+
+      // Always load the locally-persisted profile image regardless of auth state
+      _localProfileImage = await TokenStorage.getLocalImage();
+
       if (u != null) {
         _user = u;
         _status = AuthStatus.authenticated;
         notifyListeners();
 
-        // Background refresh to fix potential 404 on profile image
-        _svc.refreshUserProfile(u).then((updated) {
-          if (updated != null && updated != _user) {
-            _user = updated;
-            notifyListeners();
-          }
-        });
+        // Background refresh to sync latest profile data from backend
+        loadUserProfile();
       } else {
         _status = AuthStatus.unauthenticated;
         notifyListeners();
@@ -64,6 +65,22 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Refreshes the user profile from the backend.
+  Future<void> loadUserProfile() async {
+    if (_user == null) return;
+    try {
+      final updated = await _svc.refreshUserProfile(_user!);
+      if (updated != null && updated != _user) {
+        _user = updated;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[AuthProvider] loadUserProfile error: $e');
+    }
+  }
+
+  // ── Update Profile ─────────────────────────────────────────────────────────
+
   Future<bool> updateProfile({
     String? name,
     String? email,
@@ -74,9 +91,11 @@ class AuthProvider extends ChangeNotifier {
     if (_user == null) return false;
     _begin();
 
-    // Store local bytes for instant preview if available
+    // Show instant local preview and persist the bytes
     if (imageBytes != null) {
       _localProfileImage = Uint8List.fromList(imageBytes);
+      // Persist immediately so it survives logout → login
+      await TokenStorage.saveLocalImage(_localProfileImage);
       notifyListeners();
     }
 
@@ -91,10 +110,8 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (response['success'] == true || response['message'] != null) {
-        // Handle profile image update with cache busting or backend URL
         String? newImg = _user!.profileImg;
 
-        // Try to get the new image URL from response if available
         final backendImg = response['profile_img'] as String? ??
             response['image_url'] as String? ??
             response['url'] as String?;
@@ -107,7 +124,6 @@ class AuthProvider extends ChangeNotifier {
           newImg = '$base?t=$ts';
         }
 
-        // Optimistically update local user model
         _user = _user!.copyWith(
           name: name ?? _user!.name,
           email: email ?? _user!.email,
@@ -115,7 +131,7 @@ class AuthProvider extends ChangeNotifier {
           profileImg: newImg,
         );
 
-        // Persist updated data locally
+        // Persist updated name / email / profileImg URL
         final token = await TokenStorage.getToken();
         if (token != null) {
           await TokenStorage.save(
@@ -129,16 +145,21 @@ class AuthProvider extends ChangeNotifier {
         }
 
         _error = null;
-        notifyListeners(); // Force UI update across app
+        notifyListeners();
         return true;
       } else {
-        _localProfileImage = null; // Clear preview on failure
+        // Revert local preview on failure but keep any previously saved image
+        if (imageBytes != null) {
+          _localProfileImage = await TokenStorage.getLocalImage();
+        }
         _error = 'Failed to update profile settings.';
         notifyListeners();
         return false;
       }
     } catch (e) {
-      _localProfileImage = null; // Clear preview on error
+      if (imageBytes != null) {
+        _localProfileImage = await TokenStorage.getLocalImage();
+      }
       _error = e.toString();
       notifyListeners();
       return false;
@@ -147,13 +168,14 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // ── Change Password ────────────────────────────────────────────────────────
+
   Future<bool> changePassword({
     required String oldPassword,
     required String newPassword,
   }) async {
     if (_user == null) return false;
     _begin();
-
     try {
       final success = await _svc.changePassword(
         userId: _user!.id,
@@ -170,8 +192,12 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<AuthResult> login(
-      {required String email, required String password}) async {
+  // ── Login ──────────────────────────────────────────────────────────────────
+
+  Future<AuthResult> login({
+    required String email,
+    required String password,
+  }) async {
     if (email.trim().isEmpty || password.trim().isEmpty) {
       _error = 'Email and password are required.';
       notifyListeners();
@@ -182,6 +208,13 @@ class AuthProvider extends ChangeNotifier {
       final r = await _svc.login(
           email: email.trim().toLowerCase(), password: password.trim());
       _apply(r);
+
+      // After login, restore the locally-persisted profile image
+      if (r.success) {
+        _localProfileImage = await TokenStorage.getLocalImage();
+        notifyListeners();
+      }
+
       return r;
     } catch (_) {
       _setError('Unexpected error. Please try again.');
@@ -191,10 +224,13 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<AuthResult> register(
-      {required String name,
-      required String email,
-      required String password}) async {
+  // ── Register ───────────────────────────────────────────────────────────────
+
+  Future<AuthResult> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
     _begin();
     try {
       final r =
@@ -218,13 +254,18 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // ── Logout ─────────────────────────────────────────────────────────────────
+
   Future<void> logout({VoidCallback? onBeforeReset}) async {
+    // Clear auth session from backend + storage (keeps local image bytes)
     await _svc.logout();
     onBeforeReset?.call();
+
     _user = null;
-    _localProfileImage = null;
     _error = null;
     _status = AuthStatus.unauthenticated;
+    // _localProfileImage intentionally NOT cleared —
+    // it will be reloaded on next login from TokenStorage.getLocalImage()
     notifyListeners();
   }
 
@@ -232,6 +273,8 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
 
   void _begin() {
     _loading = true;

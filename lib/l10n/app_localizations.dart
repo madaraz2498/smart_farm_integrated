@@ -806,6 +806,24 @@ abstract class AppLocalizations {
   /// **'No reports yet. Generate your first report now.'**
   String get no_reports_yet;
 
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @weather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get weather;
+
+  /// No description provided for @use_ai_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use AI to improve your farming decisions'**
+  String get use_ai_subtitle;
+
   /// No description provided for @system_reports_subtitle.
   ///
   /// In en, this message translates to:

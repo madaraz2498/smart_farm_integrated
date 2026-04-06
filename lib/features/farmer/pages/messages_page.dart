@@ -118,40 +118,44 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
     final provider = context.watch<FarmerMessageProvider>();
     final userId = auth.currentUser?.id ?? '';
 
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(AppSizes.pagePadding),
-      children: [
-        Text(l10n.messages, style: AppTextStyles.pageTitle),
-        const SizedBox(height: 16),
-        _FarmerHeader(
-          onNewMessage: () => _showNewMessageDialog(context),
-          count: provider.messages.length,
-          pendingCount: provider.pendingCount,
-        ),
-        const SizedBox(height: 24),
-        if (provider.isLoading && provider.messages.isEmpty)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(40),
-              child: CircularProgressIndicator(),
-            ),
-          )
-        else if (provider.messages.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(40),
-            child: _buildEmptyState(l10n),
-          )
-        else
-          ...provider.messages.map((msg) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _MessageCard(
-                  message: msg,
-                  onDelete: () => _confirmDelete(context, msg.id, userId),
-                ),
-              )),
-        const SizedBox(height: 40),
-      ],
+    return RefreshIndicator(
+      onRefresh: _loadMessages,
+      color: AppColors.primary,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppSizes.pagePadding),
+        children: [
+          Text(l10n.messages, style: AppTextStyles.pageTitle),
+          const SizedBox(height: 16),
+          _FarmerHeader(
+            onNewMessage: () => _showNewMessageDialog(context),
+            count: provider.messages.length,
+            pendingCount: provider.pendingCount,
+          ),
+          const SizedBox(height: 24),
+          if (provider.isLoading && provider.messages.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(40),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (provider.messages.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(40),
+              child: _buildEmptyState(l10n),
+            )
+          else
+            ...provider.messages.map((msg) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _MessageCard(
+                    message: msg,
+                    onDelete: () => _confirmDelete(context, msg.id, userId),
+                  ),
+                )),
+          const SizedBox(height: 40),
+        ],
+      ),
     );
   }
 

@@ -39,26 +39,7 @@ class NotificationProvider extends ChangeNotifier {
         debugPrint(
             '[NotificationProvider] No saved logs found. Creating dummy data.');
         // Initial dummy data for the first run since backend is missing
-        _notifications = [
-          AppNotification(
-            id: 'init_1',
-            userId: 'local',
-            title: 'System Ready',
-            body: 'Smart Farm AI system is online and ready.',
-            createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-            type: NotificationType.system,
-            isRead: false,
-          ),
-          AppNotification(
-            id: 'init_2',
-            userId: 'local',
-            title: 'Welcome Admin',
-            body: 'You have full access to the system management dashboard.',
-            createdAt: DateTime.now().subtract(const Duration(minutes: 45)),
-            type: NotificationType.system,
-            isRead: false,
-          ),
-        ];
+        _notifications = [];
         _saveToStorage();
       }
       _notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));

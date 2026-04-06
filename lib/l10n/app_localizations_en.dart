@@ -374,6 +374,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'No reports yet. Generate your first report now.';
 
   @override
+  String get today => 'Today';
+
+  @override
+  String get weather => 'Weather';
+
+  @override
+  String get use_ai_subtitle => 'Use AI to improve your farming decisions';
+
+  @override
   String get system_reports_subtitle =>
       'Comprehensive analytics and reporting for the Smart Farm AI platform';
 

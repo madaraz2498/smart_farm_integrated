@@ -129,7 +129,9 @@
   "this_month": "This Month",
   "vs_last_month": "vs Last Month",
   "no_reports_yet": "No reports yet. Generate your first report now.",
-
+  "today": "Today",
+  "weather": "Weather",
+  "use_ai_subtitle": "Use AI to improve your farming decisions",
   "system_reports_subtitle": "Comprehensive analytics and reporting for the Smart Farm AI platform",
   "report_filters": "Report Filters",
   "download_reports_desc": "Download your farm analysis reports",

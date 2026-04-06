@@ -54,7 +54,7 @@ class AuthService {
       final raw = await _c.postForm('/register', formFields);
 
       final resp =
-          _parse(raw, fallbackName: name.trim(), fallbackEmail: email.trim());
+      _parse(raw, fallbackName: name.trim(), fallbackEmail: email.trim());
 
       if (resp.hasToken) return _persist(resp, fallbackEmail: email.trim());
 
@@ -113,7 +113,7 @@ class AuthService {
       }
     }
     _c.setToken(null);
-    await TokenStorage.clear();
+    await TokenStorage.clearAuth();
   }
 
   // ── Update Profile ────────────────────────────────────────────────────────
@@ -291,7 +291,7 @@ class AuthService {
       // Nested shape: { "access_token": "...", "user": { "id": ..., ... } }
       if (top['user'] is Map) {
         final Map<String, dynamic> userFields =
-            Map<String, dynamic>.from(top['user'] as Map);
+        Map<String, dynamic>.from(top['user'] as Map);
 
         final flattened = <String, dynamic>{
           ...userFields,
@@ -348,6 +348,6 @@ class AuthService {
 
   Future<void> _clear() async {
     _c.setToken(null);
-    await TokenStorage.clear();
+    await TokenStorage.clearAuth();
   }
 }

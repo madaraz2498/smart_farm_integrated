@@ -125,185 +125,192 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.profile_settings, style: AppTextStyles.pageTitle),
-            const SizedBox(height: 24),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await context.read<AuthProvider>().loadUserProfile();
+        },
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppSizes.pagePadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.profile_settings, style: AppTextStyles.pageTitle),
+              const SizedBox(height: 24),
 
-            // Profile Header / Avatar Section
-            _buildAvatarSection(isAdmin, auth.displayName),
-            const SizedBox(height: 32),
+              // Profile Header / Avatar Section
+              _buildAvatarSection(isAdmin, auth.displayName),
+              const SizedBox(height: 32),
 
-            // Personal Info Card
-            _buildSectionCard(
-              title: l10n.personal_information,
-              icon: Icons.person_outline,
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    _buildTextField(
-                      controller: _nameController,
-                      label: l10n.full_name,
-                      enabled: _isEditing,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _emailController,
-                      label: l10n.email,
-                      enabled: false, // Email usually fixed
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _phoneController,
-                      label: l10n.phone_number,
-                      enabled: _isEditing,
-                      hint: l10n.phone_number,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: auth.isLoading
-                            ? null
-                            : () async {
-                                if (!_isEditing) {
-                                  setState(() => _isEditing = true);
-                                } else {
-                                  if (_formKey.currentState!.validate()) {
-                                    final success = await context
-                                        .read<AuthProvider>()
-                                        .updateProfile(
-                                          name: _nameController.text,
-                                          email: _emailController.text,
-                                          phone: _phoneController.text,
-                                        );
-                                    if (success) {
-                                      setState(() => _isEditing = false);
-                                      _snack(l10n.profile_saved);
-                                    } else {
-                                      _snack(auth.errorMsg ??
-                                          l10n.failed_to_save_changes);
+              // Personal Info Card
+              _buildSectionCard(
+                title: l10n.personal_information,
+                icon: Icons.person_outline,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildTextField(
+                        controller: _nameController,
+                        label: l10n.full_name,
+                        enabled: _isEditing,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: _emailController,
+                        label: l10n.email,
+                        enabled: false, // Email usually fixed
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: _phoneController,
+                        label: l10n.phone_number,
+                        enabled: _isEditing,
+                        hint: l10n.phone_number,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: auth.isLoading
+                              ? null
+                              : () async {
+                                  if (!_isEditing) {
+                                    setState(() => _isEditing = true);
+                                  } else {
+                                    if (_formKey.currentState!.validate()) {
+                                      final success = await context
+                                          .read<AuthProvider>()
+                                          .updateProfile(
+                                            name: _nameController.text,
+                                            email: _emailController.text,
+                                            phone: _phoneController.text,
+                                          );
+                                      if (success) {
+                                        setState(() => _isEditing = false);
+                                        _snack(l10n.profile_saved);
+                                      } else {
+                                        _snack(auth.errorMsg ??
+                                            l10n.failed_to_save_changes);
+                                      }
                                     }
                                   }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: auth.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2))
+                              : Text(_isEditing
+                                  ? l10n.save_changes
+                                  : l10n.edit_profile),
                         ),
-                        child: auth.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2))
-                            : Text(_isEditing
-                                ? l10n.save_changes
-                                : l10n.edit_profile),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Change Password Card
-            _buildSectionCard(
-              title: l10n.change_password,
-              icon: Icons.lock_outline,
-              child: Form(
-                key: _passKey,
-                child: Column(
-                  children: [
-                    _buildPasswordField(
-                      controller: _oldPassController,
-                      label: l10n.current_password,
-                      obscure: _obscureOld,
-                      onToggle: () =>
-                          setState(() => _obscureOld = !_obscureOld),
-                      validator: (v) => (v == null || v.isEmpty)
-                          ? l10n.field_required
-                          : (v.length < 6 ? l10n.password_too_short : null),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPasswordField(
-                      controller: _newPassController,
-                      label: l10n.new_password,
-                      obscure: _obscureNew,
-                      onToggle: () =>
-                          setState(() => _obscureNew = !_obscureNew),
-                      validator: (v) => (v == null || v.isEmpty)
-                          ? l10n.field_required
-                          : (v.length < 6 ? l10n.password_too_short : null),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPasswordField(
-                      controller: _confirmPassController,
-                      label: l10n.confirm_password,
-                      obscure: _obscureConfirm,
-                      onToggle: () =>
-                          setState(() => _obscureConfirm = !_obscureConfirm),
-                      validator: (v) => v != _newPassController.text
-                          ? l10n.passwords_dont_match
-                          : null,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: auth.isLoading
-                            ? null
-                            : () async {
-                                if (_passKey.currentState!.validate()) {
-                                  final success = await auth.changePassword(
-                                    oldPassword: _oldPassController.text,
-                                    newPassword: _newPassController.text,
-                                  );
+              // Change Password Card
+              _buildSectionCard(
+                title: l10n.change_password,
+                icon: Icons.lock_outline,
+                child: Form(
+                  key: _passKey,
+                  child: Column(
+                    children: [
+                      _buildPasswordField(
+                        controller: _oldPassController,
+                        label: l10n.current_password,
+                        obscure: _obscureOld,
+                        onToggle: () =>
+                            setState(() => _obscureOld = !_obscureOld),
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? l10n.field_required
+                            : (v.length < 6 ? l10n.password_too_short : null),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPasswordField(
+                        controller: _newPassController,
+                        label: l10n.new_password,
+                        obscure: _obscureNew,
+                        onToggle: () =>
+                            setState(() => _obscureNew = !_obscureNew),
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? l10n.field_required
+                            : (v.length < 6 ? l10n.password_too_short : null),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPasswordField(
+                        controller: _confirmPassController,
+                        label: l10n.confirm_password,
+                        obscure: _obscureConfirm,
+                        onToggle: () =>
+                            setState(() => _obscureConfirm = !_obscureConfirm),
+                        validator: (v) => v != _newPassController.text
+                            ? l10n.passwords_dont_match
+                            : null,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: auth.isLoading
+                              ? null
+                              : () async {
+                                  if (_passKey.currentState!.validate()) {
+                                    final success = await auth.changePassword(
+                                      oldPassword: _oldPassController.text,
+                                      newPassword: _newPassController.text,
+                                    );
 
-                                  if (success) {
-                                    _snack(l10n.password_changed_success);
-                                    _oldPassController.clear();
-                                    _newPassController.clear();
-                                    _confirmPassController.clear();
-                                  } else {
-                                    _snack(auth.errorMsg ?? l10n.error_msg);
+                                    if (success) {
+                                      _snack(l10n.password_changed_success);
+                                      _oldPassController.clear();
+                                      _newPassController.clear();
+                                      _confirmPassController.clear();
+                                    } else {
+                                      _snack(auth.errorMsg ?? l10n.error_msg);
+                                    }
                                   }
-                                }
-                              },
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.primary),
-                          foregroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                                },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.primary),
+                            foregroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: auth.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              : Text(l10n.update_password),
                         ),
-                        child: auth.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.primary,
-                                ),
-                              )
-                            : Text(l10n.update_password),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );

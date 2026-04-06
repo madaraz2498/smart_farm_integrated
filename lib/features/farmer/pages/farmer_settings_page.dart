@@ -66,91 +66,104 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
     final l10n = AppLocalizations.of(context)!;
     final localeProvider = Provider.of<LocaleProvider>(context);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      child: Center(
-          child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            const Icon(Icons.settings_outlined,
-                color: AppColors.primary, size: 24),
-            const SizedBox(width: 12),
-            Text(l10n.settings, style: AppTextStyles.pageTitle),
-          ]),
-          const SizedBox(height: 4),
-          Text(l10n.manage_account_preferences,
-              style: AppTextStyles.pageSubtitle),
-          const SizedBox(height: 24),
-          _SectionCard(children: [
-            _SectionHeader(
-                icon: Icons.palette_outlined, title: l10n.theme_preference),
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Simulating a refresh of settings/profile
+        await context.read<AuthProvider>().loadUserProfile();
+      },
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Center(
+            child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Icon(Icons.settings_outlined,
+                  color: AppColors.primary, size: 24),
+              const SizedBox(width: 12),
+              Text(l10n.settings, style: AppTextStyles.pageTitle),
+            ]),
+            const SizedBox(height: 4),
+            Text(l10n.manage_account_preferences,
+                style: AppTextStyles.pageSubtitle),
+            const SizedBox(height: 24),
+            _SectionCard(children: [
+              _SectionHeader(
+                  icon: Icons.palette_outlined, title: l10n.theme_preference),
+              const SizedBox(height: 20),
+              _ThemeOption(
+                label: l10n.light_mode,
+                value: 'light',
+                groupValue: _themeMode,
+                onChanged: (v) => setState(() => _themeMode = v!),
+              ),
+              const SizedBox(height: 12),
+              _ThemeOption(
+                label: l10n.dark_mode,
+                value: 'dark',
+                groupValue: _themeMode,
+                onChanged: (v) => setState(() => _themeMode = v!),
+              ),
+            ]),
             const SizedBox(height: 20),
-            _ThemeOption(
-              label: l10n.light_mode,
-              value: 'light',
-              groupValue: _themeMode,
-              onChanged: (v) => setState(() => _themeMode = v!),
-            ),
-            const SizedBox(height: 12),
-            _ThemeOption(
-              label: l10n.dark_mode,
-              value: 'dark',
-              groupValue: _themeMode,
-              onChanged: (v) => setState(() => _themeMode = v!),
-            ),
+            _SectionCard(children: [
+              _SectionHeader(
+                  icon: Icons.language_rounded, title: l10n.language),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+                    border: Border.all(color: AppColors.cardBorder)),
+                child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                  value: localeProvider.locale.languageCode,
+                  isExpanded: true,
+                  style:
+                      const TextStyle(fontSize: 14, color: AppColors.textDark),
+                  items: const [
+                    DropdownMenuItem(value: 'en', child: Text('English')),
+                    DropdownMenuItem(
+                        value: 'ar', child: Text('Arabic (العربية)')),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      localeProvider.setLocale(Locale(v));
+                    }
+                  },
+                )),
+              ),
+            ]),
+            const SizedBox(height: 16),
+            _SectionCard(children: [
+              _SectionHeader(
+                  icon: Icons.notifications_outlined,
+                  title: l10n.notifications),
+              const SizedBox(height: 8),
+              _ToggleRow(
+                  label: l10n.push_notifications,
+                  value: _pushNotif,
+                  onChanged: (v) => setState(() => _pushNotif = v)),
+              const Divider(height: 1, color: AppColors.cardBorder),
+              _ToggleRow(
+                  label: l10n.email_alerts,
+                  value: _emailAlerts,
+                  onChanged: (v) => setState(() => _emailAlerts = v)),
+            ]),
+            const SizedBox(height: 24),
+            SfOutlineButton(
+                label: l10n.logout,
+                onPressed: () => _confirmLogout(l10n),
+                color: AppColors.error),
           ]),
-          const SizedBox(height: 20),
-          _SectionCard(children: [
-            _SectionHeader(icon: Icons.language_rounded, title: l10n.language),
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-                  border: Border.all(color: AppColors.cardBorder)),
-              child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                value: localeProvider.locale.languageCode,
-                isExpanded: true,
-                style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-                items: const [
-                  DropdownMenuItem(value: 'en', child: Text('English')),
-                  DropdownMenuItem(
-                      value: 'ar', child: Text('Arabic (العربية)')),
-                ],
-                onChanged: (v) {
-                  if (v != null) {
-                    localeProvider.setLocale(Locale(v));
-                  }
-                },
-              )),
-            ),
-          ]),
-          const SizedBox(height: 16),
-          _SectionCard(children: [
-            _SectionHeader(
-                icon: Icons.notifications_outlined, title: l10n.notifications),
-            const SizedBox(height: 8),
-            _ToggleRow(
-                label: l10n.push_notifications,
-                value: _pushNotif,
-                onChanged: (v) => setState(() => _pushNotif = v)),
-            const Divider(height: 1, color: AppColors.cardBorder),
-            _ToggleRow(
-                label: l10n.email_alerts,
-                value: _emailAlerts,
-                onChanged: (v) => setState(() => _emailAlerts = v)),
-          ]),
-          const SizedBox(height: 24),
-          SfOutlineButton(
-              label: l10n.logout,
-              onPressed: () => _confirmLogout(l10n),
-              color: AppColors.error),
-        ]),
-      )),
+        )),
+      ),
     );
   }
 }
