@@ -49,6 +49,13 @@ class TokenStorage {
     }
   }
 
+  /// Deletes the locally-picked image — called when the server image changes
+  /// from another device/platform so the app fetches the fresh URL instead.
+  static Future<void> deleteLocalImage() async {
+    final p = await SharedPreferences.getInstance();
+    await p.remove(_kLocalImageB64);
+  }
+
   /// Returns locally-picked image bytes, or null if none saved.
   static Future<Uint8List?> getLocalImage() async {
     final p = await SharedPreferences.getInstance();

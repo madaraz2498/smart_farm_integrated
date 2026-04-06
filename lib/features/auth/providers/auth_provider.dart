@@ -71,6 +71,12 @@ class AuthProvider extends ChangeNotifier {
     try {
       final updated = await _svc.refreshUserProfile(_user!);
       if (updated != null && updated != _user) {
+        // If the profile image URL changed (e.g. updated from web),
+        // clear the local cached image so the new server image is shown.
+        if (updated.profileImg != _user?.profileImg) {
+          await TokenStorage.deleteLocalImage();
+          _localProfileImage = null;
+        }
         _user = updated;
         notifyListeners();
       }
@@ -272,7 +278,7 @@ class AuthProvider extends ChangeNotifier {
     _begin();
     try {
       final r =
-          await _svc.register(name: name, email: email, password: password);
+      await _svc.register(name: name, email: email, password: password);
       _apply(r);
 
       if (r.success) {
