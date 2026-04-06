@@ -9,15 +9,15 @@ import '../../providers/navigation_provider.dart';
 import '../../shared/theme/app_theme.dart';
 
 // ── Farmer pages ──────────────────────────────────────────────────────────────
-import '../../features/farmer/home/screens/farmer_welcome_screen.dart';
-import '../../features/farmer/home/screens/farmer_settings_screen.dart';
-import '../../features/farmer/plants/screens/plant_disease_screen.dart';
-import '../../features/farmer/animals/screens/animal_weight_screen.dart';
-import '../../features/farmer/crops/screens/crop_recommendation_screen.dart';
-import '../../features/farmer/soil/screens/soil_analysis_screen.dart';
-import '../../features/farmer/fruits/screens/fruit_quality_screen.dart';
-import '../../features/farmer/chatbot/screens/chatbot_screen.dart';
-import '../../features/farmer/reports/screens/reports_screen.dart';
+import '../../features/farmer/pages/farmer_welcome_page.dart';
+import '../../features/farmer/pages/farmer_settings_page.dart';
+import '../../features/farmer/pages/plant_disease_page.dart';
+import '../../features/farmer/pages/animal_weight_page.dart';
+import '../../features/farmer/pages/crop_recommendation_page.dart';
+import '../../features/farmer/pages/soil_analysis_page.dart';
+import '../../features/farmer/pages/fruit_quality_page.dart';
+import '../../features/farmer/pages/chatbot_page.dart';
+import '../../features/farmer/pages/reports_page.dart';
 
 // ── Admin pages ───────────────────────────────────────────────────────────────
 import '../../features/admin/pages/admin_dashboard_page.dart';
@@ -27,8 +27,8 @@ import '../../features/admin/pages/admin_settings_page.dart';
 import '../../features/admin/reports/screens/admin_reports_screen.dart';
 import '../../features/admin/providers/admin_provider.dart';
 import '../../features/shared/profile/pages/profile_page.dart';
-import '../../features/admin/messages/pages/messages_page.dart' as admin;
-import '../../features/farmer/messages/pages/messages_page.dart' as farmer;
+import '../../features/admin/pages/messages_page.dart' as admin;
+import '../../features/farmer/pages/messages_page.dart' as farmer;
 
 // ── Shared shell widgets ──────────────────────────────────────────────────────
 import 'app_sidebar.dart';
@@ -36,16 +36,16 @@ import 'app_top_bar.dart';
 
 // Page registries — order must match enum order in NavigationProvider
 const List<Widget> _farmerPages = [
-  FarmerWelcomeScreen(), // FarmerPage.welcome
-  PlantDiseaseScreen(), // FarmerPage.plantDisease
-  AnimalWeightScreen(), // FarmerPage.animalWeight
-  CropRecommendationScreen(), // FarmerPage.cropRecommendation
-  SoilAnalysisScreen(), // FarmerPage.soilAnalysis
-  FruitQualityScreen(), // FarmerPage.fruitQuality
-  ChatbotScreen(), // FarmerPage.chatbot
+  FarmerWelcomePage(), // FarmerPage.welcome
+  PlantDiseasePage(), // FarmerPage.plantDisease
+  AnimalWeightPage(), // FarmerPage.animalWeight
+  CropRecommendationPage(), // FarmerPage.cropRecommendation
+  SoilAnalysisPage(), // FarmerPage.soilAnalysis
+  FruitQualityPage(), // FarmerPage.fruitQuality
+  ChatbotPage(), // FarmerPage.chatbot
   farmer.FarmerMessagesPage(), // FarmerPage.messages
-  ReportsScreen(), // FarmerPage.reports
-  FarmerSettingsScreen(), // FarmerPage.settings
+  ReportsPage(), // FarmerPage.reports
+  FarmerSettingsPage(), // FarmerPage.settings
 ];
 
 const List<Widget> _adminPages = [

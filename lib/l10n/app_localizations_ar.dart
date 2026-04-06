@@ -355,6 +355,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'الوصول وتحميل جميع التقارير المنشأة بالذكاء الاصطناعي';
 
   @override
+  String get export_all => 'تصدير الكل';
+
+  @override
   String get generate_report => 'إنشاء تقرير';
 
   @override
@@ -376,6 +379,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get report_filters => 'فلاتر التقارير';
+
+  @override
+  String get download_reports_desc => 'تحميل تقارير تحليل مزرعتك';
 
   @override
   String get date_range => 'النطاق الزمني';
@@ -791,6 +797,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get error_user_not_found => 'خطأ: المستخدم غير موجود';
 
   @override
+  String get unknown_user => 'مستخدم مجهول';
+
+  @override
   String get messages => 'الرسائل';
 
   @override
@@ -816,6 +825,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get not_replied => 'لم يتم الرد';
+
+  @override
+  String get pending => 'قيد الانتظار';
 
   @override
   String get delete_message => 'حذف الرسالة';

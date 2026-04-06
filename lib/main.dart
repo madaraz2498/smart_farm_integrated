@@ -9,18 +9,18 @@ import 'package:smart_farm/features/auth/screens/auth_wrapper.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import 'package:smart_farm/providers/navigation_provider.dart';
 import 'package:smart_farm/providers/locale_provider.dart';
-import 'package:smart_farm/features/farmer/chatbot/providers/chatbot_provider.dart';
-import 'package:smart_farm/features/farmer/reports/providers/reports_provider.dart';
-import 'package:smart_farm/features/farmer/animals/providers/animal_provider.dart';
-import 'package:smart_farm/features/farmer/plants/providers/plant_provider.dart';
-import 'package:smart_farm/features/farmer/fruits/providers/fruit_provider.dart';
-import 'package:smart_farm/features/farmer/soil/providers/soil_provider.dart';
-import 'package:smart_farm/features/farmer/crops/providers/crop_provider.dart';
+import 'package:smart_farm/features/farmer/providers/chatbot_provider.dart';
+import 'package:smart_farm/features/farmer/providers/reports_provider.dart';
+import 'package:smart_farm/features/farmer/providers/animal_provider.dart';
+import 'package:smart_farm/features/farmer/providers/plant_provider.dart';
+import 'package:smart_farm/features/farmer/providers/fruit_provider.dart';
+import 'package:smart_farm/features/farmer/providers/soil_provider.dart';
+import 'package:smart_farm/features/farmer/providers/crop_provider.dart';
 import 'package:smart_farm/features/admin/providers/admin_provider.dart';
 import 'package:smart_farm/features/admin/reports/providers/report_provider.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
-import 'package:smart_farm/features/admin/messages/providers/message_provider.dart';
-import 'package:smart_farm/features/farmer/messages/providers/message_provider.dart';
+import 'package:smart_farm/features/admin/providers/message_provider.dart';
+import 'package:smart_farm/features/farmer/providers/message_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,7 +79,10 @@ void main() {
             return admin!..updateNotif(notif);
           },
         ),
-        ChangeNotifierProvider(create: (_) => AdminMessageProvider()),
+        ChangeNotifierProxyProvider<AdminProvider, AdminMessageProvider>(
+          create: (_) => AdminMessageProvider(),
+          update: (_, admin, msg) => msg!..updateAdminProv(admin),
+        ),
         ChangeNotifierProvider(create: (_) => FarmerMessageProvider()),
       ],
       child: const SmartFarmApp(),

@@ -355,6 +355,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports_subtitle => 'Access and download all AI-generated reports';
 
   @override
+  String get export_all => 'Export All';
+
+  @override
   String get generate_report => 'Generate Report';
 
   @override
@@ -376,6 +379,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get report_filters => 'Report Filters';
+
+  @override
+  String get download_reports_desc => 'Download your farm analysis reports';
 
   @override
   String get date_range => 'Date Range';
@@ -793,6 +799,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error_user_not_found => 'Error: User not found';
 
   @override
+  String get unknown_user => 'Unknown User';
+
+  @override
   String get messages => 'Messages';
 
   @override
@@ -818,6 +827,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get not_replied => 'Not Replied';
+
+  @override
+  String get pending => 'Pending';
 
   @override
   String get delete_message => 'Delete Message';

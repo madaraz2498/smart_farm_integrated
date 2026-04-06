@@ -770,6 +770,12 @@ abstract class AppLocalizations {
   /// **'Access and download all AI-generated reports'**
   String get reports_subtitle;
 
+  /// No description provided for @export_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Export All'**
+  String get export_all;
+
   /// No description provided for @generate_report.
   ///
   /// In en, this message translates to:
@@ -811,6 +817,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report Filters'**
   String get report_filters;
+
+  /// No description provided for @download_reports_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Download your farm analysis reports'**
+  String get download_reports_desc;
 
   /// No description provided for @date_range.
   ///
@@ -1616,6 +1628,12 @@ abstract class AppLocalizations {
   /// **'Error: User not found'**
   String get error_user_not_found;
 
+  /// No description provided for @unknown_user.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown User'**
+  String get unknown_user;
+
   /// No description provided for @messages.
   ///
   /// In en, this message translates to:
@@ -1669,6 +1687,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not Replied'**
   String get not_replied;
+
+  /// No description provided for @pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get pending;
 
   /// No description provided for @delete_message.
   ///

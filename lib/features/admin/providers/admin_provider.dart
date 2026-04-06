@@ -36,6 +36,15 @@ class AdminProvider extends ChangeNotifier {
   bool get usersLoading => _usersLoading;
   String? get usersError => _usersError;
 
+  String getUserNameById(int id) {
+    try {
+      final user = _users.firstWhere((u) => u.id == id.toString());
+      return user.displayName;
+    } catch (_) {
+      return '';
+    }
+  }
+
   // ── System Status ──────────────────────────────────────────────────────────
   Map<String, bool> _servicesStatus = {};
   Map<String, bool> _systemSettings = {};

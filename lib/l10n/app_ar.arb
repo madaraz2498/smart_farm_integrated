@@ -123,6 +123,7 @@
   "chatbot_card_desc": "اسأل أسئلتك واحصل على نصائح زراعية فورية.",
 
   "reports_subtitle": "الوصول وتحميل جميع التقارير المنشأة بالذكاء الاصطناعي",
+  "export_all": "تصدير الكل",
   "generate_report": "إنشاء تقرير",
   "total_reports": "إجمالي التقارير",
   "this_month": "هذا الشهر",
@@ -131,6 +132,7 @@
 
   "system_reports_subtitle": "تحليلات وتقارير شاملة لمنصة المزرعة الذكية",
   "report_filters": "فلاتر التقارير",
+  "download_reports_desc": "تحميل تقارير تحليل مزرعتك",
   "date_range": "النطاق الزمني",
   "last_30_days": "آخر 30 يوم",
   "last_7_days": "آخر 7 أيام",
@@ -272,6 +274,7 @@
   "ai_config_saved": "تم حفظ تكوين الذكاء الاصطناعي!",
   "general_settings_saved": "تم حفظ الإعدادات العامة!",
   "error_user_not_found": "خطأ: المستخدم غير موجود",
+  "unknown_user": "مستخدم مجهول",
   "messages": "الرسائل",
   "send_message": "إرسال رسالة",
   "subject": "الموضوع",
@@ -281,6 +284,7 @@
   "admin_reply": "رد الإدارة",
   "replied": "تم الرد",
   "not_replied": "لم يتم الرد",
+  "pending": "قيد الانتظار",
   "delete_message": "حذف الرسالة",
   "confirm_delete_message": "هل أنت متأكد من حذف هذه الرسالة؟",
   "no_messages_found": "لا توجد رسائل",

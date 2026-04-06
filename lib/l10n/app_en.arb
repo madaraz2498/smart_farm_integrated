@@ -123,6 +123,7 @@
   "chatbot_card_desc": "Ask your questions and get instant farming advice.",
 
   "reports_subtitle": "Access and download all AI-generated reports",
+  "export_all": "Export All",
   "generate_report": "Generate Report",
   "total_reports": "Total Reports",
   "this_month": "This Month",
@@ -131,6 +132,7 @@
 
   "system_reports_subtitle": "Comprehensive analytics and reporting for the Smart Farm AI platform",
   "report_filters": "Report Filters",
+  "download_reports_desc": "Download your farm analysis reports",
   "date_range": "Date Range",
   "last_30_days": "Last 30 Days",
   "last_7_days": "Last 7 Days",
@@ -272,6 +274,7 @@
   "ai_config_saved": "AI configuration saved!",
   "general_settings_saved": "General settings saved!",
   "error_user_not_found": "Error: User not found",
+  "unknown_user": "Unknown User",
   "messages": "Messages",
   "send_message": "Send Message",
   "subject": "Subject",
@@ -281,6 +284,7 @@
   "admin_reply": "Admin Reply",
   "replied": "Replied",
   "not_replied": "Not Replied",
+  "pending": "Pending",
   "delete_message": "Delete Message",
   "confirm_delete_message": "Are you sure you want to delete this message?",
   "no_messages_found": "No messages found",
