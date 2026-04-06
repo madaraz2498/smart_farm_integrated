@@ -102,6 +102,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
             onTap: () {
               if (isAdmin) {
                 nav.goToAdminPage(AdminPage.profile);
+              } else {
+                nav.goToFarmerPage(FarmerPage.profile);
               }
             },
             child: Container(
@@ -115,20 +117,31 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               child: CircleAvatar(
                 radius: 16,
                 backgroundColor: AppColors.primary,
-                child: auth.currentUser?.profileImg != null
+                child: auth.localProfileImage != null
                     ? ClipOval(
-                        child: Image.network(
-                          auth.currentUser!.profileImg!.startsWith('http')
-                              ? auth.currentUser!.profileImg!
-                              : 'https://mahmoud123mahmoud-smartfarm-api.hf.space${auth.currentUser!.profileImg!}',
+                        child: Image.memory(
+                          auth.localProfileImage!,
+                          width: 32,
+                          height: 32,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.person_rounded,
-                                  color: Colors.white, size: 18),
                         ),
                       )
-                    : const Icon(Icons.person_rounded,
-                        color: Colors.white, size: 18),
+                    : auth.currentUser?.profileImg != null
+                        ? ClipOval(
+                            child: Image.network(
+                              auth.currentUser!.profileImg!.startsWith('http')
+                                  ? auth.currentUser!.profileImg!
+                                  : 'https://mahmoud123mahmoud-smartfarm-api.hf.space${auth.currentUser!.profileImg!}',
+                              width: 32,
+                              height: 32,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.person_rounded,
+                                      color: Colors.white, size: 18),
+                            ),
+                          )
+                        : const Icon(Icons.person_rounded,
+                            color: Colors.white, size: 18),
               ),
             ),
           ),

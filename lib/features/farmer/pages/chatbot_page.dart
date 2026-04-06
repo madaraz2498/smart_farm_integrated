@@ -53,29 +53,29 @@ class _ChatbotPageState extends State<ChatbotPage> {
     final l10n = AppLocalizations.of(context)!;
     return Consumer<ChatbotProvider>(builder: (context, prov, _) {
       return Column(children: [
-        Container(
-          color: AppColors.surface,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-            Text(l10n.chatbot_language,
-                style:
-                    const TextStyle(fontSize: 13, color: AppColors.textSubtle)),
-            const SizedBox(width: 8),
-            DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: prov.chatLanguage,
-                isDense: true,
-                style: const TextStyle(fontSize: 13, color: AppColors.textDark),
-                items: prov.supportedLanguages
-                    .map((l) => DropdownMenuItem(value: l, child: Text(l)))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) prov.setLanguage(v);
-                },
-              ),
-            ),
-          ]),
-        ),
+        // Container(
+        //   color: AppColors.surface,
+        //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        //   child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        //     Text(l10n.chatbot_language,
+        //         style:
+        //             const TextStyle(fontSize: 13, color: AppColors.textSubtle)),
+        //     const SizedBox(width: 8),
+        //     DropdownButtonHideUnderline(
+        //       child: DropdownButton<String>(
+        //         value: prov.chatLanguage,
+        //         isDense: true,
+        //         style: const TextStyle(fontSize: 13, color: AppColors.textDark),
+        //         items: prov.supportedLanguages
+        //             .map((l) => DropdownMenuItem(value: l, child: Text(l)))
+        //             .toList(),
+        //         onChanged: (v) {
+        //           if (v != null) prov.setLanguage(v);
+        //         },
+        //       ),
+        //     ),
+        //   ]),
+        // ),
         if (prov.messages.isEmpty)
           _SuggestionsBar(
               onTap: (s) {

@@ -81,7 +81,7 @@ class AuthProvider extends ChangeNotifier {
     }
 
     try {
-      final success = await _svc.updateProfile(
+      final response = await _svc.updateProfile(
         userId: _user!.id,
         name: name,
         email: email,
@@ -90,17 +90,21 @@ class AuthProvider extends ChangeNotifier {
         imageName: imageName,
       );
 
-      if (success) {
-        // Handle profile image update with cache busting ONLY if we have a real URL
+      if (response['success'] == true || response['message'] != null) {
+        // Handle profile image update with cache busting or backend URL
         String? newImg = _user!.profileImg;
-        if (imageBytes != null && newImg != null && newImg.isNotEmpty) {
+
+        // Try to get the new image URL from response if available
+        final backendImg = response['profile_img'] as String? ??
+            response['image_url'] as String? ??
+            response['url'] as String?;
+
+        if (backendImg != null && backendImg.isNotEmpty) {
+          newImg = backendImg;
+        } else if (imageBytes != null && newImg != null && newImg.isNotEmpty) {
           final ts = DateTime.now().millisecondsSinceEpoch;
           final base = newImg.split('?').first;
           newImg = '$base?t=$ts';
-        } else if (imageBytes != null) {
-          // If we uploaded bytes but don't have a URL yet, keep it null
-          // the local bytes preview will take precedence in the UI.
-          newImg = null;
         }
 
         // Optimistically update local user model

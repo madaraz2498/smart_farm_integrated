@@ -118,7 +118,7 @@ class AuthService {
 
   // ── Update Profile ────────────────────────────────────────────────────────
 
-  Future<bool> updateProfile({
+  Future<Map<String, dynamic>> updateProfile({
     required String userId,
     String? name,
     String? email,
@@ -133,14 +133,18 @@ class AuthService {
         if (phone != null) 'phone': phone,
       };
 
-      await _c.putMultipart(
+      final response = await _c.putMultipart(
         '/save-all-settings/$userId',
         fileField: 'profile_img',
         fileBytes: imageBytes,
         fileName: imageName,
         fields: fields,
       );
-      return true;
+
+      if (response is Map<String, dynamic>) {
+        return response;
+      }
+      return {'success': true};
     } catch (e) {
       debugPrint('[AuthService] updateProfile error: $e');
       rethrow;

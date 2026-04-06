@@ -151,6 +151,7 @@ class _SidebarContent extends StatelessWidget {
         FarmerPage.messages => l10n.messages,
         FarmerPage.reports => l10n.nav_reports,
         FarmerPage.settings => l10n.settings,
+        FarmerPage.profile => l10n.profile,
       };
       return Padding(
         padding: const EdgeInsets.only(bottom: 4),

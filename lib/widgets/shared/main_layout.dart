@@ -46,6 +46,7 @@ const List<Widget> _farmerPages = [
   farmer.FarmerMessagesPage(), // FarmerPage.messages
   ReportsPage(), // FarmerPage.reports
   FarmerSettingsPage(), // FarmerPage.settings
+  ProfilePage(), // FarmerPage.profile
 ];
 
 const List<Widget> _adminPages = [

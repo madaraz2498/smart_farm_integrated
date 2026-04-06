@@ -30,10 +30,39 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _obscureConfirm = true;
 
   Future<void> _pickImage() async {
+    final l10n = AppLocalizations.of(context)!;
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n.choose_image,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined,
+                  color: AppColors.primary),
+              title: const Text('Gallery'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined,
+                  color: AppColors.primary),
+              title: const Text('Camera'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
     final picker = ImagePicker();
     try {
       final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         maxWidth: 512,
         maxHeight: 512,
         imageQuality: 75,

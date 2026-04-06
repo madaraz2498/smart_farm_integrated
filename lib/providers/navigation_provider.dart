@@ -4,7 +4,6 @@ import 'package:smart_farm/core/constants/app_assets.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 
 enum FarmerPage {
-// ... existing enums ...
   welcome,
   plantDisease,
   animalWeight,
@@ -15,6 +14,7 @@ enum FarmerPage {
   messages,
   reports,
   settings,
+  profile,
 }
 
 enum AdminPage {
@@ -164,6 +164,7 @@ class NavigationProvider extends ChangeNotifier {
 
   String getFarmerLabel(AppLocalizations l10n) => switch (_farmerPage) {
         FarmerPage.welcome => l10n.welcome_user,
+        FarmerPage.profile => l10n.profile,
         FarmerPage.plantDisease => l10n.nav_plant_disease,
         FarmerPage.animalWeight => l10n.nav_animal_weight,
         FarmerPage.cropRecommendation => l10n.nav_crop_recommendation,
