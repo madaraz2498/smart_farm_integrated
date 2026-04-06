@@ -31,48 +31,46 @@ class _UserManagementPageState extends State<UserManagementPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: Consumer<AdminProvider>(
-        builder: (context, provider, _) {
-          if (provider.usersLoading && provider.users.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return Consumer<AdminProvider>(
+      builder: (context, provider, _) {
+        if (provider.usersLoading && provider.users.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          return RefreshIndicator(
-            onRefresh: () => provider.loadUsers(force: true),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context, l10n),
-                  const SizedBox(height: 32),
-                  AdminStatCards(cards: _buildSummaryCards(provider, l10n)),
-                  const SizedBox(height: 32),
-                  _buildSearchField(l10n),
-                  const SizedBox(height: 24),
-                  UserListTable(
-                    users: provider.users,
-                    searchQuery: _searchQuery,
-                    onEdit: (user) =>
-                        UserManagementDialogs.showUserManagementDialog(
-                      context,
-                      user,
-                      onPromote: (u) => provider.promoteToAdmin(u.email),
-                      onToggleStatus: (u) => u.isActive
-                          ? provider.deactivateUser(u.id)
-                          : provider.activateUser(u.id),
-                      onDelete: (u) => provider.deleteUser(u.id),
-                    ),
+        return RefreshIndicator(
+          onRefresh: () => provider.loadUsers(force: true),
+          color: const Color(0xFF4F46E5),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, l10n),
+                const SizedBox(height: 32),
+                AdminStatCards(cards: _buildSummaryCards(provider, l10n)),
+                const SizedBox(height: 32),
+                _buildSearchField(l10n),
+                const SizedBox(height: 24),
+                UserListTable(
+                  users: provider.users,
+                  searchQuery: _searchQuery,
+                  onEdit: (user) =>
+                      UserManagementDialogs.showUserManagementDialog(
+                    context,
+                    user,
+                    onPromote: (u) => provider.promoteToAdmin(u.email),
+                    onToggleStatus: (u) => u.isActive
+                        ? provider.deactivateUser(u.id)
+                        : provider.activateUser(u.id),
+                    onDelete: (u) => provider.deleteUser(u.id),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

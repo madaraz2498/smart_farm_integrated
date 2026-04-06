@@ -125,13 +125,17 @@ class ApiClient {
 
   // ── DELETE ─────────────────────────────────────────────────────────────────
 
-  Future<dynamic> delete(String path) async {
-    final uri = _uri(path);
+  Future<dynamic> delete(String path, {Map<String, String>? query}) async {
+    final uri = _uri(path, query);
     debugPrint('[DELETE] $uri');
     try {
-      return _handle(await http.delete(uri, headers: _jsonHeaders()).timeout(_timeout));
-    } on SocketException  { throw const ApiException('No internet connection.', statusCode: 0); }
-    on TimeoutException   { throw const ApiException('Request timed out.',       statusCode: 408); }
+      return _handle(
+          await http.delete(uri, headers: _jsonHeaders()).timeout(_timeout));
+    } on SocketException {
+      throw const ApiException('No internet connection.', statusCode: 0);
+    } on TimeoutException {
+      throw const ApiException('Request timed out.', statusCode: 408);
+    }
   }
 
   // ── Multipart upload ───────────────────────────────────────────────────────
@@ -208,17 +212,23 @@ class ApiClient {
     }
 
     final msg = _extractMessage(r);
-    debugPrint('[ERROR] ${r.statusCode}: $msg');
-
+    debugPrint('[ApiClient] Error ${r.statusCode}: $msg');
     switch (r.statusCode) {
-      case 400: throw ApiException(msg, statusCode: 400);
-      case 401: throw ApiException(msg.isNotEmpty ? msg : 'Invalid credentials.', statusCode: 401);
-      case 403: throw ApiException('Access forbidden.',     statusCode: 403);
-      case 404: throw ApiException('Endpoint not found: ${r.request?.url.path}', statusCode: 404);
-      case 409: throw ApiException(msg,                     statusCode: 409);
-      case 422: throw ApiException(msg.isNotEmpty ? msg : 'Validation error.', statusCode: 422);
-      case 429: throw ApiException('Too many requests.',    statusCode: 429);
-      default:  throw ApiException(msg,                     statusCode: r.statusCode);
+      case 400:
+        throw ApiException(msg, statusCode: 400);
+      case 401:
+        throw ApiException(msg, statusCode: 401);
+      case 403:
+        throw ApiException(msg, statusCode: 403);
+      case 404:
+        throw ApiException('Endpoint not found: ${r.request?.url.path}',
+            statusCode: 404);
+      case 422:
+        throw ApiException(msg, statusCode: 422);
+      case 500:
+        throw ApiException('Internal server error.', statusCode: 500);
+      default:
+        throw ApiException(msg, statusCode: r.statusCode);
     }
   }
 

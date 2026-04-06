@@ -36,43 +36,42 @@ class _AdminStatsGridState extends State<AdminStatsGrid> {
       }
 
       final s = prov.stats;
-      return LayoutBuilder(builder: (_, c) {
-        final mobile = c.maxWidth < 600;
-        return Wrap(spacing: 16, runSpacing: 16, children: [
-          _StatCard(
-            title: l10n.total_analyses,
-            value: s?.formattedAnalyses ?? '–',
-            badge: s?.analysesGrowth ?? '+0%',
-            subtitle: l10n.this_month,
-            isMobile: mobile,
-            svgPath: AppAssets.totalAnalyses,
-          ),
-          _StatCard(
-            title: l10n.total_users,
-            value: s?.formattedUsers ?? '–',
-            badge: s?.usersGrowth ?? '+0%',
-            subtitle: l10n.registered,
-            isMobile: mobile,
-            svgPath: AppAssets.activeUsers,
-          ),
-          _StatCard(
-            title: l10n.ai_services,
-            value: s?.aiServicesDisplay ?? '6 / 6',
-            badge: l10n.active,
-            subtitle: l10n.active,
-            isMobile: mobile,
-            svgPath: AppAssets.aiServices,
-          ),
-          _StatCard(
-            title: l10n.most_used,
-            value: s?.mostUsedService ?? l10n.plant_disease,
-            badge: l10n.top,
-            subtitle: l10n.service,
-            isMobile: mobile,
-            svgPath: AppAssets.avgResponse,
-          ),
-        ]);
-      });
+      final isMobile = MediaQuery.of(context).size.width < 600;
+
+      return Wrap(spacing: 16, runSpacing: 16, children: [
+        _StatCard(
+          title: l10n.total_analyses,
+          value: s?.formattedAnalyses ?? '–',
+          badge: s?.analysesGrowth ?? '+0%',
+          subtitle: l10n.this_month,
+          isMobile: isMobile,
+          svgPath: AppAssets.totalAnalyses,
+        ),
+        _StatCard(
+          title: l10n.total_users,
+          value: s?.formattedUsers ?? '–',
+          badge: s?.usersGrowth ?? '+0%',
+          subtitle: l10n.registered,
+          isMobile: isMobile,
+          svgPath: AppAssets.activeUsers,
+        ),
+        _StatCard(
+          title: l10n.ai_services,
+          value: s?.aiServicesDisplay ?? '6 / 6',
+          badge: l10n.active,
+          subtitle: l10n.active,
+          isMobile: isMobile,
+          svgPath: AppAssets.aiServices,
+        ),
+        _StatCard(
+          title: l10n.most_used,
+          value: s?.mostUsedService ?? l10n.plant_disease,
+          badge: l10n.top,
+          subtitle: l10n.service,
+          isMobile: isMobile,
+          svgPath: AppAssets.avgResponse,
+        ),
+      ]);
     });
   }
 }

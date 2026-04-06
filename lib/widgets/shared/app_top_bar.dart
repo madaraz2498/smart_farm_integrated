@@ -26,87 +26,114 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     final userName = auth.displayName;
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      height: AppSizes.topBarHeight,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-            bottom: BorderSide(color: AppColors.cardBorder, width: 1.33)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(children: [
-        if (showBurger)
-          Builder(
-              builder: (ctx) => IconButton(
-                    icon: const Icon(Icons.menu_rounded,
-                        color: AppColors.textDark, size: 22),
-                    onPressed: () => Scaffold.of(ctx).openDrawer(),
-                  )),
-        Expanded(
-          child: isAdmin
-              ? Center(
-                  child: Text(nav.getAdminLabel(l10n),
-                      style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textDark)))
-              : Text(l10n.app_name,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary)),
+    return Material(
+      color: AppColors.surface,
+      elevation: 2,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
+      child: Container(
+        height: AppSizes.topBarHeight,
+        decoration: const BoxDecoration(
+          border: Border(
+              bottom: BorderSide(color: AppColors.cardBorder, width: 1.33)),
         ),
-        Stack(clipBehavior: Clip.none, children: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined,
-                color: AppColors.textDark, size: 22),
-            onPressed: () {
-              showDialog(
-                context: context,
-                barrierColor: Colors.black.withValues(alpha: 0.2),
-                builder: (ctx) => const Center(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: NotificationQuickDialog(),
-                  ),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(children: [
+          if (showBurger)
+            Builder(
+                builder: (ctx) => IconButton(
+                      icon: const Icon(Icons.menu_rounded,
+                          color: AppColors.textDark, size: 22),
+                      onPressed: () => Scaffold.of(ctx).openDrawer(),
+                    )),
+          Expanded(
+            child: Center(
+              child: Text(
+                isAdmin ? nav.getAdminLabel(l10n) : nav.getFarmerLabel(l10n),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark,
                 ),
-              );
-            },
+              ),
+            ),
           ),
-          if (notifProvider.unreadCount > 0)
-            Positioned(
-                right: 6,
-                top: 6,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  constraints:
-                      const BoxConstraints(minWidth: 14, minHeight: 14),
-                  decoration: const BoxDecoration(
-                      color: AppColors.notifRed, shape: BoxShape.circle),
-                  child: Center(
-                    child: Text(
-                      notifProvider.unreadCount > 9
-                          ? '9+'
-                          : notifProvider.unreadCount.toString(),
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                          fontWeight: FontWeight.bold),
+          Stack(clipBehavior: Clip.none, children: [
+            IconButton(
+              icon: const Icon(Icons.notifications_outlined,
+                  color: AppColors.textDark, size: 22),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  barrierColor: Colors.black.withValues(alpha: 0.2),
+                  builder: (ctx) => const Center(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: NotificationQuickDialog(),
                     ),
                   ),
-                )),
+                );
+              },
+            ),
+            if (notifProvider.unreadCount > 0)
+              Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    constraints:
+                        const BoxConstraints(minWidth: 14, minHeight: 14),
+                    decoration: const BoxDecoration(
+                        color: AppColors.notifRed, shape: BoxShape.circle),
+                    child: Center(
+                      child: Text(
+                        notifProvider.unreadCount > 9
+                            ? '9+'
+                            : notifProvider.unreadCount.toString(),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  )),
+          ]),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              if (isAdmin) {
+                nav.goToAdminPage(AdminPage.profile);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    width: 1.5),
+              ),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: AppColors.primary,
+                child: auth.currentUser?.profileImg != null
+                    ? ClipOval(
+                        child: Image.network(
+                          auth.currentUser!.profileImg!.startsWith('http')
+                              ? auth.currentUser!.profileImg!
+                              : 'https://mahmoud123mahmoud-smartfarm-api.hf.space${auth.currentUser!.profileImg!}',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.person_rounded,
+                                  color: Colors.white, size: 18),
+                        ),
+                      )
+                    : const Icon(Icons.person_rounded,
+                        color: Colors.white, size: 18),
+              ),
+            ),
+          ),
         ]),
-        const SizedBox(width: 4),
-        GestureDetector(
-          onTap: () {
-            if (isAdmin) {
-              nav.goToAdminPage(AdminPage.profile);
-            }
-          },
-          child: _AvatarChip(userName: userName, isAdmin: isAdmin),
-        ),
-        const SizedBox(width: 4),
-      ]),
+      ),
     );
   }
 }

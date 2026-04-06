@@ -37,103 +37,100 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
     final currentYear = DateTime.now().year.toString();
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: RefreshIndicator(
-        onRefresh: () => provider.fetchAllReports(),
-        color: AppColors.primary,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppSizes.pagePadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Section
-              Row(children: [
-                const Icon(Icons.bar_chart_rounded,
-                    color: AppColors.primary, size: 24),
-                const SizedBox(width: 12),
-                Text(l10n.nav_reports, style: AppTextStyles.pageTitle),
-              ]),
-              const SizedBox(height: 4),
-              Text(
-                  isAr
-                      ? 'تحليل مقاييس النظام والنمو لعام $currentYear'
-                      : 'System metrics and growth analysis for $currentYear',
-                  style: AppTextStyles.pageSubtitle),
-              const SizedBox(height: 24),
+    return RefreshIndicator(
+      onRefresh: () => provider.fetchAllReports(),
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppSizes.pagePadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Section
+            Row(children: [
+              const Icon(Icons.bar_chart_rounded,
+                  color: AppColors.primary, size: 24),
+              const SizedBox(width: 12),
+              Text(l10n.nav_reports, style: AppTextStyles.pageTitle),
+            ]),
+            const SizedBox(height: 4),
+            Text(
+                isAr
+                    ? 'تحليل مقاييس النظام والنمو لعام $currentYear'
+                    : 'System metrics and growth analysis for $currentYear',
+                style: AppTextStyles.pageSubtitle),
+            const SizedBox(height: 24),
 
-              // Filter Section
-              _buildFilterCard(
-                context,
-                provider,
-                l10n,
-                isAr,
+            // Filter Section
+            _buildFilterCard(
+              context,
+              provider,
+              l10n,
+              isAr,
+            ),
+            const SizedBox(height: 24),
+
+            // Main Content
+            if (provider.isLoading)
+              const Center(
+                  child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 100),
+                child: CircularProgressIndicator(),
+              ))
+            else if (provider.error != null)
+              Center(
+                  child: Column(
+                children: [
+                  const Icon(Icons.error_outline,
+                      size: 48, color: AppColors.error),
+                  const SizedBox(height: 16),
+                  Text('Failed to load reports: ${provider.error}'),
+                  TextButton(
+                    onPressed: () => provider.fetchAllReports(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ))
+            else ...[
+              _buildChartCard(
+                title: isAr
+                    ? 'الاستخدام حسب الخدمة ($currentYear)'
+                    : 'Usage by Service ($currentYear)',
+                subtitle: isAr
+                    ? 'إجمالي الاستخدام لكل خدمة'
+                    : 'Total counts per service',
+                chart: ServiceUsageBarChart(data: provider.usageList),
               ),
               const SizedBox(height: 24),
-
-              // Main Content
-              if (provider.isLoading)
-                const Center(
-                    child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 100),
-                  child: CircularProgressIndicator(),
-                ))
-              else if (provider.error != null)
-                Center(
-                    child: Column(
-                  children: [
-                    const Icon(Icons.error_outline,
-                        size: 48, color: AppColors.error),
-                    const SizedBox(height: 16),
-                    Text('Failed to load reports: ${provider.error}'),
-                    TextButton(
-                      onPressed: () => provider.fetchAllReports(),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ))
-              else ...[
-                _buildChartCard(
-                  title: isAr
-                      ? 'الاستخدام حسب الخدمة ($currentYear)'
-                      : 'Usage by Service ($currentYear)',
-                  subtitle: isAr
-                      ? 'إجمالي الاستخدام لكل خدمة'
-                      : 'Total counts per service',
-                  chart: ServiceUsageBarChart(data: provider.usageList),
-                ),
-                const SizedBox(height: 24),
-                _buildChartCard(
-                  title: isAr
-                      ? 'نمو المستخدمين ($currentYear)'
-                      : 'User Growth ($currentYear)',
-                  subtitle: isAr
-                      ? 'التسجيلات الجديدة شهرياً'
-                      : 'Monthly new registrations',
-                  chart: UserGrowthLineChart(data: provider.growthList),
-                ),
-                const SizedBox(height: 24),
-                _buildChartCard(
-                  title: isAr
-                      ? 'النشاط اليومي ($currentYear)'
-                      : 'Daily Activity ($currentYear)',
-                  subtitle: isAr
-                      ? 'النشاط في آخر 7 أيام'
-                      : 'Active interactions in the last 7 days',
-                  chart: DailyActivityLineChart(data: provider.activityList),
-                ),
-                const SizedBox(height: 24),
-                _buildGeneratedReportsCard(
-                  context: context,
-                  provider: provider,
-                  notifProvider: notifProvider,
-                  l10n: l10n,
-                ),
-                const SizedBox(height: 40),
-              ],
+              _buildChartCard(
+                title: isAr
+                    ? 'نمو المستخدمين ($currentYear)'
+                    : 'User Growth ($currentYear)',
+                subtitle: isAr
+                    ? 'التسجيلات الجديدة شهرياً'
+                    : 'Monthly new registrations',
+                chart: UserGrowthLineChart(data: provider.growthList),
+              ),
+              const SizedBox(height: 24),
+              _buildChartCard(
+                title: isAr
+                    ? 'النشاط اليومي ($currentYear)'
+                    : 'Daily Activity ($currentYear)',
+                subtitle: isAr
+                    ? 'النشاط في آخر 7 أيام'
+                    : 'Active interactions in the last 7 days',
+                chart: DailyActivityLineChart(data: provider.activityList),
+              ),
+              const SizedBox(height: 24),
+              _buildGeneratedReportsCard(
+                context: context,
+                provider: provider,
+                notifProvider: notifProvider,
+                l10n: l10n,
+              ),
+              const SizedBox(height: 40),
             ],
-          ),
+          ],
         ),
       ),
     );
