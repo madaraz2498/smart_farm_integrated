@@ -139,6 +139,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwords_dont_match => 'Passwords do not match.';
 
   @override
+  String get forgot_password => 'Forgot Password?';
+
+  @override
+  String get forgot_password_title => 'Forgot Password';
+
+  @override
+  String get forgot_password_subtitle =>
+      'Enter your email to receive a reset code';
+
+  @override
+  String get send_reset_code => 'Send Reset Code';
+
+  @override
+  String get back_to_sign_in => 'Back to Sign In';
+
+  @override
+  String get code_sent => 'Code sent!';
+
+  @override
+  String get check_email_for_code =>
+      'Check your email for the verification code';
+
+  @override
+  String get enter_code => 'Enter Code';
+
+  @override
+  String get reset_password_title => 'Reset Password';
+
+  @override
+  String get reset_password_subtitle => 'Enter the code sent to your email';
+
+  @override
+  String get verification_code => 'Verification Code';
+
+  @override
+  String get new_password => 'New Password';
+
+  @override
+  String get confirm_new_password => 'Confirm Password';
+
+  @override
+  String get reset_password => 'Reset Password';
+
+  @override
+  String get agree_terms => 'I agree to the Terms & Conditions';
+
+  @override
+  String get messages => 'Messages';
+
+  @override
   String get welcome_user => 'Welcome';
 
   @override
@@ -740,9 +790,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get current_password => 'Current Password';
 
   @override
-  String get new_password => 'New Password';
-
-  @override
   String get update_password => 'Update Password';
 
   @override
@@ -809,9 +856,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknown_user => 'Unknown User';
-
-  @override
-  String get messages => 'Messages';
 
   @override
   String get send_message => 'Send Message';

@@ -356,6 +356,102 @@ abstract class AppLocalizations {
   /// **'Passwords do not match.'**
   String get passwords_dont_match;
 
+  /// No description provided for @forgot_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgot_password;
+
+  /// No description provided for @forgot_password_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password'**
+  String get forgot_password_title;
+
+  /// No description provided for @forgot_password_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email to receive a reset code'**
+  String get forgot_password_subtitle;
+
+  /// No description provided for @send_reset_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Reset Code'**
+  String get send_reset_code;
+
+  /// No description provided for @back_to_sign_in.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Sign In'**
+  String get back_to_sign_in;
+
+  /// No description provided for @code_sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Code sent!'**
+  String get code_sent;
+
+  /// No description provided for @check_email_for_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email for the verification code'**
+  String get check_email_for_code;
+
+  /// No description provided for @enter_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Code'**
+  String get enter_code;
+
+  /// No description provided for @reset_password_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get reset_password_title;
+
+  /// No description provided for @reset_password_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code sent to your email'**
+  String get reset_password_subtitle;
+
+  /// No description provided for @verification_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Code'**
+  String get verification_code;
+
+  /// No description provided for @new_password.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get new_password;
+
+  /// No description provided for @confirm_new_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirm_new_password;
+
+  /// No description provided for @reset_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get reset_password;
+
+  /// No description provided for @agree_terms.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the Terms & Conditions'**
+  String get agree_terms;
+
+  /// No description provided for @messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messages;
+
   /// No description provided for @welcome_user.
   ///
   /// In en, this message translates to:
@@ -1514,12 +1610,6 @@ abstract class AppLocalizations {
   /// **'Current Password'**
   String get current_password;
 
-  /// No description provided for @new_password.
-  ///
-  /// In en, this message translates to:
-  /// **'New Password'**
-  String get new_password;
-
   /// No description provided for @update_password.
   ///
   /// In en, this message translates to:
@@ -1651,12 +1741,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown User'**
   String get unknown_user;
-
-  /// No description provided for @messages.
-  ///
-  /// In en, this message translates to:
-  /// **'Messages'**
-  String get messages;
 
   /// No description provided for @send_message.
   ///

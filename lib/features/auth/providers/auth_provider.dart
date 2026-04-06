@@ -192,6 +192,44 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // ── Forgot/Reset Password ──────────────────────────────────────────────────
+
+  Future<bool> forgotPassword(String email) async {
+    _begin();
+    try {
+      final success = await _svc.forgotPassword(email);
+      _error = null;
+      return success;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _end();
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    _begin();
+    try {
+      final success = await _svc.resetPassword(
+        email: email,
+        code: code,
+        newPassword: newPassword,
+      );
+      _error = null;
+      return success;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _end();
+    }
+  }
+
   // ── Login ──────────────────────────────────────────────────────────────────
 
   Future<AuthResult> login({

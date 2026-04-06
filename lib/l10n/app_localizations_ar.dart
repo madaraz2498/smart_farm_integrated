@@ -138,6 +138,57 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passwords_dont_match => 'كلمات المرور غير متطابقة.';
 
   @override
+  String get forgot_password => 'نسيت كلمة المرور؟';
+
+  @override
+  String get forgot_password_title => 'نسيت كلمة المرور';
+
+  @override
+  String get forgot_password_subtitle =>
+      'أدخل بريدك الإلكتروني لتلقي رمز إعادة التعيين';
+
+  @override
+  String get send_reset_code => 'إرسال رمز إعادة التعيين';
+
+  @override
+  String get back_to_sign_in => 'العودة لتسجيل الدخول';
+
+  @override
+  String get code_sent => 'تم إرسال الرمز!';
+
+  @override
+  String get check_email_for_code =>
+      'تحقق من بريدك الإلكتروني للحصول على رمز التحقق';
+
+  @override
+  String get enter_code => 'إدخال الرمز';
+
+  @override
+  String get reset_password_title => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get reset_password_subtitle =>
+      'أدخل الرمز المرسل إلى بريدك الإلكتروني';
+
+  @override
+  String get verification_code => 'رمز التحقق';
+
+  @override
+  String get new_password => 'كلمة المرور الجديدة';
+
+  @override
+  String get confirm_new_password => 'تأكيد كلمة المرور';
+
+  @override
+  String get reset_password => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get agree_terms => 'أوافق على الشروط والأحكام';
+
+  @override
+  String get messages => 'الرسائل';
+
+  @override
   String get welcome_user => 'أهلاً بك';
 
   @override
@@ -740,9 +791,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get current_password => 'كلمة المرور الحالية';
 
   @override
-  String get new_password => 'كلمة المرور الجديدة';
-
-  @override
   String get update_password => 'تحديث كلمة المرور';
 
   @override
@@ -808,9 +856,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get unknown_user => 'مستخدم مجهول';
-
-  @override
-  String get messages => 'الرسائل';
 
   @override
   String get send_message => 'إرسال رسالة';

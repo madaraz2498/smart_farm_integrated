@@ -168,6 +168,36 @@ class AuthService {
     }
   }
 
+  // ── Forgot/Reset Password ──────────────────────────────────────────────────
+
+  Future<bool> forgotPassword(String email) async {
+    try {
+      await _c.postForm('/forgot-password', {'email': email.trim()});
+      return true;
+    } catch (e) {
+      debugPrint('[AuthService] forgotPassword error: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      await _c.postForm('/reset-password', {
+        'email': email.trim(),
+        'code': code.trim(),
+        'new_password': newPassword.trim(),
+      });
+      return true;
+    } catch (e) {
+      debugPrint('[AuthService] resetPassword error: $e');
+      rethrow;
+    }
+  }
+
   // ── Session restore ───────────────────────────────────────────────────────
 
   Future<UserModel?> restoreSession() async {
