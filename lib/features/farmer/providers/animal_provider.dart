@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../features/notifications/providers/notification_provider.dart';
+import '../../../features/notifications/models/notification_model.dart';
 import '../models/animal_models.dart';
 import '../services/animal_service.dart';
 
@@ -11,6 +13,8 @@ class AnimalProvider extends ChangeNotifier {
   String _userId;
   String get userId => _userId;
 
+  NotificationProvider? _notifProvider;
+
   void updateUserId(String id) {
     if (_userId != id) {
       _userId = id;
@@ -18,11 +22,15 @@ class AnimalProvider extends ChangeNotifier {
     }
   }
 
+  void updateNotifProvider(NotificationProvider notif) {
+    _notifProvider = notif;
+  }
+
   final AnimalService _svc = AnimalService.instance;
 
-  ScanStatus           _status = ScanStatus.idle;
+  ScanStatus            _status = ScanStatus.idle;
   AnimalWeightResponse? _result;
-  String?              _error;
+  String?               _error;
 
   ScanStatus            get status => _status;
   AnimalWeightResponse? get result => _result;
@@ -30,7 +38,9 @@ class AnimalProvider extends ChangeNotifier {
   bool get isLoading => _status == ScanStatus.loading;
 
   Future<void> estimate(XFile image) async {
-    _status = ScanStatus.loading; _result = null; _error = null;
+    _status = ScanStatus.loading;
+    _result = null;
+    _error = null;
     notifyListeners();
     try {
       final bytes = await image.readAsBytes();
@@ -40,15 +50,26 @@ class AnimalProvider extends ChangeNotifier {
         userId:     userId,
       );
       _status = ScanStatus.result;
+
+      _notifProvider?.addLocalNotification(
+        title: '🐄 تحليل وزن الحيوان اكتمل',
+        body: 'النوع: ${_result!.animalType} — الوزن المقدر: ${_result!.weightDisplay} (دقة: ${(_result!.confidence * 100).toStringAsFixed(0)}%)',
+        type: NotificationType.report,
+      );
     } on ApiException catch (e) {
-      _error  = e.message; _status = ScanStatus.error;
+      _error  = e.message;
+      _status = ScanStatus.error;
     } catch (_) {
-      _error  = 'Estimation failed. Please try again.'; _status = ScanStatus.error;
+      _error  = 'Estimation failed. Please try again.';
+      _status = ScanStatus.error;
     }
     notifyListeners();
   }
 
-  void reset() { _status = ScanStatus.idle; _result = null; _error = null; notifyListeners(); }
+  void reset() {
+    _status = ScanStatus.idle;
+    _result = null;
+    _error  = null;
+    notifyListeners();
+  }
 }
-
-

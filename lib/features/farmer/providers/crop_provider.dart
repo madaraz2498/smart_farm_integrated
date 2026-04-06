@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../features/notifications/providers/notification_provider.dart';
+import '../../../features/notifications/models/notification_model.dart';
 import '../models/crop_models.dart';
 import '../services/crop_service.dart';
 
@@ -10,6 +12,8 @@ class CropProvider extends ChangeNotifier {
   String _userId;
   String get userId => _userId;
 
+  NotificationProvider? _notifProvider;
+
   void updateUserId(String id) {
     if (_userId != id) {
       _userId = id;
@@ -17,11 +21,15 @@ class CropProvider extends ChangeNotifier {
     }
   }
 
+  void updateNotifProvider(NotificationProvider notif) {
+    _notifProvider = notif;
+  }
+
   final CropService _svc = CropService.instance;
 
-  ScanStatus                _status = ScanStatus.idle;
+  ScanStatus                  _status = ScanStatus.idle;
   CropRecommendationResponse? _result;
-  String?                   _error;
+  String?                     _error;
 
   ScanStatus                  get status => _status;
   CropRecommendationResponse? get result => _result;
@@ -29,20 +37,33 @@ class CropProvider extends ChangeNotifier {
   bool get isLoading => _status == ScanStatus.loading;
 
   Future<void> recommend(CropRecommendationRequest req) async {
-    _status = ScanStatus.loading; _result = null; _error = null;
+    _status = ScanStatus.loading;
+    _result = null;
+    _error  = null;
     notifyListeners();
     try {
       _result = await _svc.recommend(req.copyWith(userId: userId));
       _status = ScanStatus.result;
+
+      _notifProvider?.addLocalNotification(
+        title: '🌾 توصية المحصول جاهزة',
+        body: 'المحصول الموصى به: ${_result!.recommendedCrop} — مستوى الإنتاج: ${_result!.yieldDisplay}',
+        type: NotificationType.report,
+      );
     } on ApiException catch (e) {
-      _error  = e.message; _status = ScanStatus.error;
+      _error  = e.message;
+      _status = ScanStatus.error;
     } catch (_) {
-      _error  = 'Recommendation failed. Please try again.'; _status = ScanStatus.error;
+      _error  = 'Recommendation failed. Please try again.';
+      _status = ScanStatus.error;
     }
     notifyListeners();
   }
 
-  void reset() { _status = ScanStatus.idle; _result = null; _error = null; notifyListeners(); }
+  void reset() {
+    _status = ScanStatus.idle;
+    _result = null;
+    _error  = null;
+    notifyListeners();
+  }
 }
-
-

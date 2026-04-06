@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import '../../../features/notifications/providers/notification_provider.dart';
+import '../../../features/notifications/models/notification_model.dart';
 import '../services/chatbot_service.dart';
 
 enum ChatStatus { idle, sending, error }
@@ -23,24 +25,30 @@ class ChatbotProvider extends ChangeNotifier {
   String _userId;
   String get userId => _userId;
 
+  NotificationProvider? _notifProvider;
+
   void updateUserId(String id) {
     if (_userId != id) {
       _userId = id;
-      _messages.clear(); // Clear chat when user changes
+      _messages.clear();
       notifyListeners();
     }
   }
 
-  final ChatbotService  _svc       = ChatbotService.instance;
+  void updateNotifProvider(NotificationProvider notif) {
+    _notifProvider = notif;
+  }
+
+  final ChatbotService    _svc      = ChatbotService.instance;
   final List<ChatMessage> _messages = [];
 
-  ChatStatus _status   = ChatStatus.idle;
+  ChatStatus _status       = ChatStatus.idle;
   String?    _error;
   String     _chatLanguage = 'English';
 
-  List<ChatMessage> get messages => List.unmodifiable(_messages);
-  ChatStatus        get status   => _status;
-  String?           get error    => _error;
+  List<ChatMessage> get messages     => List.unmodifiable(_messages);
+  ChatStatus        get status       => _status;
+  String?           get error        => _error;
   String            get chatLanguage => _chatLanguage;
   bool get isSending => _status == ChatStatus.sending;
 
@@ -66,6 +74,15 @@ class ChatbotProvider extends ChangeNotifier {
       );
       _messages.add(ChatMessage(text: response.response, isUser: false));
       _status = ChatStatus.idle;
+
+      // Notify farmer that AI responded
+      _notifProvider?.addLocalNotification(
+        title: '🤖 رد الذكاء الاصطناعي جاهز',
+        body: response.response.length > 80
+            ? '${response.response.substring(0, 80)}...'
+            : response.response,
+        type: NotificationType.chatbot,
+      );
     } catch (e) {
       _status = ChatStatus.error;
       _messages.add(ChatMessage(

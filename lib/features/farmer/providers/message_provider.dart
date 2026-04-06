@@ -1,30 +1,52 @@
 // lib/features/farmer/messages/providers/message_provider.dart
 import 'package:flutter/material.dart';
 import 'package:smart_farm/shared/models/message_model.dart';
+import '../../../features/notifications/providers/notification_provider.dart';
+import '../../../features/notifications/models/notification_model.dart';
 import '../services/message_service.dart';
 
 class FarmerMessageProvider extends ChangeNotifier {
   final FarmerMessageService _svc = FarmerMessageService.instance;
 
-  List<MessageModel> _messages = [];
-  bool _loading = false;
-  String? _error;
+  NotificationProvider? _notifProvider;
 
-  List<MessageModel> get messages => _messages;
-  bool get isLoading => _loading;
-  String? get errorMsg => _error;
-  int get pendingCount => _messages.where((m) => !m.isReplied).length;
+  void updateNotifProvider(NotificationProvider notif) {
+    _notifProvider = notif;
+  }
+
+  List<MessageModel> _messages = [];
+  bool               _loading  = false;
+  String?            _error;
+
+  List<MessageModel> get messages     => _messages;
+  bool               get isLoading    => _loading;
+  String?            get errorMsg     => _error;
+  int                get pendingCount => _messages.where((m) => !m.isReplied).length;
 
   // ── Fetch Messages ─────────────────────────────────────────────────────────
 
   Future<void> fetchMessages(String userId) async {
     _loading = true;
-    _error = null;
+    _error   = null;
     notifyListeners();
+
+    final prevReplied = {for (final m in _messages) m.id: m.isReplied};
 
     try {
       _messages = await _svc.getMyMessages(userId);
-      _error = null;
+      _error    = null;
+
+      // Notify farmer when admin replies to a message
+      for (final msg in _messages) {
+        final wasReplied = prevReplied[msg.id] ?? false;
+        if (msg.isReplied && !wasReplied) {
+          _notifProvider?.addLocalNotification(
+            title: '💬 رد جديد من المشرف',
+            body: 'تم الرد على رسالتك: "${msg.subject}"',
+            type: NotificationType.user,
+          );
+        }
+      }
     } catch (e) {
       _error = e.toString();
       debugPrint('[FarmerMessageProvider] fetchMessages error: $e');
@@ -43,20 +65,25 @@ class FarmerMessageProvider extends ChangeNotifier {
     required String userName,
   }) async {
     _loading = true;
-    _error = null;
+    _error   = null;
     notifyListeners();
 
     try {
-      final now = DateTime.now().toIso8601String();
+      final now     = DateTime.now().toIso8601String();
       final success = await _svc.sendMessage(
-        subject: subject,
-        message: message,
-        userId: userId, // Pass userId to the service
-        userName: userName,
+        subject:   subject,
+        message:   message,
+        userId:    userId,
+        userName:  userName,
         createdAt: now,
       );
       if (success) {
         await fetchMessages(userId);
+        _notifProvider?.addLocalNotification(
+          title: '✉️ تم إرسال رسالتك',
+          body: 'تم إرسال رسالتك "$subject" بنجاح وستصلك إجابة قريباً',
+          type: NotificationType.user,
+        );
       }
       return success;
     } catch (e) {
@@ -71,11 +98,11 @@ class FarmerMessageProvider extends ChangeNotifier {
   // ── Delete Message ─────────────────────────────────────────────────────────
 
   Future<bool> deleteMessage({
-    required int messageId,
+    required int    messageId,
     required String userId,
   }) async {
     _loading = true;
-    _error = null;
+    _error   = null;
     notifyListeners();
 
     try {

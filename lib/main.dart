@@ -31,46 +31,78 @@ void main() {
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+
+        // Auth — gets NotificationProvider
         ChangeNotifierProxyProvider<NotificationProvider, AuthProvider>(
           create: (_) => AuthProvider(),
           update: (_, notif, auth) => auth!..updateNotificationProvider(notif),
         ),
-        ChangeNotifierProxyProvider<AuthProvider, ChatbotProvider>(
+
+        // Chatbot — gets Auth + Notification
+        ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
+            ChatbotProvider>(
           create: (_) => ChatbotProvider('0'),
-          update: (_, auth, chatbot) =>
-              chatbot!..updateUserId(auth.currentUser?.id ?? '0'),
+          update: (_, auth, notif, chatbot) => chatbot!
+            ..updateUserId(auth.currentUser?.id ?? '0')
+            ..updateNotifProvider(notif),
         ),
-        ChangeNotifierProxyProvider<AuthProvider, ReportsProvider>(
+
+        // Reports — gets Auth + Notification
+        ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
+            ReportsProvider>(
           create: (_) => ReportsProvider('0'),
-          update: (_, auth, reports) =>
-              reports!..updateUserId(auth.currentUser?.id ?? '0'),
+          update: (_, auth, notif, reports) => reports!
+            ..updateUserId(auth.currentUser?.id ?? '0')
+            ..updateNotifProvider(notif),
         ),
-        ChangeNotifierProxyProvider<AuthProvider, AnimalProvider>(
+
+        // Animal — gets Auth + Notification
+        ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
+            AnimalProvider>(
           create: (_) => AnimalProvider('0'),
-          update: (_, auth, animal) =>
-              animal!..updateUserId(auth.currentUser?.id ?? '0'),
+          update: (_, auth, notif, animal) => animal!
+            ..updateUserId(auth.currentUser?.id ?? '0')
+            ..updateNotifProvider(notif),
         ),
-        ChangeNotifierProxyProvider<AuthProvider, PlantProvider>(
+
+        // Plant — gets Auth + Notification
+        ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
+            PlantProvider>(
           create: (_) => PlantProvider('0'),
-          update: (_, auth, plant) =>
-              plant!..updateUserId(auth.currentUser?.id ?? '0'),
+          update: (_, auth, notif, plant) => plant!
+            ..updateUserId(auth.currentUser?.id ?? '0')
+            ..updateNotifProvider(notif),
         ),
-        ChangeNotifierProxyProvider<AuthProvider, FruitProvider>(
+
+        // Fruit — gets Auth + Notification
+        ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
+            FruitProvider>(
           create: (_) => FruitProvider('0'),
-          update: (_, auth, fruit) =>
-              fruit!..updateUserId(auth.currentUser?.id ?? '0'),
+          update: (_, auth, notif, fruit) => fruit!
+            ..updateUserId(auth.currentUser?.id ?? '0')
+            ..updateNotifProvider(notif),
         ),
-        ChangeNotifierProxyProvider<AuthProvider, SoilProvider>(
+
+        // Soil — gets Auth + Notification
+        ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
+            SoilProvider>(
           create: (_) => SoilProvider('0'),
-          update: (_, auth, soil) =>
-              soil!..updateUserId(auth.currentUser?.id ?? '0'),
+          update: (_, auth, notif, soil) => soil!
+            ..updateUserId(auth.currentUser?.id ?? '0')
+            ..updateNotifProvider(notif),
         ),
-        ChangeNotifierProxyProvider<AuthProvider, CropProvider>(
+
+        // Crop — gets Auth + Notification
+        ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
+            CropProvider>(
           create: (_) => CropProvider('0'),
-          update: (_, auth, crop) =>
-              crop!..updateUserId(auth.currentUser?.id ?? '0'),
+          update: (_, auth, notif, crop) => crop!
+            ..updateUserId(auth.currentUser?.id ?? '0')
+            ..updateNotifProvider(notif),
         ),
+
         ChangeNotifierProvider(create: (_) => AdminReportProvider()),
+
         ChangeNotifierProxyProvider<NotificationProvider, AdminProvider>(
           create: (_) => AdminProvider(),
           update: (_, notif, admin) {
@@ -79,11 +111,18 @@ void main() {
             return admin!..updateNotif(notif);
           },
         ),
+
         ChangeNotifierProxyProvider<AdminProvider, AdminMessageProvider>(
           create: (_) => AdminMessageProvider(),
           update: (_, admin, msg) => msg!..updateAdminProv(admin),
         ),
-        ChangeNotifierProvider(create: (_) => FarmerMessageProvider()),
+
+        // FarmerMessageProvider — gets NotificationProvider
+        ChangeNotifierProxyProvider<NotificationProvider,
+            FarmerMessageProvider>(
+          create: (_) => FarmerMessageProvider(),
+          update: (_, notif, msg) => msg!..updateNotifProvider(notif),
+        ),
       ],
       child: const SmartFarmApp(),
     ),
@@ -96,7 +135,7 @@ class SmartFarmApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localeProvider = Provider.of<LocaleProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final themeProvider  = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
       title: 'Smart Farm AI',
