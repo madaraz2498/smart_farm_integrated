@@ -360,6 +360,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chat_suggest_4 => 'Common tomato pests';
 
   @override
+  String get chat_history => 'Chat history';
+
+  @override
+  String get chat_recent => 'Recent';
+
+  @override
+  String get chat_older => 'Older';
+
+  @override
+  String get back_to_dashboard => 'Back to Dashboard';
+
+  @override
+  String get no_chats_yet => 'No chats yet';
+
+  @override
+  String get start_new_chat_hint => 'Start a new chat and it will appear here.';
+
+  @override
+  String get rename_chat_title => 'Rename Chat';
+
+  @override
+  String get enter_new_title => 'Enter new title';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get delete_chat_title => 'Delete Chat';
+
+  @override
+  String get delete_chat_confirm =>
+      'Are you sure you want to delete this conversation?';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get typing => 'Typing...';
+
+  @override
+  String get new_chat => 'New Chat';
+
+  @override
+  String get chat_rename => 'Rename';
+
+  @override
+  String get chat_delete => 'Delete';
+
+  @override
   String get disease_detection => 'Disease Detection';
 
   @override
@@ -946,4 +995,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get other => 'Other';
+
+  @override
+  String get weather_mild_alert => 'Mild alert';
+
+  @override
+  String get weather_wind_unit => 'km/h';
+
+  @override
+  String get crop_input_parameters => 'Input Parameters';
+
+  @override
+  String get crop_city_name => 'City Name';
+
+  @override
+  String get crop_soil_type => 'Soil Type';
+
+  @override
+  String get crop_recommendation_result => 'Recommendation Result';
+
+  @override
+  String get crop_primary_crop => 'Primary Crop';
+
+  @override
+  String get crop_secondary_crop => 'Secondary Crop';
+
+  @override
+  String get crop_third_option => 'Third Option';
+
+  @override
+  String get crop_expert_advice => 'Expert Advice';
+
+  @override
+  String get crop_daily_expert_guide => 'Daily Expert Guide';
+
+  @override
+  String get crop_weather_label => 'Weather';
+
+  @override
+  String get crop_irrigation_advice_label => 'Irrigation Advice';
+
+  @override
+  String get crop_fertilizer_advice_label => 'Fertilizer Advice';
+
+  @override
+  String get crop_disease_alert_label => 'Disease Alert';
+
+  @override
+  String get crop_city_hint => 'e.g. giza';
+
+  @override
+  String get crop_status_safe => 'Weather is stable ✅';
+
+  @override
+  String get crop_status_warning => 'Watch weather changes ⚠️';
+
+  @override
+  String get crop_status_unknown => 'Status unavailable';
+
+  @override
+  String get soil_recommendations => 'Recommendations';
+
+  @override
+  String get soil_fertility_high => 'High';
+
+  @override
+  String get soil_fertility_medium => 'Medium';
+
+  @override
+  String get soil_fertility_low => 'Low';
 }

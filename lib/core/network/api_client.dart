@@ -123,6 +123,23 @@ class ApiClient {
     }
   }
 
+  // ── PATCH form-encoded ─────────────────────────────────────────────────────
+  // Used for endpoints that require form data with PATCH requests.
+  Future<dynamic> patchForm(String path, Map<String, String> fields,
+      {Map<String, String>? query}) async {
+    final uri = _uri(path, query);
+    debugPrint('[PATCH-FORM] $uri  keys=${fields.keys.toList()}');
+    try {
+      return _handle(await http
+          .patch(uri, headers: _formHeaders(), body: fields)
+          .timeout(_timeout));
+    } on SocketException {
+      throw const ApiException('No internet connection.', statusCode: 0);
+    } on TimeoutException {
+      throw const ApiException('Request timed out.', statusCode: 408);
+    }
+  }
+
   // ── DELETE ─────────────────────────────────────────────────────────────────
 
   Future<dynamic> delete(String path, {Map<String, String>? query}) async {

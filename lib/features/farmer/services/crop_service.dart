@@ -3,7 +3,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/crop_models.dart';
 
-/// POST /crops/recommend-crop — form-encoded (FastAPI Form fields)
+/// POST /crops/recommend-smart-expert — form-encoded (FastAPI Form fields)
 class CropService {
   CropService._();
   static final CropService instance = CropService._();
@@ -11,16 +11,25 @@ class CropService {
 
   Future<CropRecommendationResponse> recommend(CropRecommendationRequest req) async {
     debugPrint('[CropService] POST /crops/recommend-smart-expert');
-    debugPrint('[CropService] body: ${req.toJson()}');
+    debugPrint('[CropService] body: ${req.toForm()}');
     try {
-      final data = await _c.post('/crops/recommend-smart-expert', body: req.toJson());
+      final data = await _c.postForm('/crops/recommend-smart-expert', req.toForm());
       debugPrint('[CropService] response: $data');
-      return CropRecommendationResponse.fromJson(data as Map<String, dynamic>);
+      return CropRecommendationResponse.fromJson(_asMap(data));
     } on ApiException { rethrow; }
     catch (e) {
       debugPrint('[CropService] error: $e');
       throw const ApiException('Crop recommendation failed.');
     }
+  }
+
+  Map<String, dynamic> _asMap(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final nested = data['data'] ?? data['result'] ?? data['prediction'];
+      if (nested is Map<String, dynamic>) return nested;
+      return data;
+    }
+    throw const ApiException('Invalid crop response format.');
   }
 }
 

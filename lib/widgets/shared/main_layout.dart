@@ -23,11 +23,11 @@ import '../../features/farmer/pages/reports_page.dart';
 import '../../features/admin/pages/admin_dashboard_page.dart';
 import '../../features/admin/pages/user_management_page.dart';
 import '../../features/admin/pages/system_management_page.dart';
-import '../../features/admin/pages/admin_settings_page.dart';
 import '../../features/admin/reports/screens/admin_reports_screen.dart';
 import '../../features/admin/providers/admin_provider.dart';
 import '../../features/shared/profile/pages/profile_page.dart';
 import '../../features/admin/pages/messages_page.dart' as admin;
+import '../../features/admin/pages/admin_settings_page.dart';
 import '../../features/farmer/pages/messages_page.dart' as farmer;
 
 // ── Shared shell widgets ──────────────────────────────────────────────────────
@@ -35,25 +35,25 @@ import 'app_sidebar.dart';
 import 'app_top_bar.dart';
 
 // Page registries — order must match enum order in NavigationProvider
-const List<Widget> _farmerPages = [
-  FarmerWelcomePage(), // FarmerPage.welcome
-  PlantDiseasePage(), // FarmerPage.plantDisease
-  AnimalWeightPage(), // FarmerPage.animalWeight
-  CropRecommendationPage(), // FarmerPage.cropRecommendation
-  SoilAnalysisPage(), // FarmerPage.soilAnalysis
-  FruitQualityPage(), // FarmerPage.fruitQuality
-  ChatbotPage(), // FarmerPage.chatbot
-  farmer.FarmerMessagesPage(), // FarmerPage.messages
-  ReportsPage(), // FarmerPage.reports
-  FarmerSettingsPage(), // FarmerPage.settings
-  ProfilePage(), // FarmerPage.profile
+final List<Widget> _farmerPages = [
+  const FarmerWelcomePage(), // FarmerPage.welcome
+  const PlantDiseasePage(), // FarmerPage.plantDisease
+  const AnimalWeightPage(), // FarmerPage.animalWeight
+  const CropRecommendationPage(), // FarmerPage.cropRecommendation
+  const SoilAnalysisPage(), // FarmerPage.soilAnalysis
+  const FruitQualityPage(), // FarmerPage.fruitQuality
+  const ChatbotPage(), // FarmerPage.chatbot
+  const farmer.FarmerMessagesPage(), // FarmerPage.messages
+  const ReportsPage(), // FarmerPage.reports
+  const FarmerSettingsPage(), // FarmerPage.settings
+  const ProfilePage(), // FarmerPage.profile
 ];
 
 const List<Widget> _adminPages = [
   AdminDashboardPage(), // AdminPage.dashboard
   UserManagementPage(), // AdminPage.userManagement
   SystemManagementPage(), // AdminPage.systemManagement
-  AdminReportsScreen(), // AdminPage.systemReports (Replaced SystemReportsPage)
+  AdminReportsScreen(), // AdminPage.systemReports
   admin.AdminMessagesPage(), // AdminPage.messages
   AdminSettingsPage(), // AdminPage.settings
   ProfilePage(), // AdminPage.profile
@@ -67,6 +67,11 @@ class MainLayout extends StatelessWidget {
     final isAdmin = context.watch<AuthProvider>().isAdmin;
     final nav = context.watch<NavigationProvider>();
     final isWide = MediaQuery.of(context).size.width > AppSizes.wideBreak;
+
+    // Special Case: Chatbot Experience (Independent Full Screen)
+    if (!isAdmin && nav.farmerIndex == 6) { // 6 = Chatbot
+      return const ChatbotPage();
+    }
 
     if (isAdmin) {
       return ChangeNotifierProvider(

@@ -50,21 +50,18 @@ class SfImagePickerCard extends StatelessWidget {
         // Preview
         ClipRRect(
           borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-          child: isLoading
-              ? Container(width: double.infinity, height: 190, color: AppColors.background,
-                  child: const Center(child: CircularProgressIndicator(color: AppColors.primary)))
-              : pickedImage != null
-                  ? Image.file(File(pickedImage!.path),
-                      width: double.infinity, height: 190, fit: BoxFit.cover)
-                  : Container(width: double.infinity, height: 190, color: AppColors.background,
-                      child: const Icon(Icons.image_outlined, color: AppColors.textDisabled, size: 52)),
+          child: pickedImage != null
+              ? Image.file(File(pickedImage!.path),
+                  width: double.infinity, height: 190, fit: BoxFit.cover)
+              : Container(width: double.infinity, height: 190, color: AppColors.background,
+                  child: const Icon(Icons.image_outlined, color: AppColors.textDisabled, size: 52)),
         ),
         const SizedBox(height: 20),
 
         // Buttons
         Row(children: [
           Expanded(
-            child: SfOutlineButton(label: l10n.choose_image, onPressed: onPickImage),
+            child: SfOutlineButton(label: l10n.choose_image, onPressed: isLoading ? null : onPickImage),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -125,7 +122,7 @@ class SfInfoRow extends StatelessWidget {
       ),
       child: RichText(
         text: TextSpan(
-          style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+          style: const TextStyle(fontSize: 15, color: AppColors.textDark),
           children: [
             TextSpan(text: '$label: ', style: const TextStyle(fontWeight: FontWeight.w600)),
             TextSpan(text: value, style: TextStyle(color: valueColor ?? AppColors.textDark)),
@@ -155,7 +152,7 @@ class SfConfidenceBar extends StatelessWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Confidence: ${(confidence * 100).toStringAsFixed(1)}%',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textDark)),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark)),
         const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(50),
@@ -188,7 +185,7 @@ class SfErrorBanner extends StatelessWidget {
       child: Row(children: [
         const Icon(Icons.error_outline, size: 16, color: AppColors.error),
         const SizedBox(width: 8),
-        Expanded(child: Text(message, style: const TextStyle(fontSize: 13, color: AppColors.error))),
+        Expanded(child: Text(message, style: const TextStyle(fontSize: 14, color: AppColors.error))),
       ]),
     );
   }

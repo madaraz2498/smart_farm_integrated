@@ -29,17 +29,26 @@ class _AuthWrapperState extends State<AuthWrapper> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final status = context.watch<AuthProvider>().status;
+    
     if (status == AuthStatus.authenticated && _lastStatus != AuthStatus.authenticated) {
-      _onAuthenticated();
+      // Schedule the authentication logic after the current build frame
+      // to avoid "setState() or markNeedsBuild() called during build" error.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _onAuthenticated());
     } else if (status == AuthStatus.unauthenticated && _lastStatus == AuthStatus.authenticated) {
       context.read<NotificationProvider>().stopRefreshTimer();
     }
     _lastStatus = status;
   }
 
-  void _onAuthenticated() {
+  Future<void> _onAuthenticated() async {
+    if (!mounted) return;
     final userId = context.read<AuthProvider>().currentUser?.id;
     if (userId == null) return;
+
+    // Refresh GPS location after login so weather uses current coordinates.
+    await context.read<LocationProvider>().requestLocation(force: true);
+    if (!mounted) return;
+
     final notifProvider = context.read<NotificationProvider>();
     notifProvider.fetchNotifications(userId: userId);
     notifProvider.startRefreshTimer(userId);

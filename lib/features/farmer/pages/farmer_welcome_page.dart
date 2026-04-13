@@ -25,12 +25,20 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId = context.read<AuthProvider>().currentUser?.id;
-      if (userId != null) {
-        context.read<ReportsProvider>().load();
-        context.read<DashboardProvider>().load();
-      }
+      _loadInitialData();
     });
+  }
+
+  Future<void> _loadInitialData() async {
+    final userId = context.read<AuthProvider>().currentUser?.id;
+    if (userId == null) return;
+
+    // Ensure dashboard weather uses the latest GPS coordinates.
+    await context.read<LocationProvider>().requestLocation(force: true);
+    if (!mounted) return;
+
+    await context.read<ReportsProvider>().load();
+    await context.read<DashboardProvider>().load();
   }
 
   @override
@@ -112,6 +120,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
       onRefresh: () async {
         final userId = context.read<AuthProvider>().currentUser?.id;
         if (userId != null) {
+          await context.read<LocationProvider>().requestLocation(force: true);
           await Future.wait([
             context.read<FarmerMessageProvider>().fetchMessages(userId),
             context.read<ReportsProvider>().load(),
@@ -200,14 +209,14 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
                 label: l10n.most_used,
                 value: translateService(dashboard?.mostUsedService ?? 'N/A'),
               ),
-              _StatCard(
-                icon: Icons.wb_sunny_outlined,
-                iconColor: const Color(0xFF3B82F6), // Blue
-                label: l10n.weather,
-                value: dashboard?.weather ??
-                    (l10n.localeName == 'ar'
-                        ? 'جاري التحميل...'
-                        : 'Loading...'),
+              _WeatherCard(
+                title: l10n.weather,
+                temp: dashboard?.weatherTemp,
+                humidity: dashboard?.weatherHumidity,
+                wind: dashboard?.weatherWind,
+                description: dashboard?.weatherDescription ??
+                    (dashboard?.weather ??
+                        (l10n.localeName == 'ar' ? 'جاري التحميل...' : 'Loading...')),
               ),
             ];
 
@@ -277,6 +286,207 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
         ]),
       ),
     );
+  }
+}
+
+class _WeatherCard extends StatelessWidget {
+  const _WeatherCard({
+    required this.title,
+    required this.temp,
+    required this.humidity,
+    required this.wind,
+    required this.description,
+  });
+
+  final String title;
+  final String? temp;
+  final String? humidity;
+  final String? wind;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final cleanHumidity = _formatPercent(humidity);
+    final cleanWind = _formatWind(wind, l10n);
+    final displayTemp = (temp == null || temp!.isEmpty) ? '--°C' : temp!;
+    final width = MediaQuery.of(context).size.width;
+    final compact = width < 420;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFAFA),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF4B8B8)),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14, vertical: 12),
+      child: compact ? _buildCompact(l10n, title, displayTemp, cleanHumidity, cleanWind, description) : _buildWide(l10n, title, displayTemp, cleanHumidity, cleanWind, description),
+    );
+  }
+
+  Widget _buildWide(
+    AppLocalizations l10n,
+    String title,
+    String displayTemp,
+    String cleanHumidity,
+    String cleanWind,
+    String description,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFE8E8),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.wb_sunny_outlined, color: Color(0xFFEF4444), size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 11, color: AppColors.textSubtle, fontWeight: FontWeight.w600)),
+                  Text(displayTemp, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Color(0xFF111827), height: 1.0)),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.water_drop_outlined, size: 14, color: Color(0xFF1D9BF0)),
+                    const SizedBox(width: 4),
+                    Text(cleanHumidity, style: const TextStyle(fontSize: 12, color: Color(0xFF1D4ED8))),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.air_rounded, size: 14, color: Color(0xFF14B8A6)),
+                    const SizedBox(width: 4),
+                    Text(cleanWind, style: const TextStyle(fontSize: 12, color: Color(0xFF0891B2))),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.warning_amber_rounded, size: 14, color: Color(0xFFF59E0B)),
+            const SizedBox(width: 4),
+            Text(
+              l10n.weather_mild_alert,
+              style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          description,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSubtle),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompact(
+    AppLocalizations l10n,
+    String title,
+    String displayTemp,
+    String cleanHumidity,
+    String cleanWind,
+    String description,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 10, color: AppColors.textSubtle, fontWeight: FontWeight.w600)),
+                  Text(displayTemp, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Color(0xFF111827), height: 1.0)),
+                ],
+              ),
+            ),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFE8E8),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.wb_sunny_outlined, color: Color(0xFFEF4444), size: 18),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Icon(Icons.water_drop_outlined, size: 14, color: Color(0xFF1D9BF0)),
+            const SizedBox(width: 4),
+            Text(cleanHumidity, style: const TextStyle(fontSize: 12, color: Color(0xFF1D4ED8))),
+            const Spacer(),
+            const Icon(Icons.air_rounded, size: 14, color: Color(0xFF14B8A6)),
+            const SizedBox(width: 4),
+            Text(cleanWind, style: const TextStyle(fontSize: 12, color: Color(0xFF0891B2))),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, size: 14, color: Color(0xFFF59E0B)),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                l10n.weather_mild_alert,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 3),
+        Text(
+          description,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSubtle),
+        ),
+      ],
+    );
+  }
+
+  String _formatPercent(String? value) {
+    if (value == null || value.trim().isEmpty) return '--%';
+    final v = value.trim();
+    return v.contains('%') ? v : '$v%';
+  }
+
+  String _formatWind(String? value, AppLocalizations l10n) {
+    if (value == null || value.trim().isEmpty) return '-- ${l10n.weather_wind_unit}';
+    final v = value.trim();
+    final hasUnit = v.contains('km') || v.contains('كم');
+    if (hasUnit) return v;
+    return '$v ${l10n.weather_wind_unit}';
   }
 }
 

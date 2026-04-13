@@ -8,6 +8,7 @@ class AppNotification {
   final String title;
   final String body;
   final DateTime createdAt;
+  final String? backendTimeText;
   final bool isRead;
   final NotificationType type;
 
@@ -17,6 +18,7 @@ class AppNotification {
     required this.title,
     required this.body,
     required this.createdAt,
+    this.backendTimeText,
     this.isRead = false,
     required this.type,
   });
@@ -28,6 +30,7 @@ class AppNotification {
       title: title,
       body: body,
       createdAt: createdAt,
+      backendTimeText: backendTimeText,
       isRead: isRead ?? this.isRead,
       type: type,
     );
@@ -40,23 +43,57 @@ class AppNotification {
       'title': title,
       'body': body,
       'created_at': createdAt.toIso8601String(),
+      'time_ago': backendTimeText,
       'is_read': isRead,
       'type': type.name,
     };
   }
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
+    final createdAt = _parseCreatedAt(json['created_at']);
     return AppNotification(
       id: json['id']?.toString() ?? '',
       userId: json['user_id']?.toString() ?? '',
       title: json['title'] ?? '',
       body: json['body'] ?? '',
-      createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
-          : DateTime.now(),
+      createdAt: createdAt,
+      backendTimeText: _parseBackendTimeText(json),
       isRead: json['is_read'] ?? false,
       type: _parseType(json['type']),
     );
+  }
+
+  static DateTime _parseCreatedAt(dynamic raw) {
+    if (raw == null) return DateTime.now();
+    final value = raw.toString().trim();
+    if (value.isEmpty) return DateTime.now();
+
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) return DateTime.now();
+
+    // Backend can send UTC timestamps (with Z or offset). Always display in local time.
+    if (parsed.isUtc || value.endsWith('Z') || value.contains('+')) {
+      return parsed.toLocal();
+    }
+    return parsed;
+  }
+
+  static String? _parseBackendTimeText(Map<String, dynamic> json) {
+    const keys = [
+      'time_ago',
+      'timeAgo',
+      'relative_time',
+      'relativeTime',
+      'created_at_human',
+      'createdAtHuman',
+      'display_time',
+      'displayTime',
+    ];
+    for (final key in keys) {
+      final value = json[key]?.toString().trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+    return null;
   }
 
   static NotificationType _parseType(String? type) {

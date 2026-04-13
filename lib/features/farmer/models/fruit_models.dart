@@ -30,6 +30,11 @@ class FruitQualityResponse {
 double _d(dynamic v) {
   if (v is double) return v;
   if (v is int)    return v.toDouble();
-  if (v is String) return double.tryParse(v) ?? 0.0;
+  if (v is String) {
+    final cleaned = v.replaceAll('%', '').trim();
+    final parsed = double.tryParse(cleaned) ?? 0.0;
+    if (v.contains('%') || parsed > 1) return parsed / 100.0;
+    return parsed;
+  }
   return 0.0;
 }

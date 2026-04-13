@@ -4,6 +4,10 @@ class FarmerDashboardData {
     required this.todayAnalyses,
     required this.mostUsedService,
     required this.weather,
+    this.weatherTemp,
+    this.weatherHumidity,
+    this.weatherWind,
+    this.weatherDescription,
     this.locationName,
   });
 
@@ -14,6 +18,8 @@ class FarmerDashboardData {
     // Create a user-friendly weather string or pick a specific field
     final temp = weatherMap['temp'] as String? ?? '';
     final desc = weatherMap['desc'] as String? ?? '';
+    final humidity = weatherMap['humidity']?.toString();
+    final wind = weatherMap['wind']?.toString() ?? weatherMap['wind_speed']?.toString();
     final location = weatherMap['location'] as String?;
     final weatherStr = (temp.isNotEmpty && desc.isNotEmpty)
         ? '$temp - $desc'
@@ -24,6 +30,10 @@ class FarmerDashboardData {
       todayAnalyses: _i(stats['today'] ?? 0),
       mostUsedService: stats['most_used'] as String? ?? 'N/A',
       weather: weatherStr,
+      weatherTemp: temp.isEmpty ? null : temp,
+      weatherHumidity: humidity,
+      weatherWind: wind,
+      weatherDescription: desc.isEmpty ? null : desc,
       locationName: location,
     );
   }
@@ -32,6 +42,10 @@ class FarmerDashboardData {
   final int todayAnalyses;
   final String mostUsedService;
   final String weather;
+  final String? weatherTemp;
+  final String? weatherHumidity;
+  final String? weatherWind;
+  final String? weatherDescription;
   final String? locationName;
 }
 

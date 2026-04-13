@@ -210,6 +210,10 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.read<NotificationProvider>();
     final l10n = AppLocalizations.of(context)!;
+    final localeCode = l10n.localeName.toLowerCase();
+    final isArabic = localeCode.startsWith('ar');
+    final displayTitle = _translatedTitle(item, l10n, isArabic: isArabic);
+    final displayBody = _resolvedBody(item, l10n, isArabic: isArabic);
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
@@ -237,42 +241,39 @@ class _NotificationCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _translatedTitle(item, l10n),
-                          style: AppTextStyles.cardTitle.copyWith(
-                            fontSize: 14,
-                            color: item.isRead
-                                ? AppColors.textSubtle
-                                : AppColors.textDark,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        _formatDate(item.createdAt),
-                        style: AppTextStyles.caption,
-                      ),
-                    ],
+                  Text(
+                    displayTitle,
+                    style: AppTextStyles.cardTitle.copyWith(
+                      fontSize: 14,
+                      color:
+                          item.isRead ? AppColors.textSubtle : AppColors.textDark,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    item.body,
-                    style: AppTextStyles.label.copyWith(
-                      fontSize: 14,
-                      color: AppColors.textSubtle,
+                  if (displayBody.isNotEmpty)
+                    Text(
+                      displayBody,
+                      softWrap: true,
+                      style: AppTextStyles.label.copyWith(
+                        fontSize: 14,
+                        color: AppColors.textSubtle,
+                        height: 1.35,
+                      ),
                     ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _formatDate(item.createdAt, isArabic: isArabic),
+                    style: AppTextStyles.caption,
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 8),
             Column(
               children: [
                 if (!item.isRead)
                   Container(
-                    margin: const EdgeInsets.only(bottom: 4),
+                    margin: const EdgeInsets.only(bottom: 6),
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
@@ -295,21 +296,101 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  String _translatedTitle(AppNotification item, AppLocalizations l10n) {
-    final t = item.title.toLowerCase();
+  String _translatedTitle(AppNotification item, AppLocalizations l10n,
+      {required bool isArabic}) {
+    final localizedTitle = _localizeKnownText(item.title, isArabic: isArabic);
+    final t = localizedTitle.toLowerCase();
+    final city = _extractRecommendationCity(item.title);
+    if (city != null) {
+      return isArabic ? 'توصية زراعية' : 'Agricultural Recommendation';
+    }
+    if (t.contains('نتائج تحليل التربة')) {
+      return isArabic ? 'نتائج تحليل التربة' : 'Soil Analysis Results';
+    }
     if (t.contains('report')) return l10n.report_ready;
     if (t.contains('ai response')) return l10n.ai_response_ready;
     if (t.contains('welcome')) return l10n.welcome_to_smart_farm;
     if (t.contains('system')) return l10n.system_update;
-    return item.title;
+    return localizedTitle;
   }
 
-  String _formatDate(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return 'الآن';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}د';
-    if (diff.inHours < 24) return '${diff.inHours}س';
-    return '${dt.day}/${dt.month}';
+  String _resolvedBody(AppNotification item, AppLocalizations l10n,
+      {required bool isArabic}) {
+    final rawBody = item.body.trim();
+    if (rawBody.isNotEmpty) {
+      return _localizeKnownText(rawBody, isArabic: isArabic);
+    }
+
+    final city = _extractRecommendationCity(item.title);
+    if (city != null) {
+      return isArabic ? 'توصية زراعية لمدينة $city 🌾' : 'Agricultural recommendation for $city 🌾';
+    }
+    if (item.title.toLowerCase().contains('نتائج تحليل التربة')) {
+      return isArabic ? 'تم تجهيز نتائج التحليل بنجاح.' : 'Your analysis results are ready.';
+    }
+    return '';
+  }
+
+  String? _extractRecommendationCity(String title) {
+    final arabic = RegExp(r'توصية\s*زراعية\s*لمدينة\s+(.+)$').firstMatch(title);
+    if (arabic != null) return arabic.group(1)?.trim();
+
+    final english = RegExp(r'agricultural\s*recommendation\s*for\s+(.+)$', caseSensitive: false)
+        .firstMatch(title);
+    if (english != null) return english.group(1)?.trim();
+    return null;
+  }
+
+  String _formatDate(DateTime dt, {required bool isArabic}) {
+    final backend = item.backendTimeText?.trim();
+    if (backend != null && backend.isNotEmpty) {
+      return _localizeKnownText(backend, isArabic: isArabic);
+    }
+
+    final now = DateTime.now();
+    var diff = now.difference(dt);
+    if (diff.isNegative) diff = Duration.zero;
+
+    if (diff.inMinutes < 1) return isArabic ? 'الآن' : 'Just now';
+    if (diff.inMinutes < 60) {
+      return isArabic ? 'منذ ${diff.inMinutes} د' : '${diff.inMinutes}m ago';
+    }
+    if (diff.inHours < 24) {
+      return isArabic ? 'منذ ${diff.inHours} س' : '${diff.inHours}h ago';
+    }
+    if (diff.inDays < 7) {
+      return isArabic ? 'منذ ${diff.inDays} يوم' : '${diff.inDays}d ago';
+    }
+    return '${dt.day}/${dt.month}/${dt.year}';
+  }
+
+  String _localizeKnownText(String text, {required bool isArabic}) {
+    var out = text.trim();
+    if (out.isEmpty) return out;
+
+    if (isArabic) {
+      out = out.replaceAll(
+        RegExp(r'Agricultural Recommendation', caseSensitive: false),
+        'توصية زراعية',
+      );
+      out = out.replaceAll(
+        RegExp(r'Soil Analysis Results', caseSensitive: false),
+        'نتائج تحليل التربة',
+      );
+      out = out.replaceAll(RegExp(r'Just now', caseSensitive: false), 'الآن');
+      return out;
+    }
+
+    final cityMatch = RegExp(r'توصية\s*زراعية\s*لمدينة\s+(.+)$').firstMatch(out);
+    if (cityMatch != null) {
+      final city = cityMatch.group(1)?.trim() ?? '';
+      return city.isEmpty
+          ? 'Agricultural recommendation'
+          : 'Agricultural recommendation for $city';
+    }
+    out = out.replaceAll('نتائج تحليل التربة', 'Soil analysis results');
+    out = out.replaceAll(RegExp(r'الآن'), 'Just now');
+    return out;
   }
 }
 

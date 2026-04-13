@@ -155,19 +155,19 @@ class _SoilAnalysisPageState extends State<SoilAnalysisPage> {
                 Row(children: [
                   Expanded(
                       child: _ResultTile(
-                          label: 'Soil Type',
-                          value: prov.result!.soilType,
+                          label: l10n.soil_type,
+                          value: _localizedSoilType(prov.result!.soilType, l10n),
                           color: AppColors.primary)),
                   const SizedBox(width: 12),
                   Expanded(
                       child: _ResultTile(
-                          label: 'Fertility',
-                          value: prov.result!.fertilityLevel,
+                          label: l10n.soil_fertility,
+                          value: _localizedFertility(prov.result!.fertilityLevel, l10n),
                           color: _fertilityColor(prov.result!.fertilityLevel))),
                 ]),
                 if (prov.result!.recommendations.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  SfResultCard(title: 'Recommendations', children: [
+                  SfResultCard(title: l10n.soil_recommendations, children: [
                     ...prov.result!.recommendations.map((r) => Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Row(
@@ -179,8 +179,8 @@ class _SoilAnalysisPageState extends State<SoilAnalysisPage> {
                                 Expanded(
                                     child: Text(r,
                                         style: const TextStyle(
-                                            fontSize: 13,
-                                            color: AppColors.textMid))),
+                                            fontSize: 14,
+                                            color: AppColors.textDark))),
                               ]),
                         )),
                   ]),
@@ -199,14 +199,46 @@ class _SoilAnalysisPageState extends State<SoilAnalysisPage> {
 }
 
 Color _fertilityColor(String f) {
-  switch (f.toLowerCase()) {
+  final val = f.trim().toLowerCase();
+  switch (val) {
     case 'high':
+    case 'عالية':
       return AppColors.primary;
+    case 'medium':
     case 'moderate':
+    case 'متوسطة':
       return AppColors.warning;
     default:
       return AppColors.error;
   }
+}
+
+String _localizedSoilType(String value, AppLocalizations l10n) {
+  final v = value.trim().toLowerCase();
+  switch (v) {
+    case 'sandy':
+    case 'رملية':
+      return l10n.soil_sandy;
+    case 'loamy':
+    case 'طميية':
+      return l10n.soil_loamy;
+    case 'clay':
+    case 'طينية':
+      return l10n.soil_clay;
+    case 'silty':
+    case 'غرينية':
+      return l10n.soil_silty;
+    default:
+      return value;
+  }
+}
+
+String _localizedFertility(String value, AppLocalizations l10n) {
+  final v = value.trim().toLowerCase();
+  if (v == 'high' || v == 'عالية') return l10n.soil_fertility_high;
+  if (v == 'medium' || v == 'moderate' || v == 'متوسطة') return l10n.soil_fertility_medium;
+  if (v == 'low' || v == 'منخفضة') return l10n.soil_fertility_low;
+  return value;
 }
 
 class _ResultTile extends StatelessWidget {
@@ -229,7 +261,7 @@ class _ResultTile extends StatelessWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label,
-            style: const TextStyle(fontSize: 12, color: AppColors.textSubtle)),
+            style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
@@ -242,7 +274,7 @@ class _ResultTile extends StatelessWidget {
           child: Center(
               child: Text(value,
                   style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: color))),
         ),

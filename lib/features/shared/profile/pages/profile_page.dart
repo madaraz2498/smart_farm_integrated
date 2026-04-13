@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_farm/features/auth/providers/auth_provider.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
+import 'package:smart_farm/providers/navigation_provider.dart';
 import 'package:smart_farm/shared/theme/app_theme.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -116,6 +117,67 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _snack(String msg) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+  void _confirmLogout(AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n.logout, style: AppTextStyles.cardTitle),
+        content: Text(
+          l10n.confirm_logout_message,
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.textSubtle,
+            height: 1.5,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textSubtle,
+                    side: BorderSide(
+                      color: AppColors.cardBorder.withValues(alpha: 0.9),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(l10n.cancel),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.read<NavigationProvider>().reset();
+                    context.read<AuthProvider>().logout();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(l10n.logout),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -305,6 +367,25 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _confirmLogout(l10n),
+                  icon: const Icon(Icons.logout_rounded, size: 18),
+                  label: Text(l10n.logout),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: BorderSide(
+                      color: AppColors.error.withValues(alpha: 0.5),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),

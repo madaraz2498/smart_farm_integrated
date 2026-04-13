@@ -34,7 +34,18 @@ class LocationService {
     }
 
     try {
-      final position = await Geolocator.getCurrentPosition();
+      const locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 0,
+        timeLimit: Duration(seconds: 20),
+      );
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: locationSettings,
+      );
+      debugPrint(
+          '[LocationService] Position => lat=${position.latitude}, lon=${position.longitude}, accuracy=${position.accuracy}');
+
       final placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
@@ -44,6 +55,7 @@ class LocationService {
       if (placemarks.isNotEmpty) {
         city = placemarks.first.locality ?? placemarks.first.subAdministrativeArea ?? 'Unknown';
       }
+      debugPrint('[LocationService] Resolved city => $city');
 
       // Store in SharedPreferences
       final prefs = await SharedPreferences.getInstance();

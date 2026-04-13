@@ -361,6 +361,54 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chat_suggest_4 => 'آفات الطماطم الشائعة';
 
   @override
+  String get chat_history => 'سجل المحادثات';
+
+  @override
+  String get chat_recent => 'الأحدث';
+
+  @override
+  String get chat_older => 'الأقدم';
+
+  @override
+  String get back_to_dashboard => 'الرجوع للوحة التحكم';
+
+  @override
+  String get no_chats_yet => 'لا توجد محادثات بعد';
+
+  @override
+  String get start_new_chat_hint => 'ابدأ محادثة جديدة وستظهر هنا.';
+
+  @override
+  String get rename_chat_title => 'إعادة تسمية المحادثة';
+
+  @override
+  String get enter_new_title => 'أدخل عنوانًا جديدًا';
+
+  @override
+  String get save => 'حفظ';
+
+  @override
+  String get delete_chat_title => 'حذف المحادثة';
+
+  @override
+  String get delete_chat_confirm => 'هل أنت متأكد أنك تريد حذف هذه المحادثة؟';
+
+  @override
+  String get delete => 'حذف';
+
+  @override
+  String get typing => 'يكتب الآن...';
+
+  @override
+  String get new_chat => 'محادثة جديدة';
+
+  @override
+  String get chat_rename => 'إعادة تسمية';
+
+  @override
+  String get chat_delete => 'حذف';
+
+  @override
   String get disease_detection => 'كشف الأمراض';
 
   @override
@@ -945,4 +993,73 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get other => 'أخرى';
+
+  @override
+  String get weather_mild_alert => 'تنبيه بسيط';
+
+  @override
+  String get weather_wind_unit => 'كم/س';
+
+  @override
+  String get crop_input_parameters => 'مدخلات التوصية';
+
+  @override
+  String get crop_city_name => 'اسم المدينة';
+
+  @override
+  String get crop_soil_type => 'نوع التربة';
+
+  @override
+  String get crop_recommendation_result => 'نتيجة التوصية';
+
+  @override
+  String get crop_primary_crop => 'المحصول الأساسي';
+
+  @override
+  String get crop_secondary_crop => 'المحصول الثاني';
+
+  @override
+  String get crop_third_option => 'الخيار الثالث';
+
+  @override
+  String get crop_expert_advice => 'نصيحة الخبير';
+
+  @override
+  String get crop_daily_expert_guide => 'دليل الخبير اليومي';
+
+  @override
+  String get crop_weather_label => 'الطقس';
+
+  @override
+  String get crop_irrigation_advice_label => 'نصيحة الري';
+
+  @override
+  String get crop_fertilizer_advice_label => 'نصيحة التسميد';
+
+  @override
+  String get crop_disease_alert_label => 'تنبيه الأمراض';
+
+  @override
+  String get crop_city_hint => 'مثال: الجيزة';
+
+  @override
+  String get crop_status_safe => 'الجو مستقر ✅';
+
+  @override
+  String get crop_status_warning => 'انتبه لتغيرات الطقس ⚠️';
+
+  @override
+  String get crop_status_unknown => 'الحالة غير متاحة';
+
+  @override
+  String get soil_recommendations => 'التوصيات';
+
+  @override
+  String get soil_fertility_high => 'عالية';
+
+  @override
+  String get soil_fertility_medium => 'متوسطة';
+
+  @override
+  String get soil_fertility_low => 'منخفضة';
 }

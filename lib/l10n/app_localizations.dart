@@ -788,6 +788,102 @@ abstract class AppLocalizations {
   /// **'Common tomato pests'**
   String get chat_suggest_4;
 
+  /// No description provided for @chat_history.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat history'**
+  String get chat_history;
+
+  /// No description provided for @chat_recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get chat_recent;
+
+  /// No description provided for @chat_older.
+  ///
+  /// In en, this message translates to:
+  /// **'Older'**
+  String get chat_older;
+
+  /// No description provided for @back_to_dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Dashboard'**
+  String get back_to_dashboard;
+
+  /// No description provided for @no_chats_yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No chats yet'**
+  String get no_chats_yet;
+
+  /// No description provided for @start_new_chat_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new chat and it will appear here.'**
+  String get start_new_chat_hint;
+
+  /// No description provided for @rename_chat_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Chat'**
+  String get rename_chat_title;
+
+  /// No description provided for @enter_new_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter new title'**
+  String get enter_new_title;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @delete_chat_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Chat'**
+  String get delete_chat_title;
+
+  /// No description provided for @delete_chat_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this conversation?'**
+  String get delete_chat_confirm;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @typing.
+  ///
+  /// In en, this message translates to:
+  /// **'Typing...'**
+  String get typing;
+
+  /// No description provided for @new_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'New Chat'**
+  String get new_chat;
+
+  /// No description provided for @chat_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get chat_rename;
+
+  /// No description provided for @chat_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get chat_delete;
+
   /// No description provided for @disease_detection.
   ///
   /// In en, this message translates to:
@@ -1915,6 +2011,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get other;
+
+  /// No description provided for @weather_mild_alert.
+  ///
+  /// In en, this message translates to:
+  /// **'Mild alert'**
+  String get weather_mild_alert;
+
+  /// No description provided for @weather_wind_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'km/h'**
+  String get weather_wind_unit;
+
+  /// No description provided for @crop_input_parameters.
+  ///
+  /// In en, this message translates to:
+  /// **'Input Parameters'**
+  String get crop_input_parameters;
+
+  /// No description provided for @crop_city_name.
+  ///
+  /// In en, this message translates to:
+  /// **'City Name'**
+  String get crop_city_name;
+
+  /// No description provided for @crop_soil_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Soil Type'**
+  String get crop_soil_type;
+
+  /// No description provided for @crop_recommendation_result.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendation Result'**
+  String get crop_recommendation_result;
+
+  /// No description provided for @crop_primary_crop.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary Crop'**
+  String get crop_primary_crop;
+
+  /// No description provided for @crop_secondary_crop.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary Crop'**
+  String get crop_secondary_crop;
+
+  /// No description provided for @crop_third_option.
+  ///
+  /// In en, this message translates to:
+  /// **'Third Option'**
+  String get crop_third_option;
+
+  /// No description provided for @crop_expert_advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Expert Advice'**
+  String get crop_expert_advice;
+
+  /// No description provided for @crop_daily_expert_guide.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Expert Guide'**
+  String get crop_daily_expert_guide;
+
+  /// No description provided for @crop_weather_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get crop_weather_label;
+
+  /// No description provided for @crop_irrigation_advice_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Irrigation Advice'**
+  String get crop_irrigation_advice_label;
+
+  /// No description provided for @crop_fertilizer_advice_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Fertilizer Advice'**
+  String get crop_fertilizer_advice_label;
+
+  /// No description provided for @crop_disease_alert_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Disease Alert'**
+  String get crop_disease_alert_label;
+
+  /// No description provided for @crop_city_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. giza'**
+  String get crop_city_hint;
+
+  /// No description provided for @crop_status_safe.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather is stable ✅'**
+  String get crop_status_safe;
+
+  /// No description provided for @crop_status_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch weather changes ⚠️'**
+  String get crop_status_warning;
+
+  /// No description provided for @crop_status_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Status unavailable'**
+  String get crop_status_unknown;
+
+  /// No description provided for @soil_recommendations.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendations'**
+  String get soil_recommendations;
+
+  /// No description provided for @soil_fertility_high.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get soil_fertility_high;
+
+  /// No description provided for @soil_fertility_medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get soil_fertility_medium;
+
+  /// No description provided for @soil_fertility_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get soil_fertility_low;
 }
 
 class _AppLocalizationsDelegate

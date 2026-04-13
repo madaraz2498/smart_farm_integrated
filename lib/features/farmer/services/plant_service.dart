@@ -5,7 +5,7 @@ import '../models/plant_models.dart';
 
 /// POST /plants/detect
 /// Content-Type: multipart/form-data
-/// Field: "file" (image bytes)
+/// Field: "image" (image bytes)
 class PlantService {
   PlantService._();
   static final PlantService instance = PlantService._();
@@ -21,18 +21,27 @@ class PlantService {
     try {
       final data = await _c.postMultipart(
         '/plants/detect',
-        fileField: 'file',
+        fileField: 'image',
         fileBytes: imageBytes,
         fileName: fileName,
         fields: {'user_id': userId},
       );
       debugPrint('[PlantService] response: $data');
-      return PlantDiseaseResponse.fromJson(data as Map<String, dynamic>);
+      return PlantDiseaseResponse.fromJson(_asMap(data));
     } on ApiException {
       rethrow;
     } catch (e) {
       debugPrint('[PlantService] error: $e');
       throw const ApiException('Plant disease analysis failed.');
     }
+  }
+
+  Map<String, dynamic> _asMap(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final nested = data['data'] ?? data['result'] ?? data['prediction'];
+      if (nested is Map<String, dynamic>) return nested;
+      return data;
+    }
+    throw const ApiException('Invalid plant response format.');
   }
 }

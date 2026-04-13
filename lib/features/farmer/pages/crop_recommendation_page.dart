@@ -15,36 +15,18 @@ class CropRecommendationPage extends StatefulWidget {
 }
 
 class _CropRecommendationPageState extends State<CropRecommendationPage> {
-  final _tempCtrl = TextEditingController();
-  final _humCtrl = TextEditingController();
-  final _rainCtrl = TextEditingController();
-  final _phCtrl = TextEditingController();
-  final _nCtrl = TextEditingController();
-  final _pCtrl = TextEditingController();
-  final _kCtrl = TextEditingController();
+  final _cityCtrl = TextEditingController();
   String? _soilType;
   String? _validErr;
 
   @override
   void dispose() {
-    for (final c in [
-      _tempCtrl,
-      _humCtrl,
-      _rainCtrl,
-      _phCtrl,
-      _nCtrl,
-      _pCtrl,
-      _kCtrl
-    ]) {
-      c.dispose();
-    }
+    _cityCtrl.dispose();
     super.dispose();
   }
 
   bool _validate(AppLocalizations l10n) {
-    if (_tempCtrl.text.isEmpty ||
-        _humCtrl.text.isEmpty ||
-        _rainCtrl.text.isEmpty) {
+    if (_cityCtrl.text.trim().isEmpty) {
       setState(() => _validErr = l10n.field_required);
       return false;
     }
@@ -55,14 +37,8 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
   void _submit(CropProvider prov, AppLocalizations l10n) {
     if (!_validate(l10n)) return;
     prov.recommend(CropRecommendationRequest(
-      temperature: double.tryParse(_tempCtrl.text) ?? 0,
-      humidity: double.tryParse(_humCtrl.text) ?? 0,
-      rainfall: double.tryParse(_rainCtrl.text) ?? 0,
+      cityName: _cityCtrl.text.trim(),
       soilType: _soilType ?? 'Sandy',
-      ph: double.tryParse(_phCtrl.text),
-      nitrogen: double.tryParse(_nCtrl.text),
-      phosphorus: double.tryParse(_pCtrl.text),
-      potassium: double.tryParse(_kCtrl.text),
     ));
   }
 
@@ -81,17 +57,7 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
     return Consumer<CropProvider>(builder: (context, prov, _) {
       return RefreshIndicator(
         onRefresh: () async {
-          for (final c in [
-            _tempCtrl,
-            _humCtrl,
-            _rainCtrl,
-            _phCtrl,
-            _nCtrl,
-            _pCtrl,
-            _kCtrl
-          ]) {
-            c.clear();
-          }
+          _cityCtrl.clear();
           setState(() {
             _soilType = 'Sandy';
             _validErr = null;
@@ -142,90 +108,53 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
                             child: const Icon(Icons.eco_outlined,
                                 color: AppColors.primary, size: 20)),
                         const SizedBox(width: 12),
-                        Text(l10n.environmental_parameters,
+                        Text(l10n.crop_input_parameters,
                             style: AppTextStyles.cardTitle),
                       ]),
                       const SizedBox(height: 20),
-
-                      // Required fields
-                      SfTextField(
-                          controller: _tempCtrl,
-                          hint: '25',
-                          label: l10n.temperature_c,
-                          keyboardType: TextInputType.number),
-                      const SizedBox(height: 14),
-                      SfTextField(
-                          controller: _humCtrl,
-                          hint: '60',
-                          label: l10n.humidity_p,
-                          keyboardType: TextInputType.number),
-                      const SizedBox(height: 14),
-                      SfTextField(
-                          controller: _rainCtrl,
-                          hint: '200',
-                          label: l10n.rainfall_mm,
-                          keyboardType: TextInputType.number),
-                      const SizedBox(height: 20),
-
-                      // Optional fields
-                      Text(l10n.soil_type, style: AppTextStyles.label),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius:
-                              BorderRadius.circular(AppSizes.radiusMid),
-                          border: Border.all(color: AppColors.cardBorder),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _soilType,
-                            isExpanded: true,
-                            items: soilTypes
-                                .map((type) => DropdownMenuItem(
-                                      value: type['value'],
-                                      child: Text(type['label']!),
-                                    ))
-                                .toList(),
-                            onChanged: (v) => setState(() => _soilType = v),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SfTextField(
+                              controller: _cityCtrl,
+                              hint: l10n.crop_city_hint,
+                              label: l10n.crop_city_name,
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(l10n.crop_soil_type, style: AppTextStyles.label),
+                                const SizedBox(height: 8),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.background,
+                                    borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+                                    border: Border.all(color: AppColors.cardBorder),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: _soilType,
+                                      isExpanded: true,
+                                      items: soilTypes
+                                          .map((type) => DropdownMenuItem(
+                                                value: type['value'],
+                                                child: Text(type['label']!),
+                                              ))
+                                          .toList(),
+                                      onChanged: (v) => setState(() => _soilType = v),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 14),
-
-                      Row(children: [
-                        Expanded(
-                            child: SfTextField(
-                                controller: _phCtrl,
-                                hint: '6.5',
-                                label: l10n.soil_ph,
-                                keyboardType: TextInputType.number)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                            child: SfTextField(
-                                controller: _nCtrl,
-                                hint: '20',
-                                label: l10n.soil_nitrogen,
-                                keyboardType: TextInputType.number)),
-                      ]),
-                      const SizedBox(height: 14),
-                      Row(children: [
-                        Expanded(
-                            child: SfTextField(
-                                controller: _pCtrl,
-                                hint: '30',
-                                label: l10n.soil_phosphorus,
-                                keyboardType: TextInputType.number)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                            child: SfTextField(
-                                controller: _kCtrl,
-                                hint: '25',
-                                label: l10n.soil_potassium,
-                                keyboardType: TextInputType.number)),
-                      ]),
 
                       const SizedBox(height: 24),
                       if (_validErr != null) ...[
@@ -242,50 +171,139 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
               // ── Result ─────────────────────────────────────────────────────
               if (prov.status == ScanStatus.result && prov.result != null) ...[
                 const SizedBox(height: 20),
-                SfResultCard(title: 'Recommendation Result', children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-                      border: Border.all(
-                          color: AppColors.primary.withOpacity(0.25)),
-                    ),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                SfResultCard(title: l10n.crop_recommendation_result, children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 520;
+                      final cards = [
+                        _CropPickCard(
+                          title: l10n.crop_primary_crop,
+                          crop: prov.result!.primaryCrop ?? prov.result!.recommendedCrop,
+                          color: const Color(0xFFF59E0B),
+                        ),
+                        _CropPickCard(
+                          title: l10n.crop_secondary_crop,
+                          crop: prov.result!.secondaryCrop ?? '--',
+                          color: const Color(0xFF10B981),
+                        ),
+                        _CropPickCard(
+                          title: l10n.crop_third_option,
+                          crop: prov.result!.thirdOption ?? '--',
+                          color: const Color(0xFF3B82F6),
+                        ),
+                      ];
+
+                      if (isNarrow) {
+                        return Column(
+                          children: cards
+                              .map((c) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: c,
+                                  ))
+                              .toList(),
+                        );
+                      }
+
+                      return Row(
                         children: [
-                          const Text('Recommended Crop',
-                              style: TextStyle(
-                                  fontSize: 12, color: AppColors.primary)),
-                          const SizedBox(height: 4),
-                          Text(prov.result!.recommendedCrop,
-                              style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textDark)),
-                        ]),
+                          Expanded(child: cards[0]),
+                          const SizedBox(width: 10),
+                          Expanded(child: cards[1]),
+                          const SizedBox(width: 10),
+                          Expanded(child: cards[2]),
+                        ],
+                      );
+                    },
                   ),
-                  SfInfoRow(
-                      label: 'Expected Yield',
-                      value: prov.result!.yieldDisplay,
-                      valueColor: AppColors.primary),
+                  const SizedBox(height: 10),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: const Color(0xFFF8FAF9),
                       borderRadius: BorderRadius.circular(AppSizes.radiusMid),
                       border: Border.all(color: AppColors.cardBorder),
                     ),
-                    child: Text(prov.result!.explanation,
-                        style: const TextStyle(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.crop_expert_advice,
+                          style: const TextStyle(
                             fontSize: 13,
-                            color: AppColors.textSubtle,
-                            height: 1.5)),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          (prov.result!.expertAdvice?.isNotEmpty ?? false)
+                              ? prov.result!.expertAdvice!
+                              : prov.result!.explanation,
+                          style: const TextStyle(fontSize: 14, color: AppColors.textDark, height: 1.5),
+                        ),
+                      ],
+                    ),
                   ),
                 ]),
+
+                if ((prov.result!.generalStatus?.isNotEmpty ?? false)) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle_rounded, size: 18, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _normalizeGeneralStatus(prov.result!.generalStatus!, l10n),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                if (prov.result!.dailyGuide.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  SfResultCard(title: l10n.crop_daily_expert_guide, children: [
+                    ...prov.result!.dailyGuide.take(6).map(
+                          (d) => Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+                              border: Border.all(color: AppColors.cardBorder),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(d.date, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                                const SizedBox(height: 6),
+                                Text('${l10n.crop_weather_label}: ${d.weather}', style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
+                                Text('${l10n.crop_irrigation_advice_label}: ${d.irrigationAdvice}', style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
+                                Text('${l10n.crop_fertilizer_advice_label}: ${d.fertilizerAdvice}', style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
+                                Text('${l10n.crop_disease_alert_label}: ${d.diseaseAlert}', style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
+                              ],
+                            ),
+                          ),
+                        ),
+                  ]),
+                ],
               ],
               if (prov.status == ScanStatus.error && prov.error != null) ...[
                 const SizedBox(height: 20),
@@ -297,4 +315,59 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
       );
     });
   }
+}
+
+class _CropPickCard extends StatelessWidget {
+  const _CropPickCard({
+    required this.title,
+    required this.crop,
+    required this.color,
+  });
+
+  final String title;
+  final String crop;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.grass_rounded, color: Colors.white, size: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(title, style: const TextStyle(fontSize: 12, color: AppColors.textDark)),
+          const SizedBox(height: 4),
+          Text(crop, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+        ],
+      ),
+    );
+  }
+}
+
+String _normalizeGeneralStatus(String text, AppLocalizations l10n) {
+  var cleaned = text.trim();
+  if (cleaned.toLowerCase().startsWith('general status')) {
+    cleaned = cleaned.substring('general status'.length).trim();
+  }
+  cleaned = cleaned.replaceAll(':', '').trim();
+  final normalized = cleaned.toLowerCase();
+  if (normalized == 'safe' || normalized == 'stable') return l10n.crop_status_safe;
+  if (normalized == 'warning' || normalized == 'alert') return l10n.crop_status_warning;
+  if (normalized.isEmpty) return l10n.crop_status_unknown;
+  return cleaned;
 }

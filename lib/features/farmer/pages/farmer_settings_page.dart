@@ -6,10 +6,8 @@ import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
-import '../../../providers/navigation_provider.dart';
 import '../../../providers/locale_provider.dart';
 import '../../../shared/theme/app_theme.dart';
-import '../../../shared/widgets/sf_button.dart';
 
 class FarmerSettingsPage extends StatefulWidget {
   const FarmerSettingsPage({super.key});
@@ -87,38 +85,6 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
   @override
   void dispose() {
     super.dispose();
-  }
-
-  void _confirmLogout(AppLocalizations l10n) {
-    showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16)),
-          title: Text(l10n.logout, style: AppTextStyles.cardTitle),
-          content: Text(l10n.confirm_logout_message,
-              style: const TextStyle(
-                  fontSize: 14, color: AppColors.textSubtle, height: 1.5)),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l10n.cancel,
-                    style:
-                    const TextStyle(color: AppColors.textSubtle))),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                context.read<NavigationProvider>().reset();
-                context.read<AuthProvider>().logout();
-              },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.error,
-                  foregroundColor: Colors.white),
-              child: Text(l10n.logout),
-            ),
-          ],
-        ));
   }
 
   @override
@@ -256,12 +222,6 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
                       child: LinearProgressIndicator(),
                     ),
                 ]),
-                const SizedBox(height: 24),
-
-                SfOutlineButton(
-                    label: l10n.logout,
-                    onPressed: () => _confirmLogout(l10n),
-                    color: AppColors.error),
               ]),
             )),
       ),
