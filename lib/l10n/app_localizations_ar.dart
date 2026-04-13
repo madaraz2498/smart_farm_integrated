@@ -679,6 +679,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get email_notifications => 'إشعارات البريد الإلكتروني';
 
   @override
+  String get email_notifications_desc =>
+      'استقبال الإشعارات عبر البريد الإلكتروني';
+
+  @override
+  String get analysis_completion_alerts => 'تنبيهات اكتمال التحليل';
+
+  @override
+  String get analysis_completion_alerts_desc =>
+      'إشعار عند انتهاء أي تحليل (نباتات، تربة، فاكهة)';
+
+  @override
+  String get weekly_report_summary => 'ملخص التقرير الأسبوعي';
+
+  @override
+  String get weekly_report_summary_desc => 'تلقّي ملخص أسبوعي بنشاط المزرعة';
+
+  @override
+  String get notification_settings_saved => 'تم حفظ إعدادات الإشعارات';
+
+  @override
   String get service => 'خدمة';
 
   @override

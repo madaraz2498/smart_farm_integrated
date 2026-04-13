@@ -1400,6 +1400,42 @@ abstract class AppLocalizations {
   /// **'Email Notifications'**
   String get email_notifications;
 
+  /// No description provided for @email_notifications_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive notifications via email'**
+  String get email_notifications_desc;
+
+  /// No description provided for @analysis_completion_alerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis Completion Alerts'**
+  String get analysis_completion_alerts;
+
+  /// No description provided for @analysis_completion_alerts_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when an analysis is complete (plants, soil, fruit)'**
+  String get analysis_completion_alerts_desc;
+
+  /// No description provided for @weekly_report_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Report Summary'**
+  String get weekly_report_summary;
+
+  /// No description provided for @weekly_report_summary_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive a weekly summary of your farm activities'**
+  String get weekly_report_summary_desc;
+
+  /// No description provided for @notification_settings_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings saved'**
+  String get notification_settings_saved;
+
   /// No description provided for @service.
   ///
   /// In en, this message translates to:

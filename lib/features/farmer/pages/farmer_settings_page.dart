@@ -54,6 +54,7 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
     final userId = context.read<AuthProvider>().currentUser?.id;
     if (userId == null) return;
 
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _savingSettings = true);
 
     final success =
@@ -70,7 +71,7 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
       setState(() => _savingSettings = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
-            success ? 'تم حفظ إعدادات الإشعارات' : 'فشل حفظ الإعدادات'),
+            success ? l10n.notification_settings_saved : l10n.failed_to_save_changes),
         backgroundColor: success ? AppColors.primary : AppColors.error,
         behavior: SnackBarBehavior.floating,
       ));
@@ -217,8 +218,8 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
                   // 1. Email notifications
                   _ToggleRow(
                     icon: Icons.email_outlined,
-                    label: 'إشعارات البريد الإلكتروني',
-                    subtitle: 'استقبال الإشعارات عبر البريد',
+                    label: l10n.email_notifications,
+                    subtitle: l10n.email_notifications_desc,
                     value: _emailNotificationsFarmer,
                     disabled: _savingSettings,
                     onChanged: (v) =>
@@ -229,8 +230,8 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
                   // 2. Analysis completion alerts
                   _ToggleRow(
                     icon: Icons.analytics_outlined,
-                    label: 'تنبيهات اكتمال التحليل',
-                    subtitle: 'إشعار عند انتهاء أي تحليل (نباتات، تربة، فاكهة)',
+                    label: l10n.analysis_completion_alerts,
+                    subtitle: l10n.analysis_completion_alerts_desc,
                     value: _analysisCompletionAlerts,
                     disabled: _savingSettings,
                     onChanged: (v) =>
@@ -241,8 +242,8 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
                   // 3. Weekly report summary
                   _ToggleRow(
                     icon: Icons.summarize_outlined,
-                    label: 'ملخص التقرير الأسبوعي',
-                    subtitle: 'تلقّي ملخص أسبوعي بنشاط المزرعة',
+                    label: l10n.weekly_report_summary,
+                    subtitle: l10n.weekly_report_summary_desc,
                     value: _weeklyReportSummary,
                     disabled: _savingSettings,
                     onChanged: (v) =>

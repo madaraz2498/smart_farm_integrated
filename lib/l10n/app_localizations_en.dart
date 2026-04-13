@@ -678,6 +678,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get email_notifications => 'Email Notifications';
 
   @override
+  String get email_notifications_desc => 'Receive notifications via email';
+
+  @override
+  String get analysis_completion_alerts => 'Analysis Completion Alerts';
+
+  @override
+  String get analysis_completion_alerts_desc =>
+      'Get notified when an analysis is complete (plants, soil, fruit)';
+
+  @override
+  String get weekly_report_summary => 'Weekly Report Summary';
+
+  @override
+  String get weekly_report_summary_desc =>
+      'Receive a weekly summary of your farm activities';
+
+  @override
+  String get notification_settings_saved => 'Notification settings saved';
+
+  @override
   String get service => 'Service';
 
   @override
