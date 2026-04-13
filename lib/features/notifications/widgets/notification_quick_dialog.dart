@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import '../models/notification_model.dart';
 import '../screens/notifications_screen.dart';
@@ -52,7 +53,10 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                 ),
                 if (provider.unreadCount > 0)
                   TextButton(
-                    onPressed: () => provider.markAllAsRead(),
+                    onPressed: () {
+                      final userId = context.read<AuthProvider>().currentUser?.id;
+                      if (userId != null) provider.markAllAsRead(userId: userId);
+                    },
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       minimumSize: Size.zero,
@@ -96,7 +100,7 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                 padding: EdgeInsets.zero,
                 itemCount: notifications.length,
                 separatorBuilder: (_, __) =>
-                    const Divider(height: 1, color: AppColors.divider),
+                const Divider(height: 1, color: AppColors.divider),
                 itemBuilder: (context, index) {
                   final item = notifications[index];
                   return _NotificationItem(item: item);

@@ -1,6 +1,7 @@
 // lib/features/auth/screens/auth_wrapper.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 import 'package:smart_farm/providers/location_provider.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
@@ -14,13 +15,34 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
+  AuthStatus? _lastStatus;
+
   @override
   void initState() {
     super.initState();
-    // Request location on first startup to get city & coords
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<LocationProvider>().requestLocation(force: false);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final status = context.watch<AuthProvider>().status;
+    if (status == AuthStatus.authenticated && _lastStatus != AuthStatus.authenticated) {
+      _onAuthenticated();
+    } else if (status == AuthStatus.unauthenticated && _lastStatus == AuthStatus.authenticated) {
+      context.read<NotificationProvider>().stopRefreshTimer();
+    }
+    _lastStatus = status;
+  }
+
+  void _onAuthenticated() {
+    final userId = context.read<AuthProvider>().currentUser?.id;
+    if (userId == null) return;
+    final notifProvider = context.read<NotificationProvider>();
+    notifProvider.fetchNotifications(userId: userId);
+    notifProvider.startRefreshTimer(userId);
   }
 
   @override
@@ -28,16 +50,16 @@ class _AuthWrapperState extends State<AuthWrapper> {
     final auth = context.watch<AuthProvider>();
     return switch (auth.status) {
       AuthStatus.unknown => const Scaffold(
-            body: Center(
-                child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Loading…',
-                style: TextStyle(color: Color(0xFF6B7280), fontSize: 14)),
-          ],
-        ))),
+          body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading…',
+                      style: TextStyle(color: Color(0xFF6B7280), fontSize: 14)),
+                ],
+              ))),
       AuthStatus.unauthenticated => const LoginScreen(),
       AuthStatus.authenticated => const MainLayout(),
     };

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
+import 'package:smart_farm/features/notifications/models/notification_model.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../providers/navigation_provider.dart';
@@ -20,6 +21,12 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userId = context.read<AuthProvider>().currentUser?.id;
+      if (userId != null) {
+        context.read<NotificationProvider>().fetchFarmerSettings(userId: userId);
+      }
+    });
   }
 
   @override
@@ -110,7 +117,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                   title: l10n.language_selection,
                   child: Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF9FAFB),
                       borderRadius: BorderRadius.circular(12),
@@ -142,31 +149,52 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                   icon: Icons.notifications_none_outlined,
                   title: l10n.notification_preferences,
                   child: Consumer<NotificationProvider>(
-                    builder: (context, notif, _) => Column(
-                      children: [
-                        _buildSwitchTile(
-                          title: l10n.push_notifications,
-                          value: notif.pushEnabled,
-                          onChanged: (v) {
-                            final userId =
-                                context.read<AuthProvider>().currentUser?.id ??
-                                    '1';
-                            notif.updateSettings(userId: userId, push: v);
-                          },
-                        ),
-                        const Divider(height: 1, color: AppColors.divider),
-                        _buildSwitchTile(
-                          title: l10n.email_notifications,
-                          value: notif.emailEnabled,
-                          onChanged: (v) {
-                            final userId =
-                                context.read<AuthProvider>().currentUser?.id ??
-                                    '1';
-                            notif.updateSettings(userId: userId, email: v);
-                          },
-                        ),
-                      ],
-                    ),
+                    builder: (context, notif, _) {
+                      final userId =
+                          context.read<AuthProvider>().currentUser?.id ?? '';
+                      return Column(
+                        children: [
+                          _buildSwitchTile(
+                            title: l10n.push_notifications,
+                            value: notif.adminSettings.pushNotifications,
+                            onChanged: notif.isSettingsLoading
+                                ? null
+                                : (v) => notif.updateAdminSettings(
+                              userId: userId,
+                              updatedSettings: AdminNotificationSettings(
+                                pushNotifications: v,
+                                emailNotifications:
+                                notif.adminSettings.emailNotifications,
+                                smsNotifications:
+                                notif.adminSettings.smsNotifications,
+                              ),
+                            ),
+                          ),
+                          const Divider(height: 1, color: AppColors.divider),
+                          _buildSwitchTile(
+                            title: l10n.email_notifications,
+                            value: notif.adminSettings.emailNotifications,
+                            onChanged: notif.isSettingsLoading
+                                ? null
+                                : (v) => notif.updateAdminSettings(
+                              userId: userId,
+                              updatedSettings: AdminNotificationSettings(
+                                pushNotifications:
+                                notif.adminSettings.pushNotifications,
+                                emailNotifications: v,
+                                smsNotifications:
+                                notif.adminSettings.smsNotifications,
+                              ),
+                            ),
+                          ),
+                          if (notif.isSettingsLoading)
+                            const Padding(
+                              padding: EdgeInsets.only(top: 8),
+                              child: LinearProgressIndicator(),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                 ),
 
@@ -255,7 +283,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color:
-                      isSelected ? AppColors.primary : AppColors.textDisabled,
+                  isSelected ? AppColors.primary : AppColors.textDisabled,
                   width: isSelected ? 6 : 2,
                 ),
               ),
@@ -278,7 +306,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
   Widget _buildSwitchTile({
     required String title,
     required bool value,
-    required ValueChanged<bool> onChanged,
+    required ValueChanged<bool>? onChanged,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

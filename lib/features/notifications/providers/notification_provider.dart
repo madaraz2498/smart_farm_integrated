@@ -1,189 +1,200 @@
+// lib/features/notifications/providers/notification_provider.dart
+
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
 
 class NotificationProvider extends ChangeNotifier {
   final NotificationService _service = NotificationService();
-  static const String _storageKey = 'system_activity_logs';
 
   List<AppNotification> _notifications = [];
+  FarmerNotificationSettings _farmerSettings =
+  const FarmerNotificationSettings();
+  AdminNotificationSettings _adminSettings = const AdminNotificationSettings();
+
   bool _isLoading = false;
+  bool _isSettingsLoading = false;
+  String? _error;
   Timer? _refreshTimer;
 
-  bool _pushEnabled = true;
-  bool _emailEnabled = false;
-
-  NotificationProvider() {
-    _loadFromStorage();
-  }
-
-  // ── Storage ────────────────────────────────────────────────────────────────
-  Future<void> _loadFromStorage() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? jsonStr = prefs.getString(_storageKey);
-      if (jsonStr != null) {
-        final List<dynamic> decoded = jsonDecode(jsonStr);
-        final localLogs = decoded
-            .map((item) =>
-                AppNotification.fromJson(item as Map<String, dynamic>))
-            .toList();
-
-        _notifications = [...localLogs];
-        debugPrint(
-            '[NotificationProvider] Loaded ${_notifications.length} notifications from storage.');
-      } else {
-        debugPrint(
-            '[NotificationProvider] No saved logs found. Creating dummy data.');
-        // Initial dummy data for the first run since backend is missing
-        _notifications = [];
-        _saveToStorage();
-      }
-      _notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      notifyListeners();
-    } catch (e) {
-      debugPrint('[NotificationProvider] Error loading logs: $e');
-    }
-  }
-
-  Future<void> _saveToStorage() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      // Keep only last 50 activities to avoid bloating storage
-      final toSave = _notifications.take(50).map((n) => n.toJson()).toList();
-      await prefs.setString(_storageKey, jsonEncode(toSave));
-      debugPrint(
-          '[NotificationProvider] Saved ${toSave.length} notifications to storage.');
-    } catch (e) {
-      debugPrint('[NotificationProvider] Error saving logs: $e');
-    }
-  }
-
   List<AppNotification> get notifications => _notifications;
+  FarmerNotificationSettings get farmerSettings => _farmerSettings;
+  AdminNotificationSettings get adminSettings => _adminSettings;
   bool get isLoading => _isLoading;
-  bool get pushEnabled => _pushEnabled;
-  bool get emailEnabled => _emailEnabled;
-
+  bool get isSettingsLoading => _isSettingsLoading;
+  String? get error => _error;
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
-  Future<void> fetchNotifications(
-      {required String userId, bool showLoading = true}) async {
-    // Disabled remote fetching because backend endpoint is missing (404)
-    // We rely purely on local storage for now.
-    /*
+  // ── Fetch notifications ───────────────────────────────────────────────────
+
+  Future<void> fetchNotifications({
+    required String userId,
+    bool showLoading = true,
+  }) async {
     if (showLoading) {
       _isLoading = true;
+      _error = null;
       notifyListeners();
     }
-
     try {
       final results = await _service.getNotifications(userId);
-      final localOnly = _notifications
-          .where((n) => n.userId == 'local' && !n.isRead)
-          .toList();
-
-      _notifications = [...results, ...localOnly];
-      _notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _notifications = results
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _error = null;
     } catch (e) {
-      debugPrint('[NotificationProvider] fetch error: $e');
+      _error = e.toString();
     } finally {
-      if (showLoading) {
-        _isLoading = false;
-      }
+      _isLoading = false;
       notifyListeners();
     }
-    */
   }
+
+  // ── Mark single as read ───────────────────────────────────────────────────
+
+  Future<void> markAsRead(String notifId) async {
+    final index = _notifications.indexWhere((n) => n.id == notifId);
+    if (index == -1 || _notifications[index].isRead) return;
+
+    _notifications[index] = _notifications[index].copyWith(isRead: true);
+    notifyListeners();
+
+    final ok = await _service.markAsRead(notifId);
+    if (!ok) {
+      _notifications[index] = _notifications[index].copyWith(isRead: false);
+      notifyListeners();
+    }
+  }
+
+  // ── Mark all as read ──────────────────────────────────────────────────────
+
+  Future<void> markAllAsRead({required String userId}) async {
+    if (_notifications.isEmpty) return;
+    final previous = List<AppNotification>.from(_notifications);
+    _notifications = _notifications.map((n) => n.copyWith(isRead: true)).toList();
+    notifyListeners();
+
+    final ok = await _service.markAllAsRead(userId);
+    if (!ok) {
+      _notifications = previous;
+      notifyListeners();
+    }
+  }
+
+  // ── Delete single ─────────────────────────────────────────────────────────
+
+  Future<void> deleteNotification(String notifId) async {
+    final index = _notifications.indexWhere((n) => n.id == notifId);
+    if (index == -1) return;
+
+    final removed = _notifications.removeAt(index);
+    notifyListeners();
+
+    final ok = await _service.deleteNotification(notifId);
+    if (!ok) {
+      _notifications.insert(index, removed);
+      notifyListeners();
+    }
+  }
+
+  // ── Delete all ────────────────────────────────────────────────────────────
+
+  Future<void> deleteAllNotifications({required String userId}) async {
+    if (_notifications.isEmpty) return;
+    final previous = List<AppNotification>.from(_notifications);
+    _notifications = [];
+    notifyListeners();
+
+    final ok = await _service.deleteAllNotifications(userId);
+    if (!ok) {
+      _notifications = previous;
+      notifyListeners();
+    }
+  }
+
+  // ── Farmer settings ───────────────────────────────────────────────────────
+
+  Future<void> fetchFarmerSettings({required String userId}) async {
+    _isSettingsLoading = true;
+    notifyListeners();
+
+    final result = await _service.getFarmerSettings(userId);
+    if (result != null) _farmerSettings = result;
+
+    _isSettingsLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> updateFarmerSettings({
+    required String userId,
+    required FarmerNotificationSettings updatedSettings,
+  }) async {
+    final previous = _farmerSettings;
+    _farmerSettings = updatedSettings;
+    notifyListeners();
+
+    final ok = await _service.updateFarmerSettings(userId, updatedSettings);
+    if (!ok) {
+      _farmerSettings = previous;
+      notifyListeners();
+    }
+    return ok;
+  }
+
+  // ── Admin settings ────────────────────────────────────────────────────────
+
+  Future<bool> updateAdminSettings({
+    required String userId,
+    required AdminNotificationSettings updatedSettings,
+  }) async {
+    final previous = _adminSettings;
+    _adminSettings = updatedSettings;
+    notifyListeners();
+
+    final ok = await _service.updateAdminSettings(userId, updatedSettings);
+    if (!ok) {
+      _adminSettings = previous;
+      notifyListeners();
+    }
+    return ok;
+  }
+
+  // ── Local / in-app notifications ──────────────────────────────────────────
 
   void addLocalNotification({
     required String title,
     required String body,
     required NotificationType type,
   }) {
-    debugPrint(
-        '[NotificationProvider] Adding local notification: $title - $body');
-    final newNotif = AppNotification(
-      id: 'local_${DateTime.now().millisecondsSinceEpoch}',
-      userId: 'local',
-      title: title,
-      body: body,
-      createdAt: DateTime.now(),
-      type: type,
-      isRead: false,
+    _notifications.insert(
+      0,
+      AppNotification(
+        id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+        userId: 'local',
+        title: title,
+        body: body,
+        createdAt: DateTime.now(),
+        type: type,
+        isRead: false,
+      ),
     );
-    _notifications.insert(0, newNotif);
-    notifyListeners();
-    _saveToStorage();
-  }
-
-  void addSystemNotification({required String title, required String body}) {
-    addLocalNotification(
-        title: title, body: body, type: NotificationType.system);
-  }
-
-  Future<void> markAsRead(String id) async {
-    final index = _notifications.indexWhere((n) => n.id == id);
-    if (index != -1) {
-      final original = _notifications[index];
-      if (original.isRead) return;
-
-      _notifications[index] = original.copyWith(isRead: true);
-      notifyListeners();
-      _saveToStorage();
-
-      if (original.userId != 'local') {
-        await _service.markAsRead(id);
-      }
-    }
-  }
-
-  Future<void> markAllAsRead() async {
-    if (_notifications.isEmpty) return;
-    _notifications =
-        _notifications.map((n) => n.copyWith(isRead: true)).toList();
-    notifyListeners();
-    _saveToStorage();
-    // In a real app, we'd sync with backend too
-  }
-
-  Future<void> deleteNotification(String id) async {
-    final index = _notifications.indexWhere((n) => n.id == id);
-    if (index != -1) {
-      final item = _notifications.removeAt(index);
-      notifyListeners();
-      _saveToStorage();
-
-      if (item.userId != 'local') {
-        await _service.deleteNotification(id);
-      }
-    }
-  }
-
-  Future<void> updateSettings({
-    required String userId,
-    bool? push,
-    bool? email,
-  }) async {
-    // In a real app, call service to update settings on backend
-    if (push != null) _pushEnabled = push;
-    if (email != null) _emailEnabled = email;
     notifyListeners();
   }
+
+  void addSystemNotification({required String title, required String body}) =>
+      addLocalNotification(
+          title: title, body: body, type: NotificationType.system);
+
+  // ── Timer ─────────────────────────────────────────────────────────────────
 
   void startRefreshTimer(String userId) {
     _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       fetchNotifications(userId: userId, showLoading: false);
     });
   }
 
-  void stopRefreshTimer() {
-    _refreshTimer?.cancel();
-  }
+  void stopRefreshTimer() => _refreshTimer?.cancel();
 
   @override
   void dispose() {

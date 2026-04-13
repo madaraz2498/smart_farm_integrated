@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 
 import '../../../features/auth/providers/auth_provider.dart';
+import '../../../features/notifications/providers/notification_provider.dart';
+import '../../../features/notifications/models/notification_model.dart';
 import '../../../providers/navigation_provider.dart';
 import '../../../providers/locale_provider.dart';
 import '../../../shared/theme/app_theme.dart';
@@ -17,12 +19,68 @@ class FarmerSettingsPage extends StatefulWidget {
 
 class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
   String _themeMode = 'light';
-  bool _pushNotif = true;
-  bool _emailAlerts = true;
+
+  // Notification toggles — mirror the 3 fields from the API
+  bool _emailNotificationsFarmer = false;
+  bool _analysisCompletionAlerts = true;
+  bool _weeklyReportSummary = false;
+
+  bool _savingSettings = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadSettings());
+  }
+
+  Future<void> _loadSettings() async {
+    final userId = context.read<AuthProvider>().currentUser?.id;
+    if (userId == null) return;
+
+    final provider = context.read<NotificationProvider>();
+    await provider.fetchFarmerSettings(userId: userId);
+
+    if (mounted) {
+      final s = provider.farmerSettings;
+      setState(() {
+        _emailNotificationsFarmer = s.emailNotificationsFarmer;
+        _analysisCompletionAlerts = s.analysisCompletionAlerts;
+        _weeklyReportSummary      = s.weeklyReportSummary;
+      });
+    }
+  }
+
+  Future<void> _saveSettings() async {
+    final userId = context.read<AuthProvider>().currentUser?.id;
+    if (userId == null) return;
+
+    setState(() => _savingSettings = true);
+
+    final success =
+    await context.read<NotificationProvider>().updateFarmerSettings(
+      userId: userId,
+      updatedSettings: FarmerNotificationSettings(
+        emailNotificationsFarmer: _emailNotificationsFarmer,
+        analysisCompletionAlerts: _analysisCompletionAlerts,
+        weeklyReportSummary:      _weeklyReportSummary,
+      ),
+    );
+
+    if (mounted) {
+      setState(() => _savingSettings = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+            success ? 'تم حفظ إعدادات الإشعارات' : 'فشل حفظ الإعدادات'),
+        backgroundColor: success ? AppColors.primary : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  /// Called whenever a toggle changes — updates local state then saves.
+  void _onToggle(void Function() update) {
+    setState(update);
+    _saveSettings();
   }
 
   @override
@@ -34,31 +92,32 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
     showDialog(
         context: context,
         builder: (_) => AlertDialog(
-              backgroundColor: AppColors.surface,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              title: Text(l10n.logout, style: AppTextStyles.cardTitle),
-              content: Text(l10n.confirm_logout_message,
-                  style: const TextStyle(
-                      fontSize: 14, color: AppColors.textSubtle, height: 1.5)),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(l10n.cancel,
-                        style: const TextStyle(color: AppColors.textSubtle))),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    context.read<NavigationProvider>().reset();
-                    context.read<AuthProvider>().logout();
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.error,
-                      foregroundColor: Colors.white),
-                  child: Text(l10n.logout),
-                ),
-              ],
-            ));
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
+          title: Text(l10n.logout, style: AppTextStyles.cardTitle),
+          content: Text(l10n.confirm_logout_message,
+              style: const TextStyle(
+                  fontSize: 14, color: AppColors.textSubtle, height: 1.5)),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.cancel,
+                    style:
+                    const TextStyle(color: AppColors.textSubtle))),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.read<NavigationProvider>().reset();
+                context.read<AuthProvider>().logout();
+              },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white),
+              child: Text(l10n.logout),
+            ),
+          ],
+        ));
   }
 
   @override
@@ -68,8 +127,8 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
 
     return RefreshIndicator(
       onRefresh: () async {
-        // Simulating a refresh of settings/profile
         await context.read<AuthProvider>().loadUserProfile();
+        await _loadSettings();
       },
       color: AppColors.primary,
       child: SingleChildScrollView(
@@ -77,103 +136,146 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
         child: Center(
             child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
-          child:
+              constraints: const BoxConstraints(maxWidth: 640),
+              child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Icon(Icons.settings_outlined,
-                  color: AppColors.primary, size: 24),
-              const SizedBox(width: 12),
-              Text(l10n.settings, style: AppTextStyles.pageTitle),
-            ]),
-            const SizedBox(height: 4),
-            Text(l10n.manage_account_preferences,
-                style: AppTextStyles.pageSubtitle),
-            const SizedBox(height: 24),
-            _SectionCard(children: [
-              _SectionHeader(
-                  icon: Icons.palette_outlined, title: l10n.theme_preference),
-              const SizedBox(height: 20),
-              _ThemeOption(
-                label: l10n.light_mode,
-                value: 'light',
-                groupValue: _themeMode,
-                onChanged: (v) => setState(() => _themeMode = v!),
-              ),
-              const SizedBox(height: 12),
-              _ThemeOption(
-                label: l10n.dark_mode,
-                value: 'dark',
-                groupValue: _themeMode,
-                onChanged: (v) => setState(() => _themeMode = v!),
-              ),
-            ]),
-            const SizedBox(height: 20),
-            _SectionCard(children: [
-              _SectionHeader(
-                  icon: Icons.language_rounded, title: l10n.language),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding:
+                // ── Page header ───────────────────────────────────────────────
+                Row(children: [
+                  const Icon(Icons.settings_outlined,
+                      color: AppColors.primary, size: 24),
+                  const SizedBox(width: 12),
+                  Text(l10n.settings, style: AppTextStyles.pageTitle),
+                ]),
+                const SizedBox(height: 4),
+                Text(l10n.manage_account_preferences,
+                    style: AppTextStyles.pageSubtitle),
+                const SizedBox(height: 24),
+
+                // ── Theme ─────────────────────────────────────────────────────
+                _SectionCard(children: [
+                  _SectionHeader(
+                      icon: Icons.palette_outlined,
+                      title: l10n.theme_preference),
+                  const SizedBox(height: 20),
+                  _ThemeOption(
+                    label: l10n.light_mode,
+                    value: 'light',
+                    groupValue: _themeMode,
+                    onChanged: (v) => setState(() => _themeMode = v!),
+                  ),
+                  const SizedBox(height: 12),
+                  _ThemeOption(
+                    label: l10n.dark_mode,
+                    value: 'dark',
+                    groupValue: _themeMode,
+                    onChanged: (v) => setState(() => _themeMode = v!),
+                  ),
+                ]),
+                const SizedBox(height: 20),
+
+                // ── Language ──────────────────────────────────────────────────
+                _SectionCard(children: [
+                  _SectionHeader(
+                      icon: Icons.language_rounded, title: l10n.language),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-                    border: Border.all(color: AppColors.cardBorder)),
-                child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                  value: localeProvider.locale.languageCode,
-                  isExpanded: true,
-                  style:
-                      const TextStyle(fontSize: 14, color: AppColors.textDark),
-                  items: const [
-                    DropdownMenuItem(value: 'en', child: Text('English')),
-                    DropdownMenuItem(
-                        value: 'ar', child: Text('Arabic (العربية)')),
-                  ],
-                  onChanged: (v) {
-                    if (v != null) {
-                      localeProvider.setLocale(Locale(v));
-                    }
-                  },
-                )),
-              ),
-            ]),
-            const SizedBox(height: 16),
-            _SectionCard(children: [
-              _SectionHeader(
-                  icon: Icons.notifications_outlined,
-                  title: l10n.notifications),
-              const SizedBox(height: 8),
-              _ToggleRow(
-                  label: l10n.push_notifications,
-                  value: _pushNotif,
-                  onChanged: (v) => setState(() => _pushNotif = v)),
-              const Divider(height: 1, color: AppColors.cardBorder),
-              _ToggleRow(
-                  label: l10n.email_alerts,
-                  value: _emailAlerts,
-                  onChanged: (v) => setState(() => _emailAlerts = v)),
-            ]),
-            const SizedBox(height: 24),
-            SfOutlineButton(
-                label: l10n.logout,
-                onPressed: () => _confirmLogout(l10n),
-                color: AppColors.error),
-          ]),
-        )),
+                    decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius:
+                        BorderRadius.circular(AppSizes.radiusMid),
+                        border: Border.all(color: AppColors.cardBorder)),
+                    child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: localeProvider.locale.languageCode,
+                          isExpanded: true,
+                          style: const TextStyle(
+                              fontSize: 14, color: AppColors.textDark),
+                          items: const [
+                            DropdownMenuItem(value: 'en', child: Text('English')),
+                            DropdownMenuItem(
+                                value: 'ar',
+                                child: Text('Arabic (العربية)')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) localeProvider.setLocale(Locale(v));
+                          },
+                        )),
+                  ),
+                ]),
+                const SizedBox(height: 20),
+
+                // ── Notification settings ─────────────────────────────────────
+                _SectionCard(children: [
+                  _SectionHeader(
+                      icon: Icons.notifications_outlined,
+                      title: l10n.notifications),
+                  const SizedBox(height: 8),
+
+                  // 1. Email notifications
+                  _ToggleRow(
+                    icon: Icons.email_outlined,
+                    label: 'إشعارات البريد الإلكتروني',
+                    subtitle: 'استقبال الإشعارات عبر البريد',
+                    value: _emailNotificationsFarmer,
+                    disabled: _savingSettings,
+                    onChanged: (v) =>
+                        _onToggle(() => _emailNotificationsFarmer = v),
+                  ),
+                  const Divider(height: 1, color: AppColors.cardBorder),
+
+                  // 2. Analysis completion alerts
+                  _ToggleRow(
+                    icon: Icons.analytics_outlined,
+                    label: 'تنبيهات اكتمال التحليل',
+                    subtitle: 'إشعار عند انتهاء أي تحليل (نباتات، تربة، فاكهة)',
+                    value: _analysisCompletionAlerts,
+                    disabled: _savingSettings,
+                    onChanged: (v) =>
+                        _onToggle(() => _analysisCompletionAlerts = v),
+                  ),
+                  const Divider(height: 1, color: AppColors.cardBorder),
+
+                  // 3. Weekly report summary
+                  _ToggleRow(
+                    icon: Icons.summarize_outlined,
+                    label: 'ملخص التقرير الأسبوعي',
+                    subtitle: 'تلقّي ملخص أسبوعي بنشاط المزرعة',
+                    value: _weeklyReportSummary,
+                    disabled: _savingSettings,
+                    onChanged: (v) =>
+                        _onToggle(() => _weeklyReportSummary = v),
+                  ),
+
+                  if (_savingSettings)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: LinearProgressIndicator(),
+                    ),
+                ]),
+                const SizedBox(height: 24),
+
+                SfOutlineButton(
+                    label: l10n.logout,
+                    onPressed: () => _confirmLogout(l10n),
+                    color: AppColors.error),
+              ]),
+            )),
       ),
     );
   }
 }
 
+// ── Reusable widgets ──────────────────────────────────────────────────────────
+
 class _ThemeOption extends StatelessWidget {
   const _ThemeOption(
       {required this.label,
-      required this.value,
-      required this.groupValue,
-      required this.onChanged});
+        required this.value,
+        required this.groupValue,
+        required this.onChanged});
   final String label, value, groupValue;
   final ValueChanged<String?> onChanged;
 
@@ -184,7 +286,8 @@ class _ThemeOption extends StatelessWidget {
       onTap: () => onChanged(value),
       borderRadius: BorderRadius.circular(AppSizes.radiusMid),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding:
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppSizes.radiusMid),
           border: Border.all(
@@ -205,8 +308,10 @@ class _ThemeOption extends StatelessWidget {
           Text(label,
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? AppColors.primary : AppColors.textDark,
+                fontWeight:
+                isSelected ? FontWeight.w600 : FontWeight.normal,
+                color:
+                isSelected ? AppColors.primary : AppColors.textDark,
               )),
         ]),
       ),
@@ -219,19 +324,21 @@ class _SectionCard extends StatelessWidget {
   final List<Widget> children;
   @override
   Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-            border: Border.all(color: AppColors.cardBorder),
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)
-            ]),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, children: children),
-      );
+    width: double.infinity,
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6)
+        ]),
+    child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children),
+  );
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -240,36 +347,64 @@ class _SectionHeader extends StatelessWidget {
   final String title;
   @override
   Widget build(BuildContext context) => Row(children: [
-        Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-                color: AppColors.primarySurface,
-                borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
-            child: Icon(icon, color: AppColors.primary, size: 18)),
-        const SizedBox(width: 12),
-        Text(title, style: AppTextStyles.cardTitle),
-      ]);
+    Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+            color: AppColors.primarySurface,
+            borderRadius:
+            BorderRadius.circular(AppSizes.radiusMid)),
+        child: Icon(icon, color: AppColors.primary, size: 18)),
+    const SizedBox(width: 12),
+    Text(title, style: AppTextStyles.cardTitle),
+  ]);
 }
 
 class _ToggleRow extends StatelessWidget {
-  const _ToggleRow(
-      {required this.label, required this.value, required this.onChanged});
+  const _ToggleRow({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.icon,
+    this.subtitle,
+    this.disabled = false,
+  });
+
   final String label;
+  final String? subtitle;
+  final IconData? icon;
   final bool value;
+  final bool disabled;
   final ValueChanged<bool> onChanged;
+
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(children: [
-          Expanded(
-              child: Text(label,
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      if (icon != null) ...[
+        Icon(icon, size: 20, color: AppColors.textSubtle),
+        const SizedBox(width: 12),
+      ],
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 14, color: AppColors.textDark)),
+            if (subtitle != null)
+              Text(subtitle!,
                   style: const TextStyle(
-                      fontSize: 14, color: AppColors.textDark))),
-          Switch(
-              value: value,
-              onChanged: onChanged,
-              activeColor: AppColors.primary),
-        ]),
-      );
+                      fontSize: 12,
+                      color: AppColors.textSubtle,
+                      height: 1.4)),
+          ],
+        ),
+      ),
+      Switch(
+          value: value,
+          onChanged: disabled ? null : onChanged,
+          activeColor: AppColors.primary),
+    ]),
+  );
 }
