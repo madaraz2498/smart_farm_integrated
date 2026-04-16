@@ -95,7 +95,12 @@ class _AnimalWeightPageState extends State<AnimalWeightPage> {
                 analyzeLabel: l10n.estimate_weight,
                 onPick: _pick,
                 onAnalyze: () {
-                  if (_picked != null) prov.estimate(_picked!);
+                  if (_picked != null) {
+                    prov.estimate(
+                      _picked!,
+                      lang: Localizations.localeOf(context).languageCode,
+                    );
+                  }
                 },
               ),
               if (prov.status == ScanStatus.result && prov.result != null) ...[

@@ -362,5 +362,25 @@
   "soil_recommendations": "التوصيات",
   "soil_fertility_high": "عالية",
   "soil_fertility_medium": "متوسطة",
-  "soil_fertility_low": "منخفضة"
+  "soil_fertility_low": "منخفضة",
+
+  "delete_all_notifications": "حذف جميع الإشعارات",
+  "delete_all_notifications_confirm": "هل أنت متأكد من حذف كل الإشعارات؟",
+  "delete_all": "حذف الكل",
+  "notifications_load_error": "تعذّر تحميل الإشعارات",
+  "retry": "إعادة المحاولة",
+
+  "time_just_now": "الآن",
+  "time_minutes_ago": "منذ {count} د",
+  "@time_minutes_ago": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "time_hours_ago": "منذ {count} س",
+  "@time_hours_ago": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "time_days_ago": "منذ {count} يوم",
+  "@time_days_ago": {
+    "placeholders": { "count": { "type": "int" } }
+  }
 }

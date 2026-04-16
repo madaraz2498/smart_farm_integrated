@@ -1,4 +1,5 @@
 // lib/features/auth/providers/auth_provider.dart
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../../../core/network/token_storage.dart';
@@ -282,11 +283,16 @@ class AuthProvider extends ChangeNotifier {
       _apply(r);
 
       if (r.success) {
-        _notif?.addLocalNotification(
+        _notif?.addNotification(
           title: 'Welcome',
           body: 'Welcome to Smart Farm AI, $name!',
           type: NotificationType.user,
         );
+
+        final id = _user?.id;
+        if (id != null && id.isNotEmpty) {
+          unawaited(_notif?.fetchNotifications(id) ?? Future.value());
+        }
       }
 
       return r;

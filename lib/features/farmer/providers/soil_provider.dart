@@ -36,18 +36,21 @@ class SoilProvider extends ChangeNotifier {
   String?               get error  => _error;
   bool get isLoading => _status == ScanStatus.loading;
 
-  Future<void> analyze(SoilAnalysisRequest req) async {
+  Future<void> analyze(SoilAnalysisRequest req, {required String lang}) async {
     _status = ScanStatus.loading;
     _result = null;
     _error  = null;
     notifyListeners();
     try {
-      _result = await _svc.analyze(req.copyWith(userId: userId));
+      _result = await _svc.analyze(req.copyWith(userId: userId, lang: lang));
       _status = ScanStatus.result;
+      final isArabic = lang.toLowerCase().startsWith('ar');
 
       _notifProvider?.addLocalNotification(
-        title: '🌱 تحليل التربة اكتمل',
-        body: 'نوع التربة: ${_result!.soilType} — مستوى الخصوبة: ${_result!.fertilityLevel}',
+        title: isArabic ? '🌱 نتائج تحليل التربة' : '🌱 Soil analysis results',
+        body: isArabic
+            ? 'نوع التربة: ${_result!.soilType} — مستوى الخصوبة: ${_result!.fertilityLevel}'
+            : 'Soil type: ${_result!.soilType} - Fertility level: ${_result!.fertilityLevel}',
         type: NotificationType.report,
       );
     } on ApiException catch (e) {

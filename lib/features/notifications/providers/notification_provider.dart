@@ -26,21 +26,67 @@ class NotificationProvider extends ChangeNotifier {
   String? get error => _error;
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
+  bool _isLocalId(String id) => id.startsWith('local_');
+  bool _isBackendIntId(String id) => int.tryParse(id) != null;
+  bool _shouldCallBackend(String notifId) =>
+      _isBackendIntId(notifId) && !_isLocalId(notifId);
+
+  String _normalizeText(String v) {
+    final trimmed = v.trim();
+    if (trimmed.isEmpty) return '';
+    // Remove most emoji/symbol chars + collapse spaces.
+    final noEmoji = trimmed.replaceAll(RegExp(r'[^\x00-\x7Fء-ي0-9A-Za-z\s]'), '');
+    return noEmoji.replaceAll(RegExp(r'\s+'), ' ').trim().toLowerCase();
+  }
+
+  String _signature(AppNotification n) =>
+      '${n.type.name}::${_normalizeText(n.title)}::${_normalizeText(n.body)}';
+
+  bool _existsSimilar({
+    required String title,
+    required String body,
+    required NotificationType type,
+    required Duration within,
+  }) {
+    final sig = '${type.name}::${_normalizeText(title)}::${_normalizeText(body)}';
+    final now = DateTime.now();
+    for (final n in _notifications) {
+      if (_signature(n) != sig) continue;
+      final diff = now.difference(n.createdAt);
+      if (!diff.isNegative && diff <= within) return true;
+    }
+    return false;
+  }
+
   // ── Fetch notifications ───────────────────────────────────────────────────
 
-  Future<void> fetchNotifications({
-    required String userId,
-    bool showLoading = true,
-  }) async {
+  Future<void> fetchNotifications(String userId, {bool showLoading = true}) async {
     if (showLoading) {
       _isLoading = true;
       _error = null;
       notifyListeners();
     }
     try {
-      final results = await _service.getNotifications(userId);
-      _notifications = results
+      final server = await _service.getNotifications(userId)
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      final serverSignatures = server.map(_signature).toSet();
+
+      // Keep local-only items for instant UX, but let server data replace
+      // any matching IDs (dedupe is by id).
+      // If the same notification arrived from server (different id),
+      // drop the local duplicate.
+      final local = _notifications
+          .where((n) => n.id.startsWith('local_'))
+          .where((n) => !serverSignatures.contains(_signature(n)))
+          .toList();
+
+      final merged = _mergeUniqueById([
+        ...local,
+        ...server,
+      ]);
+
+      _notifications = merged.take(50).toList();
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -48,6 +94,18 @@ class NotificationProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  List<AppNotification> _mergeUniqueById(List<AppNotification> items) {
+    final seen = <String>{};
+    final out = <AppNotification>[];
+    for (final n in items) {
+      final id = n.id.trim();
+      if (id.isEmpty) continue;
+      if (seen.add(id)) out.add(n);
+    }
+    out.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return out;
   }
 
   // ── Mark single as read ───────────────────────────────────────────────────
@@ -58,6 +116,9 @@ class NotificationProvider extends ChangeNotifier {
 
     _notifications[index] = _notifications[index].copyWith(isRead: true);
     notifyListeners();
+
+    // Backend expects integer notif_id. Non-int (or local_) is UI-only.
+    if (!_shouldCallBackend(notifId)) return;
 
     final ok = await _service.markAsRead(notifId);
     if (!ok) {
@@ -90,6 +151,9 @@ class NotificationProvider extends ChangeNotifier {
     final removed = _notifications.removeAt(index);
     notifyListeners();
 
+    // Backend expects integer notif_id. Non-int (or local_) is UI-only.
+    if (!_shouldCallBackend(notifId)) return;
+
     final ok = await _service.deleteNotification(notifId);
     if (!ok) {
       _notifications.insert(index, removed);
@@ -102,6 +166,8 @@ class NotificationProvider extends ChangeNotifier {
   Future<void> deleteAllNotifications({required String userId}) async {
     if (_notifications.isEmpty) return;
     final previous = List<AppNotification>.from(_notifications);
+
+    // Optimistic: clear all locally (including local-only items).
     _notifications = [];
     notifyListeners();
 
@@ -161,25 +227,42 @@ class NotificationProvider extends ChangeNotifier {
 
   // ── Local / in-app notifications ──────────────────────────────────────────
 
-  void addLocalNotification({
+  void addNotification({
     required String title,
     required String body,
     required NotificationType type,
   }) {
-    _notifications.insert(
-      0,
-      AppNotification(
-        id: 'local_${DateTime.now().millisecondsSinceEpoch}',
-        userId: 'local',
-        title: title,
-        body: body,
-        createdAt: DateTime.now(),
-        type: type,
-        isRead: false,
-      ),
+    // Prevent local duplicates (e.g. action triggers twice quickly).
+    if (_existsSimilar(
+      title: title,
+      body: body,
+      type: type,
+      within: const Duration(minutes: 2),
+    )) {
+      return;
+    }
+
+    final notification = AppNotification(
+      id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+      userId: 'local',
+      title: title,
+      body: body,
+      createdAt: DateTime.now(),
+      type: type,
+      isRead: false,
     );
+
+    _notifications = _mergeUniqueById([notification, ..._notifications]).take(50).toList();
     notifyListeners();
   }
+
+  // Backwards-compatible alias (older call sites in farmer/admin providers).
+  void addLocalNotification({
+    required String title,
+    required String body,
+    required NotificationType type,
+  }) =>
+      addNotification(title: title, body: body, type: type);
 
   void addSystemNotification({required String title, required String body}) =>
       addLocalNotification(
@@ -190,7 +273,7 @@ class NotificationProvider extends ChangeNotifier {
   void startRefreshTimer(String userId) {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-      fetchNotifications(userId: userId, showLoading: false);
+      fetchNotifications(userId, showLoading: false);
     });
   }
 

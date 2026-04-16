@@ -4,21 +4,25 @@ class CropRecommendationRequest {
     required this.cityName,
     required this.soilType,
     this.userId,
+    this.lang = 'ar',
   });
 
   final String cityName;
   final String  soilType;
   final String? userId;
+  final String lang;
 
-  CropRecommendationRequest copyWith({String? userId}) => CropRecommendationRequest(
+  CropRecommendationRequest copyWith({String? userId, String? lang}) => CropRecommendationRequest(
     cityName: cityName,
     soilType: soilType,
     userId: userId ?? this.userId,
+    lang: lang ?? this.lang,
   );
 
   Map<String, String> toForm() => {
         'city_name': cityName,
         'soil': _normalizeSoilForApi(soilType),
+        'lang': _normalizeLang(lang),
         if (userId != null) 'user_id': userId!,
       };
 
@@ -38,6 +42,11 @@ class CropRecommendationRequest {
       default:
         return 'طميية';
     }
+  }
+
+  String _normalizeLang(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized == 'en' ? 'en' : 'ar';
   }
 }
 
@@ -116,11 +125,50 @@ class CropDailyGuide {
   });
 
   factory CropDailyGuide.fromJson(Map<String, dynamic> j) => CropDailyGuide(
-        date: j['date']?.toString() ?? j['التاريخ']?.toString() ?? '',
-        weather: j['weather']?.toString() ?? j['الطقس']?.toString() ?? '',
-        irrigationAdvice: j['irrigation_advice']?.toString() ?? j['نصيحة الري']?.toString() ?? '',
-        fertilizerAdvice: j['fertilizer_advice']?.toString() ?? j['نصيحة السماد']?.toString() ?? '',
-        diseaseAlert: j['disease_alert']?.toString() ?? j['تنبيه الأمراض']?.toString() ?? '',
+        date: _firstGuideValue(j, const [
+          'date',
+          'Date',
+          'day',
+          'التاريخ',
+        ]),
+        weather: _firstGuideValue(j, const [
+          'weather',
+          'Weather',
+          'weather_condition',
+          'weatherCondition',
+          'forecast',
+          'الطقس',
+        ]),
+        irrigationAdvice: _firstGuideValue(j, const [
+          'irrigation_advice',
+          'irrigationAdvice',
+          'Irrigation Advice',
+          'irrigation',
+          'water_advice',
+          'waterAdvice',
+          'نصيحة الري',
+          'الري',
+        ]),
+        fertilizerAdvice: _firstGuideValue(j, const [
+          'fertilizer_advice',
+          'fertilizerAdvice',
+          'Fertilizer Advice',
+          'fertilizer',
+          'fertiliser_advice',
+          'fertiliserAdvice',
+          'نصيحة السماد',
+          'التسميد',
+        ]),
+        diseaseAlert: _firstGuideValue(j, const [
+          'disease_alert',
+          'diseaseAlert',
+          'Disease Alert',
+          'disease_warning',
+          'diseaseWarning',
+          'alert',
+          'تنبيه الأمراض',
+          'تنبيه المرض',
+        ]),
       );
 
   final String date;
@@ -128,6 +176,16 @@ class CropDailyGuide {
   final String irrigationAdvice;
   final String fertilizerAdvice;
   final String diseaseAlert;
+}
+
+String _firstGuideValue(Map<String, dynamic> map, List<String> keys) {
+  for (final key in keys) {
+    final value = map[key];
+    if (value == null) continue;
+    final text = value.toString().trim();
+    if (text.isNotEmpty) return text;
+  }
+  return '--';
 }
 
 double _d(dynamic v) {

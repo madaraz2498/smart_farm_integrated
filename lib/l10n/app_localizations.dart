@@ -2149,6 +2149,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Low'**
   String get soil_fertility_low;
+
+  /// No description provided for @delete_all_notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete All Notifications'**
+  String get delete_all_notifications;
+
+  /// No description provided for @delete_all_notifications_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete all notifications?'**
+  String get delete_all_notifications_confirm;
+
+  /// No description provided for @delete_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete All'**
+  String get delete_all;
+
+  /// No description provided for @notifications_load_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load notifications'**
+  String get notifications_load_error;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @time_just_now.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get time_just_now;
+
+  /// No description provided for @time_minutes_ago.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m ago'**
+  String time_minutes_ago(int count);
+
+  /// No description provided for @time_hours_ago.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h ago'**
+  String time_hours_ago(int count);
+
+  /// No description provided for @time_days_ago.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d ago'**
+  String time_days_ago(int count);
 }
 
 class _AppLocalizationsDelegate

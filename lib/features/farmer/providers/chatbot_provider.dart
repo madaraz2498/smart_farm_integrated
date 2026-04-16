@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
@@ -102,13 +103,17 @@ class ChatbotProvider extends ChangeNotifier {
       
       _status = ChatStatus.idle;
 
-      _notifProvider?.addLocalNotification(
+      _notifProvider?.addNotification(
         title: '🤖 رد الذكاء الاصطناعي جاهز',
         body: response.response.length > 80
             ? '${response.response.substring(0, 80)}...'
             : response.response,
         type: NotificationType.chatbot,
       );
+
+      if (userId.isNotEmpty && userId != '0') {
+        unawaited(_notifProvider?.fetchNotifications(userId) ?? Future.value());
+      }
     } catch (e) {
       _status = ChatStatus.error;
       _messages.add(ChatMessage(

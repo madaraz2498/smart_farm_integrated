@@ -39,7 +39,7 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
     prov.recommend(CropRecommendationRequest(
       cityName: _cityCtrl.text.trim(),
       soilType: _soilType ?? 'Sandy',
-    ));
+    ), lang: Localizations.localeOf(context).languageCode);
   }
 
   @override

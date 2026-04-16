@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 import '../../../core/network/api_exception.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
@@ -36,20 +37,27 @@ class CropProvider extends ChangeNotifier {
   String?                     get error  => _error;
   bool get isLoading => _status == ScanStatus.loading;
 
-  Future<void> recommend(CropRecommendationRequest req) async {
+  Future<void> recommend(CropRecommendationRequest req, {required String lang}) async {
     _status = ScanStatus.loading;
     _result = null;
     _error  = null;
     notifyListeners();
     try {
-      _result = await _svc.recommend(req.copyWith(userId: userId));
+      _result = await _svc.recommend(req.copyWith(userId: userId, lang: lang));
       _status = ScanStatus.result;
+      final isArabic = lang.toLowerCase().startsWith('ar');
 
-      _notifProvider?.addLocalNotification(
-        title: '🌾 توصية المحصول جاهزة',
-        body: 'المحصول الموصى به: ${_result!.recommendedCrop} — مستوى الإنتاج: ${_result!.yieldDisplay}',
+      _notifProvider?.addNotification(
+        title: isArabic ? '🌾 توصية المحصول جاهزة' : '🌾 Crop recommendation ready',
+        body: isArabic
+            ? 'المحصول الموصى به: ${_result!.recommendedCrop} — مستوى الإنتاج: ${_result!.yieldDisplay}'
+            : 'Recommended crop: ${_result!.recommendedCrop} - Yield level: ${_result!.yieldDisplay}',
         type: NotificationType.report,
       );
+
+      if (userId.isNotEmpty && userId != '0') {
+        unawaited(_notifProvider?.fetchNotifications(userId) ?? Future.value());
+      }
     } on ApiException catch (e) {
       _error  = e.message;
       _status = ScanStatus.error;

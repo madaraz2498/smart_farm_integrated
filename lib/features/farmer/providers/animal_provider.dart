@@ -37,7 +37,7 @@ class AnimalProvider extends ChangeNotifier {
   String?               get error  => _error;
   bool get isLoading => _status == ScanStatus.loading;
 
-  Future<void> estimate(XFile image) async {
+  Future<void> estimate(XFile image, {required String lang}) async {
     _status = ScanStatus.loading;
     _result = null;
     _error = null;
@@ -48,12 +48,18 @@ class AnimalProvider extends ChangeNotifier {
         imageBytes: bytes,
         fileName:   image.name,
         userId:     userId,
+        lang:       lang,
       );
       _status = ScanStatus.result;
+      final isArabic = lang.toLowerCase().startsWith('ar');
 
       _notifProvider?.addLocalNotification(
-        title: '🐄 تحليل وزن الحيوان اكتمل',
-        body: 'النوع: ${_result!.animalType} — الوزن المقدر: ${_result!.weightDisplay} (دقة: ${(_result!.confidence * 100).toStringAsFixed(0)}%)',
+        title: isArabic
+            ? '🐄 تحليل وزن الحيوان اكتمل'
+            : '🐄 Animal weight analysis completed',
+        body: isArabic
+            ? 'النوع: ${_result!.animalType} — الوزن المقدر: ${_result!.weightDisplay} (دقة: ${(_result!.confidence * 100).toStringAsFixed(0)}%)'
+            : 'Type: ${_result!.animalType} - Estimated weight: ${_result!.weightDisplay} (confidence: ${(_result!.confidence * 100).toStringAsFixed(0)}%)',
         type: NotificationType.report,
       );
     } on ApiException catch (e) {

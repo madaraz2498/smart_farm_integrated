@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
 import '../../notifications/providers/notification_provider.dart';
@@ -11,6 +12,11 @@ class AdminProvider extends ChangeNotifier {
 
   final AdminService _svc = AdminService.instance;
   NotificationProvider? _notif;
+  String _userId = '0';
+
+  void updateUserId(String id) {
+    _userId = id;
+  }
 
   void updateNotif(NotificationProvider? n) {
     debugPrint(
@@ -226,6 +232,10 @@ class AdminProvider extends ChangeNotifier {
         title: 'Module Toggled',
         body: 'AI Service ($moduleName) is now $status.',
       );
+
+      if (_userId.isNotEmpty && _userId != '0') {
+        unawaited(_notif?.fetchNotifications(_userId) ?? Future.value());
+      }
     } catch (e) {
       _statsError = 'Failed to toggle service.';
       notifyListeners();
@@ -243,6 +253,10 @@ class AdminProvider extends ChangeNotifier {
         title: 'Setting Changed',
         body: 'System setting ($settingName) has been modified.',
       );
+
+      if (_userId.isNotEmpty && _userId != '0') {
+        unawaited(_notif?.fetchNotifications(_userId) ?? Future.value());
+      }
     } catch (e) {
       _statsError = 'Failed to toggle setting.';
       notifyListeners();

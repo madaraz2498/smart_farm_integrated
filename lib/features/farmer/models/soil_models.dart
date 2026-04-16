@@ -3,6 +3,7 @@ class SoilAnalysisRequest {
   const SoilAnalysisRequest({
     required this.ph,
     this.userId,
+    this.lang = 'ar',
     this.moisture,
     this.nitrogen,
     this.phosphorus,
@@ -11,11 +12,13 @@ class SoilAnalysisRequest {
 
   final double ph;
   final String? userId;
+  final String lang;
   final double? moisture, nitrogen, phosphorus, potassium;
 
-  SoilAnalysisRequest copyWith({String? userId}) => SoilAnalysisRequest(
+  SoilAnalysisRequest copyWith({String? userId, String? lang}) => SoilAnalysisRequest(
     ph: ph,
     userId: userId ?? this.userId,
+    lang: lang ?? this.lang,
     moisture: moisture,
     nitrogen: nitrogen,
     phosphorus: phosphorus,
@@ -26,6 +29,7 @@ class SoilAnalysisRequest {
   Map<String, dynamic> toJson() => {
         'ph': ph,
         if (userId     != null) 'user_id':  int.tryParse(userId!) ?? userId!,
+        'lang': _normalizeLang(lang),
         if (moisture   != null) 'moisture': moisture,
         if (nitrogen   != null) 'N':        nitrogen,
         if (phosphorus != null) 'P':        phosphorus,
@@ -36,6 +40,7 @@ class SoilAnalysisRequest {
   Map<String, String> toForm() {
     final form = <String, String>{
       'ph': ph.toString(),
+      'lang': _normalizeLang(lang),
     };
     if (userId != null) form['user_id'] = userId!;
     if (moisture != null) form['moisture'] = moisture!.toString();
@@ -43,6 +48,11 @@ class SoilAnalysisRequest {
     if (phosphorus != null) form['p'] = phosphorus!.toString();
     if (potassium != null) form['k'] = potassium!.toString();
     return form;
+  }
+
+  String _normalizeLang(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized == 'en' ? 'en' : 'ar';
   }
 }
 

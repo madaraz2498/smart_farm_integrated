@@ -1064,4 +1064,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get soil_fertility_low => 'Low';
+
+  @override
+  String get delete_all_notifications => 'Delete All Notifications';
+
+  @override
+  String get delete_all_notifications_confirm =>
+      'Are you sure you want to delete all notifications?';
+
+  @override
+  String get delete_all => 'Delete All';
+
+  @override
+  String get notifications_load_error => 'Failed to load notifications';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get time_just_now => 'Just now';
+
+  @override
+  String time_minutes_ago(int count) {
+    return '${count}m ago';
+  }
+
+  @override
+  String time_hours_ago(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String time_days_ago(int count) {
+    return '${count}d ago';
+  }
 }

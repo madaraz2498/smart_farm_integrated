@@ -66,16 +66,19 @@ class NotificationService {
   }
 
   // DELETE /notifications/notifications/delete-all/{user_id}
-  Future<bool> deleteAllNotifications(String userId) async {
+  Future<bool> deleteAll(String userId) async {
     try {
       await _apiClient
           .delete('/notifications/notifications/delete-all/$userId');
       return true;
     } catch (e) {
-      debugPrint('[NotificationService] deleteAllNotifications error: $e');
+      debugPrint('[NotificationService] deleteAll error: $e');
       return false;
     }
   }
+
+  // Backwards-compatible alias (older call sites).
+  Future<bool> deleteAllNotifications(String userId) => deleteAll(userId);
 
   // GET /notifications/notifications/get-settings/{user_id}
   Future<FarmerNotificationSettings?> getFarmerSettings(String userId) async {

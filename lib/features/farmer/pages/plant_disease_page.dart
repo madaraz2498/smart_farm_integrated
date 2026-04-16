@@ -87,7 +87,12 @@ class _PlantDiseasePageState extends State<PlantDiseasePage> {
                 isLoading: prov.isLoading,
                 onPick: _pick,
                 onAnalyze: () {
-                  if (_picked != null) prov.analyze(_picked!);
+                  if (_picked != null) {
+                    prov.analyze(
+                      _picked!,
+                      lang: Localizations.localeOf(context).languageCode,
+                    );
+                  }
                 },
                 chooseLabel: l10n.choose_image,
                 analyzeLabel: l10n.analyze_plant,

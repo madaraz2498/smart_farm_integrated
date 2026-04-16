@@ -15,6 +15,7 @@ class PlantService {
     required List<int> imageBytes,
     required String fileName,
     required String userId,
+    required String lang,
   }) async {
     debugPrint(
         '[PlantService] POST /plants/detect  file=$fileName  userId=$userId');
@@ -24,7 +25,10 @@ class PlantService {
         fileField: 'image',
         fileBytes: imageBytes,
         fileName: fileName,
-        fields: {'user_id': userId},
+        fields: {
+          'user_id': userId,
+          'lang': _normalizeLang(lang),
+        },
       );
       debugPrint('[PlantService] response: $data');
       return PlantDiseaseResponse.fromJson(_asMap(data));
@@ -43,5 +47,10 @@ class PlantService {
       return data;
     }
     throw const ApiException('Invalid plant response format.');
+  }
+
+  String _normalizeLang(String lang) {
+    final value = lang.trim().toLowerCase();
+    return value == 'en' ? 'en' : 'ar';
   }
 }

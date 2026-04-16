@@ -22,7 +22,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userId = context.read<AuthProvider>().currentUser?.id;
       if (userId != null) {
-        context.read<NotificationProvider>().fetchNotifications(userId: userId);
+        context.read<NotificationProvider>().fetchNotifications(userId);
       }
     });
   }
@@ -37,7 +37,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (userId != null) {
       await context
           .read<NotificationProvider>()
-          .fetchNotifications(userId: userId);
+          .fetchNotifications(userId);
     }
   }
 
@@ -47,8 +47,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف جميع الإشعارات'),
-        content: const Text('هل أنت متأكد من حذف كل الإشعارات؟'),
+        title: Text(l10n.delete_all_notifications),
+        content: Text(l10n.delete_all_notifications_confirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -61,7 +61,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             },
             style:
             TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('حذف الكل'),
+            child: Text(l10n.delete_all),
           ),
         ],
       ),
@@ -107,15 +107,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ],
                     ),
                   ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete_all',
                   child: Row(
                     children: [
-                      Icon(Icons.delete_sweep_outlined,
-                          size: 18, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('حذف الكل',
-                          style: TextStyle(color: Colors.red)),
+                      const Icon(Icons.delete_sweep_outlined,
+                          size: 18, color: AppColors.error),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.delete_all,
+                        style: const TextStyle(color: AppColors.error),
+                      ),
                     ],
                   ),
                 ),
@@ -149,23 +151,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildErrorState(NotificationProvider provider, String? userId) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.cloud_off_outlined, size: 64, color: Colors.grey),
+          Icon(Icons.cloud_off_outlined,
+              size: 64, color: AppColors.textDisabled.withValues(alpha: 0.8)),
           const SizedBox(height: 16),
-          const Text('تعذّر تحميل الإشعارات',
-              style: TextStyle(fontSize: 16, color: Colors.grey)),
+          Text(l10n.notifications_load_error,
+              style: AppTextStyles.label.copyWith(
+                fontSize: 16,
+                color: AppColors.textSubtle,
+              )),
           const SizedBox(height: 8),
           ElevatedButton.icon(
             onPressed: () {
               if (userId != null) {
-                provider.fetchNotifications(userId: userId);
+                provider.fetchNotifications(userId);
               }
             },
             icon: const Icon(Icons.refresh),
-            label: const Text('إعادة المحاولة'),
+            label: Text(l10n.retry),
           ),
         ],
       ),
@@ -202,18 +209,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
 class _NotificationCard extends StatelessWidget {
   final AppNotification item;
-  final String userId;
 
-  const _NotificationCard({required this.item, required this.userId});
+  const _NotificationCard({required this.item, required String userId});
 
   @override
   Widget build(BuildContext context) {
     final provider = context.read<NotificationProvider>();
     final l10n = AppLocalizations.of(context)!;
-    final localeCode = l10n.localeName.toLowerCase();
-    final isArabic = localeCode.startsWith('ar');
-    final displayTitle = _translatedTitle(item, l10n, isArabic: isArabic);
-    final displayBody = _resolvedBody(item, l10n, isArabic: isArabic);
+
+    final title =
+        item.title.trim().isEmpty ? l10n.notifications : item.title.trim();
+    final body = item.body.trim();
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
@@ -242,17 +248,17 @@ class _NotificationCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    displayTitle,
+                    title,
                     style: AppTextStyles.cardTitle.copyWith(
                       fontSize: 14,
                       color:
                           item.isRead ? AppColors.textSubtle : AppColors.textDark,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  if (displayBody.isNotEmpty)
+                  if (body.isNotEmpty) ...[
+                    const SizedBox(height: 4),
                     Text(
-                      displayBody,
+                      body,
                       softWrap: true,
                       style: AppTextStyles.label.copyWith(
                         fontSize: 14,
@@ -260,9 +266,11 @@ class _NotificationCard extends StatelessWidget {
                         height: 1.35,
                       ),
                     ),
+                  ],
                   const SizedBox(height: 8),
                   Text(
-                    _formatDate(item.createdAt, isArabic: isArabic),
+                    _formatTime(item.createdAt,
+                        l10n: l10n, backendText: item.backendTimeText),
                     style: AppTextStyles.caption,
                   ),
                 ],
@@ -296,101 +304,31 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  String _translatedTitle(AppNotification item, AppLocalizations l10n,
-      {required bool isArabic}) {
-    final localizedTitle = _localizeKnownText(item.title, isArabic: isArabic);
-    final t = localizedTitle.toLowerCase();
-    final city = _extractRecommendationCity(item.title);
-    if (city != null) {
-      return isArabic ? 'توصية زراعية' : 'Agricultural Recommendation';
-    }
-    if (t.contains('نتائج تحليل التربة')) {
-      return isArabic ? 'نتائج تحليل التربة' : 'Soil Analysis Results';
-    }
-    if (t.contains('report')) return l10n.report_ready;
-    if (t.contains('ai response')) return l10n.ai_response_ready;
-    if (t.contains('welcome')) return l10n.welcome_to_smart_farm;
-    if (t.contains('system')) return l10n.system_update;
-    return localizedTitle;
-  }
-
-  String _resolvedBody(AppNotification item, AppLocalizations l10n,
-      {required bool isArabic}) {
-    final rawBody = item.body.trim();
-    if (rawBody.isNotEmpty) {
-      return _localizeKnownText(rawBody, isArabic: isArabic);
-    }
-
-    final city = _extractRecommendationCity(item.title);
-    if (city != null) {
-      return isArabic ? 'توصية زراعية لمدينة $city 🌾' : 'Agricultural recommendation for $city 🌾';
-    }
-    if (item.title.toLowerCase().contains('نتائج تحليل التربة')) {
-      return isArabic ? 'تم تجهيز نتائج التحليل بنجاح.' : 'Your analysis results are ready.';
-    }
-    return '';
-  }
-
-  String? _extractRecommendationCity(String title) {
-    final arabic = RegExp(r'توصية\s*زراعية\s*لمدينة\s+(.+)$').firstMatch(title);
-    if (arabic != null) return arabic.group(1)?.trim();
-
-    final english = RegExp(r'agricultural\s*recommendation\s*for\s+(.+)$', caseSensitive: false)
-        .firstMatch(title);
-    if (english != null) return english.group(1)?.trim();
-    return null;
-  }
-
-  String _formatDate(DateTime dt, {required bool isArabic}) {
-    final backend = item.backendTimeText?.trim();
+  String _formatTime(
+    DateTime dt, {
+    required AppLocalizations l10n,
+    required String? backendText,
+  }) {
+    final backend = backendText?.trim();
     if (backend != null && backend.isNotEmpty) {
-      return _localizeKnownText(backend, isArabic: isArabic);
+      final duration = AppNotification.parseBackendTimeToDuration(backend);
+      if (duration != null) return _durationToLocalized(duration, l10n);
+      return backend;
     }
 
     final now = DateTime.now();
     var diff = now.difference(dt);
     if (diff.isNegative) diff = Duration.zero;
-
-    if (diff.inMinutes < 1) return isArabic ? 'الآن' : 'Just now';
-    if (diff.inMinutes < 60) {
-      return isArabic ? 'منذ ${diff.inMinutes} د' : '${diff.inMinutes}m ago';
-    }
-    if (diff.inHours < 24) {
-      return isArabic ? 'منذ ${diff.inHours} س' : '${diff.inHours}h ago';
-    }
-    if (diff.inDays < 7) {
-      return isArabic ? 'منذ ${diff.inDays} يوم' : '${diff.inDays}d ago';
-    }
-    return '${dt.day}/${dt.month}/${dt.year}';
+    return _durationToLocalized(diff, l10n);
   }
 
-  String _localizeKnownText(String text, {required bool isArabic}) {
-    var out = text.trim();
-    if (out.isEmpty) return out;
-
-    if (isArabic) {
-      out = out.replaceAll(
-        RegExp(r'Agricultural Recommendation', caseSensitive: false),
-        'توصية زراعية',
-      );
-      out = out.replaceAll(
-        RegExp(r'Soil Analysis Results', caseSensitive: false),
-        'نتائج تحليل التربة',
-      );
-      out = out.replaceAll(RegExp(r'Just now', caseSensitive: false), 'الآن');
-      return out;
-    }
-
-    final cityMatch = RegExp(r'توصية\s*زراعية\s*لمدينة\s+(.+)$').firstMatch(out);
-    if (cityMatch != null) {
-      final city = cityMatch.group(1)?.trim() ?? '';
-      return city.isEmpty
-          ? 'Agricultural recommendation'
-          : 'Agricultural recommendation for $city';
-    }
-    out = out.replaceAll('نتائج تحليل التربة', 'Soil analysis results');
-    out = out.replaceAll(RegExp(r'الآن'), 'Just now');
-    return out;
+  String _durationToLocalized(Duration diff, AppLocalizations l10n) {
+    if (diff.inMinutes < 1) return l10n.time_just_now;
+    if (diff.inMinutes < 60) return l10n.time_minutes_ago(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.time_hours_ago(diff.inHours);
+    if (diff.inDays < 7) return l10n.time_days_ago(diff.inDays);
+    final dt = DateTime.now().subtract(diff);
+    return '${dt.day}/${dt.month}/${dt.year}';
   }
 }
 
@@ -402,27 +340,13 @@ class _TypeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    late IconData icon;
-    late Color color;
-
-    switch (type) {
-      case NotificationType.report:
-        icon = Icons.description_outlined;
-        color = Colors.blue;
-        break;
-      case NotificationType.chatbot:
-        icon = Icons.smart_toy_outlined;
-        color = Colors.purple;
-        break;
-      case NotificationType.user:
-        icon = Icons.person_outline;
-        color = Colors.orange;
-        break;
-      case NotificationType.system:
-        icon = Icons.settings_suggest_outlined;
-        color = Colors.teal;
-        break;
-    }
+    final (IconData icon, Color color) = switch (type) {
+      NotificationType.report => (Icons.article_outlined, AppColors.info),
+      NotificationType.chatbot =>
+        (Icons.chat_bubble_outline_rounded, AppColors.adminAccent),
+      NotificationType.user => (Icons.person_outline_rounded, AppColors.warning),
+      NotificationType.system => (Icons.settings_outlined, AppColors.textSubtle),
+    };
 
     return Container(
       padding: const EdgeInsets.all(8),

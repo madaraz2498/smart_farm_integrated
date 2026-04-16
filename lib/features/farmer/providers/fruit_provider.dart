@@ -37,7 +37,7 @@ class FruitProvider extends ChangeNotifier {
   String?               get error  => _error;
   bool get isLoading => _status == ScanStatus.loading;
 
-  Future<void> analyze(XFile image) async {
+  Future<void> analyze(XFile image, {required String lang}) async {
     _status = ScanStatus.loading;
     _result = null;
     _error  = null;
@@ -48,14 +48,20 @@ class FruitProvider extends ChangeNotifier {
         imageBytes: bytes,
         fileName:   image.name,
         userId:     userId,
+        lang:       lang,
       );
       _status = ScanStatus.result;
+      final isArabic = lang.toLowerCase().startsWith('ar');
 
       final grade = _result!.grade.toUpperCase();
       final emoji = grade == 'A' ? '🍎' : grade == 'B' ? '🟡' : '🔴';
       _notifProvider?.addLocalNotification(
-        title: '$emoji تحليل جودة الفاكهة اكتمل',
-        body: 'الدرجة: $grade — النضج: ${_result!.ripeness} — ${_result!.gradeLabel}',
+        title: isArabic
+            ? '$emoji تحليل جودة الفاكهة اكتمل'
+            : '$emoji Fruit quality analysis completed',
+        body: isArabic
+            ? 'الدرجة: $grade — النضج: ${_result!.ripeness} — ${_result!.gradeLabel}'
+            : 'Grade: $grade - Ripeness: ${_result!.ripeness} - ${_result!.gradeLabel}',
         type: NotificationType.report,
       );
     } on ApiException catch (e) {

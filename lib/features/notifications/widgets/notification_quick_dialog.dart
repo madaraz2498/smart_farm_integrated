@@ -17,10 +17,21 @@ class NotificationQuickDialog extends StatefulWidget {
 
 class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userId = context.read<AuthProvider>().currentUser?.id;
+      if (userId != null) {
+        context.read<NotificationProvider>().fetchNotifications(userId);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<NotificationProvider>();
-    final notifications = provider.notifications.take(5).toList();
     final l10n = AppLocalizations.of(context)!;
+    final notifications = provider.notifications.take(3).toList();
 
     return Container(
       width: 320,
@@ -77,7 +88,12 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
           const Divider(height: 1, color: AppColors.divider),
 
           // List
-          if (notifications.isEmpty)
+          if (provider.isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 30),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (notifications.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 30),
               child: Center(
@@ -148,10 +164,8 @@ class _NotificationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.read<NotificationProvider>();
     final l10n = AppLocalizations.of(context)!;
-    final localeCode = l10n.localeName.toLowerCase();
-    final isArabic = localeCode.startsWith('ar');
-    final displayTitle = _translatedTitle(item, l10n, isArabic: isArabic);
-    final displayBody = _resolvedBody(item, isArabic: isArabic);
+    final displayTitle = item.title.trim().isEmpty ? l10n.notifications : item.title.trim();
+    final displayBody = item.body.trim();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -185,7 +199,7 @@ class _NotificationItem extends StatelessWidget {
                 ],
                 const SizedBox(height: 4),
                 Text(
-                  _formatTime(item.createdAt, isArabic: isArabic),
+                  _formatTime(item.createdAt, l10n: l10n, backendText: item.backendTimeText),
                   style: AppTextStyles.caption.copyWith(
                     fontSize: 11,
                   ),
@@ -225,27 +239,7 @@ class _NotificationItem extends StatelessWidget {
   }
 
   Widget _buildIcon() {
-    IconData icon;
-    Color iconColor;
-
-    switch (item.type) {
-      case NotificationType.report:
-        icon = Icons.description_outlined;
-        iconColor = Colors.blue;
-        break;
-      case NotificationType.chatbot:
-        icon = Icons.smart_toy_outlined;
-        iconColor = Colors.purple;
-        break;
-      case NotificationType.user:
-        icon = Icons.person_outline;
-        iconColor = Colors.orange;
-        break;
-      case NotificationType.system:
-        icon = Icons.settings_suggest_outlined;
-        iconColor = Colors.teal;
-        break;
-    }
+    final (IconData icon, Color iconColor) = _iconForType(item.type);
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -257,98 +251,43 @@ class _NotificationItem extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime dt, {required bool isArabic}) {
-    final backend = item.backendTimeText?.trim();
+  (IconData, Color) _iconForType(NotificationType type) {
+    switch (type) {
+      case NotificationType.report:
+        return (Icons.article_outlined, AppColors.info);
+      case NotificationType.chatbot:
+        return (Icons.chat_bubble_outline_rounded, AppColors.adminAccent);
+      case NotificationType.user:
+        return (Icons.person_outline_rounded, AppColors.warning);
+      case NotificationType.system:
+        return (Icons.settings_outlined, AppColors.textSubtle);
+    }
+  }
+
+  String _formatTime(
+    DateTime dt, {
+    required AppLocalizations l10n,
+    required String? backendText,
+  }) {
+    final backend = backendText?.trim();
     if (backend != null && backend.isNotEmpty) {
-      return _localizeKnownText(backend, isArabic: isArabic);
+      final duration = AppNotification.parseBackendTimeToDuration(backend);
+      if (duration != null) return _durationToLocalized(duration, l10n);
+      return backend;
     }
 
     final now = DateTime.now();
     var diff = now.difference(dt);
     if (diff.isNegative) diff = Duration.zero;
-    if (diff.inMinutes < 1) return isArabic ? 'الآن' : 'Just now';
-    if (diff.inMinutes < 60) {
-      return isArabic ? 'منذ ${diff.inMinutes} د' : '${diff.inMinutes}m ago';
-    }
-    if (diff.inHours < 24) {
-      return isArabic ? 'منذ ${diff.inHours} س' : '${diff.inHours}h ago';
-    }
-    if (diff.inDays < 7) {
-      return isArabic ? 'منذ ${diff.inDays} يوم' : '${diff.inDays}d ago';
-    }
+    return _durationToLocalized(diff, l10n);
+  }
+
+  String _durationToLocalized(Duration diff, AppLocalizations l10n) {
+    if (diff.inMinutes < 1) return l10n.time_just_now;
+    if (diff.inMinutes < 60) return l10n.time_minutes_ago(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.time_hours_ago(diff.inHours);
+    if (diff.inDays < 7) return l10n.time_days_ago(diff.inDays);
+    final dt = DateTime.now().subtract(diff);
     return '${dt.day}/${dt.month}/${dt.year}';
-  }
-
-  String _translatedTitle(AppNotification item, AppLocalizations l10n,
-      {required bool isArabic}) {
-    final localizedTitle = _localizeKnownText(item.title, isArabic: isArabic);
-    final t = localizedTitle.toLowerCase();
-    final city = _extractRecommendationCity(item.title);
-    if (city != null) {
-      return isArabic ? 'توصية زراعية' : 'Agricultural Recommendation';
-    }
-    if (t.contains('نتائج تحليل التربة')) {
-      return isArabic ? 'نتائج تحليل التربة' : 'Soil Analysis Results';
-    }
-    if (t.contains('report')) return l10n.report_ready;
-    if (t.contains('ai response')) return l10n.ai_response_ready;
-    if (t.contains('welcome')) return l10n.welcome_to_smart_farm;
-    if (t.contains('system')) return l10n.system_update;
-    return localizedTitle;
-  }
-
-  String _resolvedBody(AppNotification item, {required bool isArabic}) {
-    final rawBody = item.body.trim();
-    if (rawBody.isNotEmpty) {
-      return _localizeKnownText(rawBody, isArabic: isArabic);
-    }
-
-    final city = _extractRecommendationCity(item.title);
-    if (city != null) {
-      return isArabic ? 'توصية زراعية لمدينة $city 🌾' : 'Agricultural recommendation for $city 🌾';
-    }
-    if (item.title.toLowerCase().contains('نتائج تحليل التربة')) {
-      return isArabic ? 'تم تجهيز نتائج التحليل بنجاح.' : 'Your analysis results are ready.';
-    }
-    return '';
-  }
-
-  String? _extractRecommendationCity(String title) {
-    final arabic = RegExp(r'توصية\s*زراعية\s*لمدينة\s+(.+)$').firstMatch(title);
-    if (arabic != null) return arabic.group(1)?.trim();
-
-    final english = RegExp(r'agricultural\s*recommendation\s*for\s+(.+)$', caseSensitive: false)
-        .firstMatch(title);
-    if (english != null) return english.group(1)?.trim();
-    return null;
-  }
-
-  String _localizeKnownText(String text, {required bool isArabic}) {
-    var out = text.trim();
-    if (out.isEmpty) return out;
-
-    if (isArabic) {
-      out = out.replaceAll(
-        RegExp(r'Agricultural Recommendation', caseSensitive: false),
-        'توصية زراعية',
-      );
-      out = out.replaceAll(
-        RegExp(r'Soil Analysis Results', caseSensitive: false),
-        'نتائج تحليل التربة',
-      );
-      out = out.replaceAll(RegExp(r'Just now', caseSensitive: false), 'الآن');
-      return out;
-    }
-
-    final cityMatch = RegExp(r'توصية\s*زراعية\s*لمدينة\s+(.+)$').firstMatch(out);
-    if (cityMatch != null) {
-      final city = cityMatch.group(1)?.trim() ?? '';
-      return city.isEmpty
-          ? 'Agricultural recommendation'
-          : 'Agricultural recommendation for $city';
-    }
-    out = out.replaceAll('نتائج تحليل التربة', 'Soil analysis results');
-    out = out.replaceAll(RegExp(r'الآن'), 'Just now');
-    return out;
   }
 }

@@ -37,7 +37,7 @@ class PlantProvider extends ChangeNotifier {
   String?               get error  => _error;
   bool get isLoading => _status == ScanStatus.loading;
 
-  Future<void> analyze(XFile image) async {
+  Future<void> analyze(XFile image, {required String lang}) async {
     _status = ScanStatus.loading;
     _result = null;
     _error  = null;
@@ -48,15 +48,23 @@ class PlantProvider extends ChangeNotifier {
         imageBytes: bytes,
         fileName:   image.name,
         userId:     userId,
+        lang:       lang,
       );
       _status = ScanStatus.result;
+      final isArabic = lang.toLowerCase().startsWith('ar');
 
       final isHealthy = _result!.isHealthy;
       _notifProvider?.addLocalNotification(
-        title: isHealthy ? '🌿 النبات بصحة جيدة' : '⚠️ تم اكتشاف مرض في النبات',
-        body: isHealthy
-            ? 'النبات يبدو سليماً — لا يوجد مرض مكتشف (دقة: ${_result!.confidencePct})'
-            : 'المرض: ${_result!.prediction} — دقة التشخيص: ${_result!.confidencePct}',
+        title: isArabic
+            ? (isHealthy ? '🌿 النبات بصحة جيدة' : '⚠️ تم اكتشاف مرض في النبات')
+            : (isHealthy ? '🌿 Plant looks healthy' : '⚠️ Plant disease detected'),
+        body: isArabic
+            ? (isHealthy
+                ? 'النبات يبدو سليماً — لا يوجد مرض مكتشف (دقة: ${_result!.confidencePct})'
+                : 'المرض: ${_result!.prediction} — دقة التشخيص: ${_result!.confidencePct}')
+            : (isHealthy
+                ? 'The plant appears healthy - No disease detected (confidence: ${_result!.confidencePct})'
+                : 'Disease: ${_result!.prediction} - Confidence: ${_result!.confidencePct}'),
         type: isHealthy ? NotificationType.report : NotificationType.system,
       );
     } on ApiException catch (e) {

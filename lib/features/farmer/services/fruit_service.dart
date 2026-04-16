@@ -15,6 +15,7 @@ class FruitService {
     required List<int> imageBytes,
     required String fileName,
     required String userId,
+    required String lang,
   }) async {
     debugPrint(
         '[FruitService] POST /fruits/analyze-fruit  file=$fileName  userId=$userId');
@@ -24,7 +25,10 @@ class FruitService {
         fileField: 'image',
         fileBytes: imageBytes,
         fileName: fileName,
-        fields: {'user_id': userId},
+        fields: {
+          'user_id': userId,
+          'lang': _normalizeLang(lang),
+        },
       );
       debugPrint('[FruitService] response: $data');
       return FruitQualityResponse.fromJson(_asMap(data));
@@ -43,5 +47,10 @@ class FruitService {
       return data;
     }
     throw const ApiException('Invalid fruit response format.');
+  }
+
+  String _normalizeLang(String lang) {
+    final value = lang.trim().toLowerCase();
+    return value == 'en' ? 'en' : 'ar';
   }
 }

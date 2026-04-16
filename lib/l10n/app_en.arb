@@ -362,5 +362,25 @@
   "soil_recommendations": "Recommendations",
   "soil_fertility_high": "High",
   "soil_fertility_medium": "Medium",
-  "soil_fertility_low": "Low"
+  "soil_fertility_low": "Low",
+
+  "delete_all_notifications": "Delete All Notifications",
+  "delete_all_notifications_confirm": "Are you sure you want to delete all notifications?",
+  "delete_all": "Delete All",
+  "notifications_load_error": "Failed to load notifications",
+  "retry": "Retry",
+
+  "time_just_now": "Just now",
+  "time_minutes_ago": "{count}m ago",
+  "@time_minutes_ago": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "time_hours_ago": "{count}h ago",
+  "@time_hours_ago": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "time_days_ago": "{count}d ago",
+  "@time_days_ago": {
+    "placeholders": { "count": { "type": "int" } }
+  }
 }

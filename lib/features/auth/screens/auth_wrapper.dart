@@ -50,7 +50,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
     if (!mounted) return;
 
     final notifProvider = context.read<NotificationProvider>();
-    notifProvider.fetchNotifications(userId: userId);
+    notifProvider.fetchNotifications(userId);
     notifProvider.startRefreshTimer(userId);
   }
 

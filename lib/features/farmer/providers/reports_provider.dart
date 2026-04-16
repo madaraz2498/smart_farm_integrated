@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
@@ -74,11 +75,15 @@ class ReportsProvider extends ChangeNotifier {
         await _svc.downloadReport('latest', manualUrl: url);
       }
 
-      _notifProvider?.addLocalNotification(
+      _notifProvider?.addNotification(
         title: '📊 تم إنشاء التقرير بنجاح',
         body: 'تقرير الفترة "$period" جاهز للتحميل',
         type: NotificationType.report,
       );
+
+      if (userId.isNotEmpty && userId != '0') {
+        unawaited(_notifProvider?.fetchNotifications(userId) ?? Future.value());
+      }
 
       return true;
     } catch (e) {

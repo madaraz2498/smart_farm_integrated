@@ -87,7 +87,12 @@ class _FruitQualityPageState extends State<FruitQualityPage> {
                 pickedImage: _picked,
                 onPickImage: _pick,
                 onAnalyze: () {
-                  if (_picked != null) prov.analyze(_picked!);
+                  if (_picked != null) {
+                    prov.analyze(
+                      _picked!,
+                      lang: Localizations.localeOf(context).languageCode,
+                    );
+                  }
                 },
               ),
               if (prov.status == ScanStatus.result && prov.result != null) ...[

@@ -15,6 +15,7 @@ class AnimalService {
     required List<int> imageBytes,
     required String fileName,
     required String userId,
+    required String lang,
   }) async {
     debugPrint(
         '[AnimalService] POST /animals/estimate-weight  file=$fileName  userId=$userId');
@@ -24,7 +25,10 @@ class AnimalService {
         fileField: 'image',
         fileBytes: imageBytes,
         fileName: fileName,
-        fields: {'user_id': userId},
+        fields: {
+          'user_id': userId,
+          'lang': _normalizeLang(lang),
+        },
       );
       debugPrint('[AnimalService] response: $data');
       return AnimalWeightResponse.fromJson(_asMap(data));
@@ -43,5 +47,10 @@ class AnimalService {
       return data;
     }
     throw const ApiException('Invalid animal response format.');
+  }
+
+  String _normalizeLang(String lang) {
+    final value = lang.trim().toLowerCase();
+    return value == 'en' ? 'en' : 'ar';
   }
 }

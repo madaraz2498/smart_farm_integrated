@@ -1062,4 +1062,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get soil_fertility_low => 'منخفضة';
+
+  @override
+  String get delete_all_notifications => 'حذف جميع الإشعارات';
+
+  @override
+  String get delete_all_notifications_confirm =>
+      'هل أنت متأكد من حذف كل الإشعارات؟';
+
+  @override
+  String get delete_all => 'حذف الكل';
+
+  @override
+  String get notifications_load_error => 'تعذّر تحميل الإشعارات';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get time_just_now => 'الآن';
+
+  @override
+  String time_minutes_ago(int count) {
+    return 'منذ $count د';
+  }
+
+  @override
+  String time_hours_ago(int count) {
+    return 'منذ $count س';
+  }
+
+  @override
+  String time_days_ago(int count) {
+    return 'منذ $count يوم';
+  }
 }

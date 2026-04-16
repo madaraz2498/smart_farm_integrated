@@ -106,12 +106,15 @@ void main() {
 
         ChangeNotifierProvider(create: (_) => AdminReportProvider()),
 
-        ChangeNotifierProxyProvider<NotificationProvider, AdminProvider>(
+        ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
+            AdminProvider>(
           create: (_) => AdminProvider(),
-          update: (_, notif, admin) {
+          update: (_, auth, notif, admin) {
             debugPrint(
                 '[Main] Updating AdminProvider with NotificationProvider');
-            return admin!..updateNotif(notif);
+            return admin!
+              ..updateUserId(auth.currentUser?.id ?? '0')
+              ..updateNotif(notif);
           },
         ),
 

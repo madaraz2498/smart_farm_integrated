@@ -40,7 +40,7 @@ class _SoilAnalysisPageState extends State<SoilAnalysisPage> {
       nitrogen: double.tryParse(_nCtrl.text),
       phosphorus: double.tryParse(_pCtrl.text),
       potassium: double.tryParse(_kCtrl.text),
-    ));
+    ), lang: Localizations.localeOf(context).languageCode);
   }
 
   @override
