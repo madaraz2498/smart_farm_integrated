@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 
 class StatCardData {
   final String label;
@@ -24,10 +25,9 @@ class AdminStatCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final maxWidth = constraints.maxWidth;
-      const crossAxisCount = 2;
-      const spacing = 16.0;
-      final cardWidth = (maxWidth - (crossAxisCount - 1) * spacing) / crossAxisCount;
+      final crossAxisCount = Responsive.isMobile(context) ? 1 : 2;
+      final spacing = Responsive.responsiveSpacing(context);
+      final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * spacing) / crossAxisCount;
 
       return Wrap(
         spacing: spacing,

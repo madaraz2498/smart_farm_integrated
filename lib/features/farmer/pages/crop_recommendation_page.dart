@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../models/crop_models.dart';
 import '../providers/crop_provider.dart';
@@ -46,6 +47,7 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     _soilType ??= 'Sandy';
+    final hPadding = Responsive.responsivePadding(context);
 
     final soilTypes = [
       {'value': 'Sandy', 'label': l10n.soil_sandy},
@@ -55,24 +57,26 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
     ];
 
     return Consumer<CropProvider>(builder: (context, prov, _) {
-      return RefreshIndicator(
-        onRefresh: () async {
-          _cityCtrl.clear();
-          setState(() {
-            _soilType = 'Sandy';
-            _validErr = null;
-          });
-          prov.reset();
-        },
-        color: AppColors.primary,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-          child: Center(
-              child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      return SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            _cityCtrl.clear();
+            setState(() {
+              _soilType = 'Sandy';
+              _validErr = null;
+            });
+            prov.reset();
+          },
+          color: AppColors.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(hPadding, 16, hPadding, 32),
+            child: Center(
+                child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
               Text(l10n.nav_crop_recommendation,
                   style: AppTextStyles.pageTitle),
               const SizedBox(height: 4),
@@ -174,7 +178,7 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
                 SfResultCard(title: l10n.crop_recommendation_result, children: [
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      final isNarrow = constraints.maxWidth < 520;
+                      final isNarrow = Responsive.isMobile(context);
                       final cards = [
                         _CropPickCard(
                           title: l10n.crop_primary_crop,
@@ -310,8 +314,9 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
                 SfErrorBanner(prov.error!),
               ],
             ]),
-          )),
-        ),
+              )),
+            ),
+          ),
       );
     });
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_farm/core/constants/app_assets.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../notifications/providers/notification_provider.dart';
 import '../../notifications/models/notification_model.dart';
@@ -36,7 +37,7 @@ class _AdminStatsGridState extends State<AdminStatsGrid> {
       }
 
       final s = prov.stats;
-      final isMobile = MediaQuery.of(context).size.width < 600;
+      final isMobile = Responsive.isMobile(context);
 
       return Wrap(spacing: 16, runSpacing: 16, children: [
         _StatCard(
@@ -90,8 +91,8 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final w = isMobile
-        ? (MediaQuery.of(context).size.width - 64) / 2
-        : (MediaQuery.of(context).size.width / 4) - 32;
+        ? (Responsive.screenWidth(context) - 64) / 2
+        : (Responsive.screenWidth(context) / 4) - 32;
 
     return Container(
       width: w,

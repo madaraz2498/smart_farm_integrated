@@ -1,6 +1,7 @@
 // lib/features/admin/pages/admin_settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 import 'package:smart_farm/features/notifications/models/notification_model.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
@@ -44,20 +45,25 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     final themeProvider = context.watch<ThemeProvider>();
     final localeProvider = context.watch<LocaleProvider>();
     final l10n = AppLocalizations.of(context)!;
+    final pagePadding = Responsive.responsivePadding(context);
 
     return Scaffold(
         backgroundColor: AppColors.background,
-        body: RefreshIndicator(
-          onRefresh: () async {
-            await context.read<AuthProvider>().loadUserProfile();
-          },
-          color: AppColors.primary,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(AppSizes.pagePadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await context.read<AuthProvider>().loadUserProfile();
+                },
+                color: AppColors.primary,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.all(pagePadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                 // Header
                 Row(
                   children: [
@@ -206,7 +212,10 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                   icon: Icons.logout,
                 ),
                 const SizedBox(height: 24),
-              ],
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ));

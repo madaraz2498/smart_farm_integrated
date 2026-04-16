@@ -36,16 +36,22 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
     final notifProvider = context.read<NotificationProvider>();
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
     final currentYear = DateTime.now().year.toString();
+    final w = MediaQuery.sizeOf(context).width;
+    final pagePadding = (w * 0.04).clamp(16.0, 24.0);
 
-    return RefreshIndicator(
-      onRefresh: () => provider.fetchAllReports(),
-      color: AppColors.primary,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: RefreshIndicator(
+            onRefresh: () => provider.fetchAllReports(),
+            color: AppColors.primary,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.all(pagePadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             // Header Section
             Row(children: [
               const Icon(Icons.bar_chart_rounded,
@@ -130,7 +136,10 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
               ),
               const SizedBox(height: 40),
             ],
-          ],
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

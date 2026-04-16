@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/report_models.dart';
@@ -12,9 +11,7 @@ import '../models/report_models.dart';
 ///
 ///   GET  /farmer_reports/stats/{user_id}
 ///   GET  /farmer_reports/list/{user_id}
-///   POST /farmer_reports/generate/{user_id}   (no body required)
-///   GET  /reports/generate-farmer-report/{user_id}
-///   GET  /reports/user-summary/{user_id}
+///   POST /farmer_reports/generate/{user_id}
 ///   GET  /farmer_reports/download/{report_id}
 class ReportsService {
   ReportsService._();
@@ -30,13 +27,11 @@ class ReportsService {
       final data = await _c.get(path);
       debugPrint('[ReportsService] getStats response: $data');
       if (data is Map<String, dynamic>) {
-        // If API doesn't provide this_month, we can mock it as a fraction of total for now
         final stats = FarmerReportStats.fromJson(data);
         if (stats.thisMonth == 0 && stats.totalReports > 0) {
           return FarmerReportStats(
             totalReports: stats.totalReports,
-            thisMonth:
-                (stats.totalReports * 0.3).round(), // Mock 30% for this month
+            thisMonth: (stats.totalReports * 0.3).round(),
             growth: stats.growth,
           );
         }
@@ -64,7 +59,6 @@ class ReportsService {
             .map((e) => FarmerReportItem.fromJson(e as Map<String, dynamic>))
             .toList();
       }
-      // Some APIs wrap in { "reports": [...] }
       if (data is Map && data['reports'] is List) {
         return (data['reports'] as List)
             .map((e) => FarmerReportItem.fromJson(e as Map<String, dynamic>))
@@ -77,21 +71,17 @@ class ReportsService {
     }
   }
 
-  // ── Generate (farmer status) ─────────────────────────────────────────────────────
+  // ── Generate — only triggers creation, no download ───────────────────────
 
-  Future<String?> generate(String userId, {String period = 'all'}) async {
+  Future<void> generate(String userId, {String period = 'all'}) async {
     final path = '/farmer_reports/generate/$userId';
     final query = {'period': period};
     debugPrint('[ReportsService] POST $path?period=$period');
     try {
       final result = await _c.post(path, query: query);
       debugPrint('[ReportsService] generate response: $result');
-      if (result is Map<String, dynamic>) {
-        return result['download_url'] as String? ??
-            result['url'] as String? ??
-            result['file_url'] as String?;
-      }
-      return null;
+      // We intentionally ignore any download_url here.
+      // The user downloads manually via the list item button.
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -99,56 +89,70 @@ class ReportsService {
     }
   }
 
-  // ── Download ──────────────────────────────────────────────────────────────
+  // ── Download to file (returns local path) ─────────────────────────────────
 
-  Future<void> downloadReport(String reportId, {String? manualUrl}) async {
-    String? url = manualUrl;
-
-    if (url == null) {
-      if (reportId.startsWith('mock-')) {
-        url =
-            'https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf';
-      } else {
-        // Fallback to constructed URL if no manual URL provided
-        url = '${ApiClient.baseUrl}/farmer_reports/download/$reportId';
-      }
-    }
+  Future<String> downloadReportToFile(String reportId,
+      {String? manualUrl}) async {
+    String url = manualUrl ??
+        '${ApiClient.baseUrl}/farmer_reports/download/$reportId';
 
     debugPrint('[ReportsService] Downloading PDF: $url');
 
     try {
+      // First check if report exists by making a HEAD request
+      final headResponse = await http.head(
+        Uri.parse(url),
+        headers: {
+          if (_c.token != null)
+            'Authorization': 'Bearer ${_c.token}',
+        },
+      );
+
+      if (headResponse.statusCode != 200) {
+        throw ApiException(
+          'Report file not found or not ready for download (Error ${headResponse.statusCode})',
+          statusCode: headResponse.statusCode,
+        );
+      }
+
+      // If HEAD request succeeds, proceed with download
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          if (_c.token != null && url.contains('/farmer_reports/download/'))
+          if (_c.token != null)
             'Authorization': 'Bearer ${_c.token}',
         },
       );
 
       if (response.statusCode == 200) {
         final bytes = response.bodyBytes;
-        final dir =
-            await getTemporaryDirectory(); // Use temporary directory for better security
+        final dir = await getTemporaryDirectory();
         final fileName =
             'report_${reportId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
         final file = File('${dir.path}/$fileName');
-
         await file.writeAsBytes(bytes);
         debugPrint('[ReportsService] PDF saved to: ${file.path}');
-
-        final result = await OpenFilex.open(file.path);
-        if (result.type != ResultType.done) {
-          throw ApiException('Could not open PDF: ${result.message}');
-        }
+        return file.path;
       } else {
         throw ApiException(
-            'Failed to download PDF (Error ${response.statusCode})',
-            statusCode: response.statusCode);
+          'Failed to download PDF (Error ${response.statusCode})',
+          statusCode: response.statusCode,
+        );
       }
     } catch (e) {
       debugPrint('[ReportsService] Download error: $e');
       if (e is ApiException) rethrow;
       throw ApiException('An error occurred while downloading the PDF: $e');
+    }
+  }
+
+  // ── Open local file ───────────────────────────────────────────────────────
+
+  Future<void> openLocalFile(String localPath) async {
+    debugPrint('[ReportsService] Opening local file: $localPath');
+    final result = await OpenFilex.open(localPath);
+    if (result.type != ResultType.done) {
+      throw ApiException('Could not open PDF: ${result.message}');
     }
   }
 
@@ -159,7 +163,6 @@ class ReportsService {
     debugPrint('[ReportsService] GET $path');
     try {
       final data = await _c.get(path);
-      debugPrint('[ReportsService] getUserSummary response: $data');
       return (data as Map<String, dynamic>?) ?? {};
     } catch (e) {
       debugPrint('[ReportsService] getUserSummary non-critical: $e');

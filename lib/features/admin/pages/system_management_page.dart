@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/admin_provider.dart';
@@ -89,13 +90,19 @@ class _SystemManagementPageState extends State<SystemManagementPage>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      color: AppColors.primary,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    final pagePadding = Responsive.responsivePadding(context);
+    return SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: RefreshIndicator(
+            onRefresh: _loadData,
+            color: AppColors.primary,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.all(pagePadding),
+              child:
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(l10n.system_management_title, style: AppTextStyles.pageTitle),
           const SizedBox(height: 4),
           Text(l10n.system_management_subtitle,
@@ -138,7 +145,10 @@ class _SystemManagementPageState extends State<SystemManagementPage>
                     ? _buildAITab(l10n)
                     : _buildGeneralTab(l10n);
               }),
-        ]),
+          ]),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/chatbot_provider.dart';
 import '../models/chatbot_models.dart';
@@ -59,8 +60,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isDesktop = MediaQuery.of(context).size.width > 900;
-    final width = MediaQuery.of(context).size.width;
+    final isDesktop = Responsive.isDesktop(context);
+    final width = Responsive.screenWidth(context);
     final cardMaxWidth = width > 1400 ? 1220.0 : 1100.0;
 
     return Scaffold(
@@ -283,7 +284,7 @@ class _ChatSidebar extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: () {
                   onNewChat();
-                  if (MediaQuery.of(context).size.width <= 900 &&
+                  if (Responsive.isMobile(context) &&
                       Navigator.canPop(context)) {
                     Navigator.pop(context);
                   }
@@ -319,7 +320,7 @@ class _ChatSidebar extends StatelessWidget {
                                         isArabic: isArabic,
                                         onTap: () {
                                           prov.selectSession(session.id);
-                                          if (MediaQuery.of(context).size.width <= 900) {
+                                          if (Responsive.isMobile(context)) {
                                             Navigator.pop(context);
                                           }
                                         },
@@ -338,7 +339,7 @@ class _ChatSidebar extends StatelessWidget {
                                         isArabic: isArabic,
                                         onTap: () {
                                           prov.selectSession(session.id);
-                                          if (MediaQuery.of(context).size.width <= 900) {
+                                          if (Responsive.isMobile(context)) {
                                             Navigator.pop(context);
                                           }
                                         },
@@ -662,7 +663,7 @@ class _Bubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ts = '${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}';
-    final maxBubbleWidth = MediaQuery.of(context).size.width * 0.58;
+    final maxBubbleWidth = Responsive.screenWidth(context) * 0.58;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(

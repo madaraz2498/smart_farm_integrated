@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_farm/core/constants/app_assets.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/features/farmer/providers/message_provider.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import 'package:smart_farm/providers/location_provider.dart';
@@ -48,6 +49,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
     final nav = context.read<NavigationProvider>();
     final dashboardProv = context.watch<DashboardProvider>();
     final dashboard = dashboardProv.dashboardData;
+    final hPadding = Responsive.responsivePadding(context);
 
     String translateService(String service) {
       if (service == 'N/A' || service.isEmpty) {
@@ -116,24 +118,29 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
       ),
     ];
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        final userId = context.read<AuthProvider>().currentUser?.id;
-        if (userId != null) {
-          await context.read<LocationProvider>().requestLocation(force: true);
-          await Future.wait([
-            context.read<FarmerMessageProvider>().fetchMessages(userId),
-            context.read<ReportsProvider>().load(),
-            context.read<DashboardProvider>().load(),
-          ]);
-        }
-      },
-      color: AppColors.primary,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(
-            AppSizes.pagePadding, 32, AppSizes.pagePadding, 32),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          final userId = context.read<AuthProvider>().currentUser?.id;
+          if (userId != null) {
+            await context.read<LocationProvider>().requestLocation(force: true);
+            await Future.wait([
+              context.read<FarmerMessageProvider>().fetchMessages(userId),
+              context.read<ReportsProvider>().load(),
+              context.read<DashboardProvider>().load(),
+            ]);
+          }
+        },
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(hPadding, 32, hPadding, 32),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
           // Enhanced Header
           Row(
             children: [
@@ -220,8 +227,8 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
               ),
             ];
 
-            final crossAxisCount = statsConstraints.maxWidth < 350 ? 1 : 2;
-            final isVerySmall = statsConstraints.maxWidth < 450;
+            final crossAxisCount = Responsive.isMobile(context) ? 2 : (Responsive.isTablet(context) ? 3 : 4);
+            final isVerySmall = Responsive.screenWidth(context) < 450;
 
             return GridView.count(
               crossAxisCount: crossAxisCount,
@@ -229,16 +236,16 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
               physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: isVerySmall ? 1.0 : 1.4,
+              childAspectRatio: isVerySmall ? 1.2 : 0.9, // Much smaller cards
               children: statsWidgets,
             );
           }),
           const SizedBox(height: 32),
 
           LayoutBuilder(builder: (_, constraints) {
-            final cols = constraints.maxWidth >= 900
+            final cols = Responsive.isDesktop(context)
                 ? 3
-                : constraints.maxWidth >= 500
+                : Responsive.isTablet(context)
                     ? 2
                     : 1;
             const gap = AppSizes.itemPadding;
@@ -250,8 +257,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
                       .map((f) => Padding(
                             padding: const EdgeInsets.only(bottom: gap),
                             child: AspectRatio(
-                              aspectRatio:
-                                  1.9, // تم تقليل النسبة قليلاً لزيادة الارتفاع ومنع التداخل
+                              aspectRatio: 1.6, // Much smaller cards for mobile
                               child: _FeatureCard(
                                   svg: f.svg,
                                   icon: f.icon,
@@ -271,7 +277,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
                     .map((f) => SizedBox(
                           width: w,
                           child: AspectRatio(
-                            aspectRatio: 1.6,
+                            aspectRatio: 0.8, // Much smaller cards for grid
                             child: _FeatureCard(
                                 svg: f.svg,
                                 icon: f.icon,
@@ -283,7 +289,10 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
                         ))
                     .toList());
           }),
-        ]),
+                ]),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -310,8 +319,7 @@ class _WeatherCard extends StatelessWidget {
     final cleanHumidity = _formatPercent(humidity);
     final cleanWind = _formatWind(wind, l10n);
     final displayTemp = (temp == null || temp!.isEmpty) ? '--°C' : temp!;
-    final width = MediaQuery.of(context).size.width;
-    final compact = width < 420;
+    final compact = Responsive.isMobile(context);
 
     return Container(
       width: double.infinity,
@@ -321,7 +329,10 @@ class _WeatherCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFF4B8B8)),
       ),
       padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14, vertical: 12),
-      child: compact ? _buildCompact(l10n, title, displayTemp, cleanHumidity, cleanWind, description) : _buildWide(l10n, title, displayTemp, cleanHumidity, cleanWind, description),
+      child: compact ? _buildCompact(
+          l10n, title,
+          displayTemp, cleanHumidity, cleanWind, description)
+          : _buildWide(l10n, title, displayTemp, cleanHumidity, cleanWind, description),
     );
   }
 

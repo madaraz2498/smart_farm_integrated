@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/admin_provider.dart';
 import '../widgets/user_stat_cards.dart';
@@ -30,6 +31,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final pagePadding = Responsive.responsivePadding(context);
 
     return Consumer<AdminProvider>(
       builder: (context, provider, _) {
@@ -37,36 +39,43 @@ class _UserManagementPageState extends State<UserManagementPage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return RefreshIndicator(
-          onRefresh: () => provider.loadUsers(force: true),
-          color: const Color(0xFF4F46E5),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context, l10n),
-                const SizedBox(height: 32),
-                AdminStatCards(cards: _buildSummaryCards(provider, l10n)),
-                const SizedBox(height: 32),
-                _buildSearchField(l10n),
-                const SizedBox(height: 24),
-                UserListTable(
-                  users: provider.users,
-                  searchQuery: _searchQuery,
-                  onEdit: (user) =>
-                      UserManagementDialogs.showUserManagementDialog(
-                    context,
-                    user,
-                    onPromote: (u) => provider.promoteToAdmin(u.email),
-                    onToggleStatus: (u) => u.isActive
-                        ? provider.deactivateUser(u.id)
-                        : provider.activateUser(u.id),
-                    onDelete: (u) => provider.deleteUser(u.id),
+        return SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: RefreshIndicator(
+                onRefresh: () => provider.loadUsers(force: true),
+                color: const Color(0xFF4F46E5),
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(pagePadding),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(context, l10n),
+                      const SizedBox(height: 32),
+                      AdminStatCards(cards: _buildSummaryCards(provider, l10n)),
+                      const SizedBox(height: 32),
+                      _buildSearchField(l10n),
+                      const SizedBox(height: 24),
+                      UserListTable(
+                        users: provider.users,
+                        searchQuery: _searchQuery,
+                        onEdit: (user) =>
+                            UserManagementDialogs.showUserManagementDialog(
+                          context,
+                          user,
+                          onPromote: (u) => provider.promoteToAdmin(u.email),
+                          onToggleStatus: (u) => u.isActive
+                              ? provider.deactivateUser(u.id)
+                              : provider.activateUser(u.id),
+                          onDelete: (u) => provider.deleteUser(u.id),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         );
@@ -113,7 +122,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
   Widget _buildSearchField(AppLocalizations l10n) {
     return Container(
-      width: 400,
+      constraints: const BoxConstraints(maxWidth: 400),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),

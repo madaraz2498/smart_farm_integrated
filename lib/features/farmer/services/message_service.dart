@@ -10,7 +10,6 @@ class FarmerMessageService {
   final ApiClient _c = ApiClient.instance;
 
   // ── Send Message ───────────────────────────────────────────────────────────
-  // POST /messages/send
   Future<bool> sendMessage({
     required String subject,
     required String message,
@@ -21,8 +20,8 @@ class FarmerMessageService {
     try {
       final fields = {
         'subject': subject,
-        'content': message, // Changed from 'message' to 'content'
-        'user_id': userId, // Added 'user_id'
+        'content': message,
+        'user_id': userId,
         'user_name': userName,
         'created_at': createdAt,
       };
@@ -38,10 +37,16 @@ class FarmerMessageService {
   }
 
   // ── Get My Messages ────────────────────────────────────────────────────────
-  // GET /messages/my-messages/{user_id}
   Future<List<MessageModel>> getMyMessages(String userId) async {
     try {
       final List<dynamic> raw = await _c.get('/messages/my-messages/$userId');
+
+      // 🔍 DEBUG: Print raw API response to see all field names
+      if (raw.isNotEmpty) {
+        debugPrint('[FarmerMessageService] Sample message keys: ${(raw.first as Map).keys.toList()}');
+        debugPrint('[FarmerMessageService] Sample message data: ${raw.first}');
+      }
+
       return raw.map((m) => MessageModel.fromJson(m)).toList();
     } on ApiException catch (e) {
       debugPrint('[FarmerMessageService] getMyMessages error: ${e.message}');
@@ -53,7 +58,6 @@ class FarmerMessageService {
   }
 
   // ── Delete My Message ──────────────────────────────────────────────────────
-  // DELETE /messages/delete/{message_id}?user_id={user_id}
   Future<bool> deleteMyMessage(int messageId, String userId) async {
     try {
       final query = {'user_id': userId};

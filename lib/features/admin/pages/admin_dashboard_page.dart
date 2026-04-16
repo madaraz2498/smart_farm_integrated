@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/admin_provider.dart';
 import '../reports/providers/report_provider.dart';
@@ -28,25 +29,30 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final reportProv = context.watch<AdminReportProvider>();
+    final pagePadding = Responsive.responsivePadding(context);
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        await Future.wait([
-          context.read<AdminProvider>().refreshAll(),
-          context.read<AdminReportProvider>().fetchAllReports(),
-        ]);
-      },
-      color: AppColors.primary,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 800;
+    return SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await Future.wait([
+                context.read<AdminProvider>().refreshAll(),
+                context.read<AdminReportProvider>().fetchAllReports(),
+              ]);
+            },
+            color: AppColors.primary,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = Responsive.isMobile(context);
 
-          return SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(AppSizes.pagePadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.all(pagePadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                 // Header
                 Row(children: [
                   const Icon(Icons.dashboard_outlined,
@@ -124,10 +130,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 const SizedBox(height: 24),
                 // 3. Recent Activity
                 const RecentActivityList(),
-              ],
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

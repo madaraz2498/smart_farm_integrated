@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:smart_farm/core/utils/responsive.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
@@ -43,50 +44,61 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<AdminMessageProvider>();
+    final pagePadding = Responsive.responsivePadding(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
-      body: RefreshIndicator(
-        onRefresh: () => context.read<AdminMessageProvider>().fetchMessages(),
-        color: AppColors.primary,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSizes.pagePadding),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: RefreshIndicator(
+              onRefresh: () =>
+                  context.read<AdminMessageProvider>().fetchMessages(),
+              color: AppColors.primary,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.messages, style: AppTextStyles.pageTitle),
-                  const SizedBox(height: 16),
-                  _AdminHeader(
-                    count: provider.messages.length,
-                    pendingCount: provider.pendingCount,
+                  Padding(
+                    padding: EdgeInsets.all(pagePadding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.messages, style: AppTextStyles.pageTitle),
+                        const SizedBox(height: 16),
+                        _AdminHeader(
+                          count: provider.messages.length,
+                          pendingCount: provider.pendingCount,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: provider.isLoading && provider.messages.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : provider.messages.isEmpty
+                            ? _buildEmptyState(l10n)
+                            : ListView.separated(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: pagePadding),
+                                itemCount: provider.messages.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 16),
+                                itemBuilder: (context, index) {
+                                  final msg = provider.messages[index];
+                                  return _MessageCard(
+                                    message: msg,
+                                    onReply: () =>
+                                        _showReplyDialog(context, msg),
+                                    onDelete: () =>
+                                        _confirmDelete(context, msg.id),
+                                  );
+                                },
+                              ),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: provider.isLoading && provider.messages.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : provider.messages.isEmpty
-                      ? _buildEmptyState(l10n)
-                      : ListView.separated(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: AppSizes.pagePadding),
-                          itemCount: provider.messages.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
-                            final msg = provider.messages[index];
-                            return _MessageCard(
-                              message: msg,
-                              onReply: () => _showReplyDialog(context, msg),
-                              onDelete: () => _confirmDelete(context, msg.id),
-                            );
-                          },
-                        ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -243,8 +255,12 @@ class _MessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final dateStr = DateFormat('dd/MM/yyyy, HH:mm').format(message.createdAt);
+    final locale = Localizations.localeOf(context).toString();
+    final dateStr = DateFormat.yMMMd(locale).add_Hm().format(message.createdAt);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final replyText = message.reply?.trim();
+    final repliedAt = message.repliedAt ?? message.createdAt;
+    final replyDateStr = DateFormat.yMMMd(locale).add_Hm().format(repliedAt);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -386,28 +402,77 @@ class _MessageCard extends StatelessWidget {
             ),
           ),
           // Admin Reply Section (if exists)
-          if (message.reply != null) ...[
+          if (replyText != null && replyText.isNotEmpty) ...[
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Divider(height: 1),
             ),
-            Row(
-              children: [
-                const Icon(Icons.reply, size: 16, color: Color(0xFF10B981)),
-                const SizedBox(width: 8),
-                Text(l10n.admin_reply,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.cardBorder.withValues(alpha: 0.9),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.reply,
+                          size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.admin_reply,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          replyDateStr,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textDisabled,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Text(
+                      replyText,
+                      textAlign: isRtl ? TextAlign.right : TextAlign.left,
+                      style: const TextStyle(
+                        color: AppColors.textDark,
                         fontSize: 13,
-                        color: Color(0xFF10B981))),
-              ],
+                        fontWeight: FontWeight.w600,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(message.reply!,
-                style: const TextStyle(
-                    color: Color(0xFF374151),
-                    fontSize: 13,
-                    fontStyle: FontStyle.italic)),
           ],
           // 3. Reply Button (if not replied)
           if (!message.isReplied) ...[

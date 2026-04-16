@@ -125,26 +125,49 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _onRefresh,
-        child: provider.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : provider.error != null
-            ? _buildErrorState(provider, userId)
-            : provider.notifications.isEmpty
-            ? _buildEmptyState(l10n)
-            : ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: provider.notifications.length,
-          separatorBuilder: (_, __) =>
-          const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final item = provider.notifications[index];
-            return _NotificationCard(
-              item: item,
-              userId: userId ?? '',
-            );
-          },
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: provider.isLoading
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      children: const [
+                        SizedBox(height: 120),
+                        Center(child: CircularProgressIndicator()),
+                      ],
+                    )
+                  : provider.error != null
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(16),
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.sizeOf(context).height * 0.7,
+                              child: _buildErrorState(provider, userId),
+                            ),
+                          ],
+                        )
+                      : provider.notifications.isEmpty
+                          ? _buildEmptyState(l10n)
+                          : ListView.separated(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: provider.notifications.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final item = provider.notifications[index];
+                                return _NotificationCard(
+                                  item: item,
+                                  userId: userId ?? '',
+                                );
+                              },
+                            ),
+            ),
+          ),
         ),
       ),
     );

@@ -65,15 +65,13 @@ class ReportsProvider extends ChangeNotifier {
     }
   }
 
+  /// Generates a new report and refreshes the list — does NOT download/open.
   Future<bool> generate({String period = 'all'}) async {
     _isLoading = true;
     notifyListeners();
     try {
-      final url = await _svc.generate(userId, period: period);
+      await _svc.generate(userId, period: period);
       await load();
-      if (url != null) {
-        await _svc.downloadReport('latest', manualUrl: url);
-      }
 
       _notifProvider?.addNotification(
         title: '📊 تم إنشاء التقرير بنجاح',
@@ -93,15 +91,30 @@ class ReportsProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> downloadReport(String reportId, {String? url}) async {
+  /// Downloads the report to a local file and returns the local path.
+  /// Returns null on failure and sets [error].
+  Future<String?> downloadReportToFile(String reportId, {String? url}) async {
     try {
-      await _svc.downloadReport(reportId, manualUrl: url);
+      final path = await _svc.downloadReportToFile(reportId, manualUrl: url);
 
       _notifProvider?.addLocalNotification(
         title: '⬇️ تم تحميل التقرير',
-        body: 'تم تحميل التقرير بنجاح على جهازك',
+        body: 'تم تحميل التقرير بنجاح — اضغط لفتحه',
         type: NotificationType.report,
       );
+
+      return path;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
+
+  /// Opens an already-downloaded local file.
+  Future<void> openLocalReport(String localPath) async {
+    try {
+      await _svc.openLocalFile(localPath);
     } catch (e) {
       _error = e.toString();
       notifyListeners();

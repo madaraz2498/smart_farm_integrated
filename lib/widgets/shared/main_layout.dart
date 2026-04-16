@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../core/utils/responsive.dart';
 
 // ── Farmer pages ──────────────────────────────────────────────────────────────
 import '../../features/farmer/pages/farmer_welcome_page.dart';
@@ -66,7 +67,7 @@ class MainLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAdmin = context.watch<AuthProvider>().isAdmin;
     final nav = context.watch<NavigationProvider>();
-    final isWide = MediaQuery.of(context).size.width > AppSizes.wideBreak;
+    final isWide = Responsive.isDesktop(context);
 
     // Special Case: Chatbot Experience (Independent Full Screen)
     if (!isAdmin && nav.farmerIndex == 6) { // 6 = Chatbot

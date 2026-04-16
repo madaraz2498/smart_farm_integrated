@@ -1,6 +1,7 @@
 // lib/features/home/screens/farmer_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 
 import '../../../features/auth/providers/auth_provider.dart';
@@ -91,21 +92,24 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final localeProvider = Provider.of<LocaleProvider>(context);
+    final hPadding = Responsive.responsivePadding(context);
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        await context.read<AuthProvider>().loadUserProfile();
-        await _loadSettings();
-      },
-      color: AppColors.primary,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-        child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 640),
-              child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await context.read<AuthProvider>().loadUserProfile();
+          await _loadSettings();
+        },
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(hPadding, 16, hPadding, 32),
+          child: Center(
+              child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // ── Page header ───────────────────────────────────────────────
                 Row(children: [
                   const Icon(Icons.settings_outlined,
@@ -222,8 +226,9 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
                       child: LinearProgressIndicator(),
                     ),
                 ]),
-              ]),
-            )),
+                ]),
+              )),
+        ),
       ),
     );
   }

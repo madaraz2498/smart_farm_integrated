@@ -33,23 +33,34 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
     final l10n = AppLocalizations.of(context)!;
     final notifications = provider.notifications.take(3).toList();
 
-    return Container(
-      width: 320,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    final screenW = MediaQuery.sizeOf(context).width;
+    final screenH = MediaQuery.sizeOf(context).height;
+    final dialogW = screenW < 360 ? screenW * 0.92 : 320.0;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 360,
+          maxHeight: screenH * 0.7,
+        ),
+        child: SizedBox(
+          width: dialogW,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           // Header
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
@@ -151,6 +162,9 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
             ),
           ),
         ],
+            ),
+          ),
+        ),
       ),
     );
   }

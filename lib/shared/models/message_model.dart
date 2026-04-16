@@ -9,6 +9,7 @@ class MessageModel {
   final String content;
   final String? reply;
   final DateTime createdAt;
+  final DateTime? repliedAt;
   final bool isReplied;
 
   MessageModel({
@@ -20,6 +21,7 @@ class MessageModel {
     required this.content,
     this.reply,
     required this.createdAt,
+    this.repliedAt,
     this.isReplied = false,
   });
 
@@ -34,6 +36,20 @@ class MessageModel {
       }
     }
 
+    // Try all possible reply field names from API
+    final replyValue = json['reply'] ??
+        json['reply_content'] ??
+        json['admin_reply'] ??
+        json['response'] ??
+        json['answer'] ??
+        json['reply_message'] ??
+        json['reply_text'];
+
+    // Convert to String? safely
+    final String? replyStr = (replyValue != null && replyValue.toString().trim().isNotEmpty)
+        ? replyValue.toString()
+        : null;
+
     return MessageModel(
       id: json['id'] ?? 0,
       userId: json['user_id'] ?? 0,
@@ -43,14 +59,24 @@ class MessageModel {
           json['user']?['name'] ??
           'User',
       userEmail:
-          json['user_email'] ?? json['email'] ?? json['user']?['email'] ?? '',
+      json['user_email'] ?? json['email'] ?? json['user']?['email'] ?? '',
       subject: json['subject'] ?? '',
       content: json['content'] ?? json['message'] ?? '',
-      reply: json['reply'] ?? json['reply_content'],
+      reply: replyStr,
       createdAt:
-          parseDate(json['created_at'] ?? json['timestamp'] ?? json['date']),
-      isReplied: json['is_replied'] ??
-          (json['reply'] != null || json['reply_content'] != null),
+      parseDate(json['created_at'] ?? json['timestamp'] ?? json['date']),
+      repliedAt: json['reply_at'] != null ||
+          json['replied_at'] != null ||
+          json['reply_time'] != null
+          ? parseDate(json['reply_at'] ??
+          json['replied_at'] ??
+          json['reply_time'])
+          : (replyStr != null ? parseDate(json['updated_at']) : null),
+      isReplied: json['is_replied'] == true ||
+          json['is_replied'] == 1 ||
+          json['status'] == 'replied' ||
+          json['status'] == 'answered' ||
+          replyStr != null,
     );
   }
 
@@ -64,6 +90,7 @@ class MessageModel {
       'content': content,
       'reply': reply,
       'created_at': createdAt.toIso8601String(),
+      'replied_at': repliedAt?.toIso8601String(),
       'is_replied': isReplied,
     };
   }
@@ -77,6 +104,7 @@ class MessageModel {
     String? content,
     String? reply,
     DateTime? createdAt,
+    DateTime? repliedAt,
     bool? isReplied,
   }) {
     return MessageModel(
@@ -88,6 +116,7 @@ class MessageModel {
       content: content ?? this.content,
       reply: reply ?? this.reply,
       createdAt: createdAt ?? this.createdAt,
+      repliedAt: repliedAt ?? this.repliedAt,
       isReplied: isReplied ?? this.isReplied,
     );
   }

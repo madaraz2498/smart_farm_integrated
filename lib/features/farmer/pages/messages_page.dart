@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:smart_farm/core/utils/responsive.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/message_model.dart';
@@ -117,22 +118,64 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
     final auth = context.watch<AuthProvider>();
     final provider = context.watch<FarmerMessageProvider>();
     final userId = auth.currentUser?.id ?? '';
+    final pagePadding = Responsive.responsivePadding(context);
 
-    return RefreshIndicator(
-      onRefresh: _loadMessages,
-      color: AppColors.primary,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
-        children: [
-          Text(l10n.messages, style: AppTextStyles.pageTitle),
-          const SizedBox(height: 16),
+    return SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: RefreshIndicator(
+            onRefresh: _loadMessages,
+            color: AppColors.primary,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.all(pagePadding),
+              children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.message_rounded,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.messages,
+                      style: AppTextStyles.pageTitle.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      '${provider.messages.length} ${l10n.messages}',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
           _FarmerHeader(
             onNewMessage: () => _showNewMessageDialog(context),
             count: provider.messages.length,
             pendingCount: provider.pendingCount,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
           if (provider.isLoading && provider.messages.isEmpty)
             const Center(
               child: Padding(
@@ -147,14 +190,17 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
             )
           else
             ...provider.messages.map((msg) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: _MessageCard(
                     message: msg,
                     onDelete: () => _confirmDelete(context, msg.id, userId),
                   ),
                 )),
           const SizedBox(height: 40),
-        ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -222,62 +268,97 @@ class _FarmerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.primarySurface,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+    final isSmallScreen = MediaQuery.of(context).size.width < 400;
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Top row with icon and title
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySurface,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.email, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.your_messages,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                            color: Color(0xFF111827))),
+                    Text(l10n.communicate_with_admin,
+                        style: const TextStyle(
+                            color: AppColors.textSubtle,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500)),
+                  ],
+                ),
               ),
             ],
           ),
-          child: const Icon(Icons.email, color: AppColors.primary),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.your_messages,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                      color: Color(0xFF111827))),
-              Text(l10n.communicate_with_admin,
-                  style: const TextStyle(
-                      color: AppColors.textSubtle,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500)),
-            ],
-          ),
-        ),
-        IntrinsicWidth(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 100),
+          const SizedBox(height: 16),
+          // New Message Button
+          SizedBox(
+            width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: onNewMessage,
-              icon: const Icon(Icons.add, size: 18),
-              label: Text(l10n.new_message),
+              icon: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.add, size: 16),
+              ),
+              label: Text(
+                l10n.new_message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                elevation: 0,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                elevation: 2,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                shadowColor: AppColors.primary.withValues(alpha: 0.3),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -480,135 +561,275 @@ class _MessageCard extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final dateStr = DateFormat.yMMMd(locale).add_Hm().format(message.createdAt);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final replyText = message.reply?.trim();
+    final repliedAt = message.repliedAt ?? message.createdAt;
+    final replyDateStr = DateFormat.yMMMd(locale).add_Hm().format(repliedAt);
+    final hasReply = replyText != null && replyText.isNotEmpty;
+    
+    // Debug logging to check reply data
+    if (message.isReplied || (replyText != null && replyText.isNotEmpty)) {
+      debugPrint('Message ${message.id} has reply: $replyText');
+      debugPrint('isReplied: ${message.isReplied}');
+    }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade100),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: hasReply 
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : Colors.grey.shade200,
+          width: hasReply ? 1.5 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: hasReply 
+                ? AppColors.primary.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.04),
+            blurRadius: hasReply ? 20 : 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Icon
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: AppColors.primarySurface,
-                  shape: BoxShape.circle,
-                ),
-                child:
-                    const Icon(Icons.email, color: AppColors.primary, size: 18),
+          // Message Header
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: hasReply 
+                  ? AppColors.primarySurface.withValues(alpha: 0.3)
+                  : Colors.transparent,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
-              const SizedBox(width: 12),
-              // Subject Tag
-              Flexible(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // First row: Icon, subject, status, delete
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Message Icon with status indicator
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: hasReply 
+                                ? AppColors.primary.withValues(alpha: 0.15)
+                                : AppColors.primarySurface,
+                            shape: BoxShape.circle,
+                            border: hasReply 
+                                ? Border.all(color: AppColors.primary.withValues(alpha: 0.3))
+                                : null,
+                          ),
+                          child: Stack(
+                            children: [
+                              Icon(
+                                Icons.email_outlined, 
+                                color: hasReply ? AppColors.primary : AppColors.primaryDark,
+                                size: 18,
+                              ),
+                              if (hasReply)
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Subject Badge
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color: AppColors.primary.withValues(alpha: 0.2)),
+                            ),
+                            child: Text(
+                              message.subject,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryDark,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Status Badge
+                        MessageStatusBadge(
+                          isReplied: message.isReplied, 
+                          l10n: l10n,
+                        ),
+                        const SizedBox(width: 8),
+                        // Delete Button
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            onPressed: onDelete,
+                            icon: Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.red.shade400,
+                              size: 18,
+                            ),
+                            padding: const EdgeInsets.all(8),
+                            tooltip: l10n.delete_message,
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Second row: Date
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule_outlined,
+                          size: 12,
+                          color: Colors.grey.shade500,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          dateStr,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Message Content
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.2)),
+                    color: Colors.grey.shade50.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
                   child: Text(
-                    message.subject,
-                    maxLines: 1,
+                    message.content,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryDark,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2C3E50),
+                      height: 1.4,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              // Status & Delete
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  MessageStatusBadge(isReplied: message.isReplied, l10n: l10n),
-                  const SizedBox(width: 12),
-                  IconButton(
-                    onPressed: onDelete,
-                    icon: Icon(Icons.delete_outline,
-                        color: Colors.red.shade300, size: 22),
-                    padding: const EdgeInsets.all(8),
-                    tooltip: l10n.delete_message,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Content
-          Text(
-            message.content,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF374151),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          // Date
-          Text(
-            dateStr,
-            style: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 11,
-            ),
-          ),
+          
           // Admin Reply Section (if exists)
-          if (message.reply != null) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Divider(height: 1),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
+          if (message.reply != null && message.reply!.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface.withValues(alpha: 0.45),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
+                border: Border(
+                  top: BorderSide(
+                    color: AppColors.cardBorder.withValues(alpha: 0.9),
+                    width: 1,
+                  ),
+                ),
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Reply Header
                   Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.reply,
                           size: 16, color: AppColors.primary),
                       const SizedBox(width: 8),
-                      Text(l10n.admin_reply,
+                      Text(
+                        l10n.admin_reply,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          replyDateStr,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: AppColors.primary)),
+                            fontSize: 11,
+                            color: AppColors.textDisabled,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    message.reply!,
-                    style: const TextStyle(
-                        color: Color(0xFF374151),
+                  const SizedBox(height: 10),
+                  // Reply Content
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Text(
+                      message.reply!,
+                      textAlign: isRtl ? TextAlign.right : TextAlign.left,
+                      style: const TextStyle(
+                        color: AppColors.textDark,
                         fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        fontStyle: FontStyle.italic),
+                        fontWeight: FontWeight.w600,
+                        height: 1.45,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
         ],
       ),
     );

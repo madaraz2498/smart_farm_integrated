@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../models/plant_models.dart';
 import '../providers/plant_provider.dart';
@@ -63,21 +64,24 @@ class _PlantDiseasePageState extends State<PlantDiseasePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final hPadding = Responsive.responsivePadding(context);
     return Consumer<PlantProvider>(builder: (context, prov, _) {
-      return RefreshIndicator(
-        onRefresh: () async {
-          setState(() => _picked = null);
-          prov.reset();
-        },
-        color: AppColors.primary,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-          child: Center(
-              child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      return SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            setState(() => _picked = null);
+            prov.reset();
+          },
+          color: AppColors.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(hPadding, 16, hPadding, 32),
+            child: Center(
+                child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
               Text(l10n.nav_plant_disease, style: AppTextStyles.pageTitle),
               const SizedBox(height: 4),
               Text(l10n.plant_disease_desc, style: AppTextStyles.pageSubtitle),
@@ -106,8 +110,9 @@ class _PlantDiseasePageState extends State<PlantDiseasePage> {
                 SfErrorBanner(prov.error!),
               ],
             ]),
-          )),
-        ),
+              )),
+            ),
+          ),
       );
     });
   }
