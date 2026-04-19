@@ -22,7 +22,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userId = context.read<AuthProvider>().currentUser?.id;
       if (userId != null) {
-        context.read<NotificationProvider>().fetchNotifications(userId);
+        context.read<NotificationProvider>().fetchNotifications(userId: userId);
       }
     });
   }
@@ -37,7 +37,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (userId != null) {
       await context
           .read<NotificationProvider>()
-          .fetchNotifications(userId);
+          .fetchNotifications(userId: userId);
     }
   }
 
@@ -191,7 +191,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ElevatedButton.icon(
             onPressed: () {
               if (userId != null) {
-                provider.fetchNotifications(userId);
+                provider.fetchNotifications(userId: userId);
               }
             },
             icon: const Icon(Icons.refresh),

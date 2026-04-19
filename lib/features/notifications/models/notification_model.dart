@@ -50,53 +50,20 @@ class AppNotification {
   }
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
-    final createdAt = _parseCreatedAt(
-      json['created_at'] ??
-          json['createdAt'] ??
-          json['timestamp'] ??
-          json['time'] ??
-          json['date'],
-    );
-
-    final title = _firstNonEmptyString(json, const [
-      'title',
-      'notification_title',
-      'notificationTitle',
-      'subject',
-      'heading',
-      'name',
-    ]);
-
-    final body = _firstNonEmptyString(json, const [
-      'body',
-      'message',
-      'content',
-      'description',
-      'details',
-      'text',
-    ]);
-
+    final createdAt = _parseCreatedAt(json['created_at']);
     return AppNotification(
-      id: (json['id'] ?? json['_id'] ?? json['notif_id'] ?? json['notification_id'])
-              ?.toString() ??
-          '',
-      userId: (json['user_id'] ?? json['userId'] ?? json['uid'])?.toString() ?? '',
-      title: title ?? '',
-      body: body ?? '',
+      id: json['id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? '',
+      title: json['title'] ?? '',
+      // Backend sends body as 'body' or 'message' — support both
+      body: ((json['body'] as String?)?.trim().isNotEmpty == true
+          ? json['body'] as String
+          : (json['message'] as String?)?.trim()) ?? '',
       createdAt: createdAt,
       backendTimeText: _parseBackendTimeText(json),
-      isRead: _parseRead(json),
-      type: _parseType(
-        (json['type'] ?? json['category'] ?? json['kind'])?.toString(),
-      ),
+      isRead: json['is_read'] ?? false,
+      type: _parseType(json['type']),
     );
-  }
-
-  static bool _parseRead(Map<String, dynamic> json) {
-    final raw = json['is_read'] ?? json['isRead'] ?? json['read'] ?? json['seen'];
-    if (raw is bool) return raw;
-    final s = raw?.toString().toLowerCase().trim();
-    return s == 'true' || s == '1' || s == 'yes';
   }
 
   static DateTime _parseCreatedAt(dynamic raw) {
@@ -104,14 +71,44 @@ class AppNotification {
     final value = raw.toString().trim();
     if (value.isEmpty) return DateTime.now();
 
+    // 1. Try standard ISO parse first
     final parsed = DateTime.tryParse(value);
-    if (parsed == null) return DateTime.now();
-
-    // Backend can send UTC timestamps (with Z or offset). Always display in local time.
-    if (parsed.isUtc || value.endsWith('Z') || value.contains('+')) {
-      return parsed.toLocal();
+    if (parsed != null) {
+      if (parsed.isUtc || value.endsWith('Z') || value.contains('+')) {
+        return parsed.toLocal();
+      }
+      return parsed;
     }
-    return parsed;
+
+    // 2. Handle backend format: "2026-04-19 11:11 AM" or "2026-04-19 11:11 PM"
+    //    Pattern: yyyy-MM-dd hh:mm AM/PM
+    final ampmMatch = RegExp(
+      r'^(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})\s*(AM|PM)$',
+      caseSensitive: false,
+    ).firstMatch(value);
+    if (ampmMatch != null) {
+      final year   = int.parse(ampmMatch.group(1)!);
+      final month  = int.parse(ampmMatch.group(2)!);
+      final day    = int.parse(ampmMatch.group(3)!);
+      int   hour   = int.parse(ampmMatch.group(4)!);
+      final minute = int.parse(ampmMatch.group(5)!);
+      final isPm   = ampmMatch.group(6)!.toUpperCase() == 'PM';
+      if (hour == 12) hour = isPm ? 12 : 0;
+      else if (isPm) hour += 12;
+      return DateTime(year, month, day, hour, minute);
+    }
+
+    // 3. Handle "2026-04-19 | 10:44 AM" (reports format)
+    final pipeMatch = RegExp(
+      r'^(\d{4}-\d{2}-\d{2})\s*\|\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)$',
+      caseSensitive: false,
+    ).firstMatch(value);
+    if (pipeMatch != null) {
+      return _parseCreatedAt('${pipeMatch.group(1)} ${pipeMatch.group(2)}');
+    }
+
+    // 4. Fallback — treat as now so the UI shows "Just now" rather than crashing
+    return DateTime.now();
   }
 
   static String? _parseBackendTimeText(Map<String, dynamic> json) {
@@ -128,17 +125,6 @@ class AppNotification {
     for (final key in keys) {
       final value = json[key]?.toString().trim();
       if (value != null && value.isNotEmpty) return value;
-    }
-    return null;
-  }
-
-  static String? _firstNonEmptyString(
-    Map<String, dynamic> json,
-    List<String> keys,
-  ) {
-    for (final key in keys) {
-      final v = json[key]?.toString().trim();
-      if (v != null && v.isNotEmpty) return v;
     }
     return null;
   }

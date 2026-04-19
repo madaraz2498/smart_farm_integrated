@@ -18,9 +18,7 @@ class _ReportsPageState extends State<ReportsPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ReportsProvider>().load();
-    });
+    // Reports are loaded from welcome page to prevent duplicate calls
   }
 
   @override
@@ -41,39 +39,26 @@ class _ReportsPageState extends State<ReportsPage> {
               padding: EdgeInsets.all(pagePadding),
               children: [
                 // ── Header ──────────────────────────────────────────────
-                Row(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.nav_reports,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textDark,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            l10n.reports_subtitle,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSubtle,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                    Text(
+                      l10n.nav_reports,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDark,
+                        letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    _ActionButton(
-                      onPressed: () {},
-                      icon: Icons.download_rounded,
-                      label: l10n.export_all,
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.reports_subtitle,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSubtle,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -292,30 +277,27 @@ class _ReportsPageState extends State<ReportsPage> {
                     ),
                   )
                 else ...[
-                    Row(
-                      children: [
-                        const Icon(Icons.history_rounded,
-                            color: AppColors.primary, size: 18),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Recent Reports',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textDark,
-                          ),
+                  Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(l10n.nav_reports, style: AppTextStyles.pageTitle),
+                          const SizedBox(height: 4),
+                          Text(l10n.reports_subtitle, style: AppTextStyles.pageSubtitle),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${prov.reports.length} reports',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSubtle,
                         ),
-                        const Spacer(),
-                        Text(
-                          '${prov.reports.length} reports',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSubtle,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                     ...prov.reports.map((r) => Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: _ReportListItem(report: r),
@@ -421,39 +403,6 @@ class _StatCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Export Action Button ──────────────────────────────────────────────────────
-
-class _ActionButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final IconData icon;
-  final String label;
-
-  const _ActionButton({
-    this.onPressed,
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IntrinsicWidth(
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 16),
-        label: Text(label),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
       ),
     );
   }

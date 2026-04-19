@@ -444,6 +444,7 @@ class _SessionTile extends StatelessWidget {
     final ctrl = TextEditingController(text: session.title);
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) => AlertDialog(
         title: Text(l10n.rename_chat_title),
         content: TextField(controller: ctrl, decoration: InputDecoration(hintText: l10n.enter_new_title)),
@@ -481,6 +482,7 @@ class _SessionTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) => AlertDialog(
         title: Text(l10n.delete_chat_title),
         content: Text(l10n.delete_chat_confirm),

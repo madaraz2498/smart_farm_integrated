@@ -23,6 +23,7 @@ class _FruitQualityPageState extends State<FruitQualityPage> {
     final l10n = AppLocalizations.of(context)!;
     final source = await showDialog<ImageSource>(
       context: context,
+      barrierDismissible: true,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(l10n.choose_image,

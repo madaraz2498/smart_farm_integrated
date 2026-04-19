@@ -10,7 +10,8 @@ class AnimalWeightResponse {
       AnimalWeightResponse(
         estimatedWeight: _d(j['estimated_weight'] ?? j['weight_kg'] ?? j['weight'] ?? 0),
         confidence:      _d(j['confidence'] ?? j['score'] ?? 0),
-        animalType:      j['animal_type'] as String? ??
+        animalType:      j['animal_name'] as String? ??
+                         j['animal_type'] as String? ??
                          j['animal_name_ar'] as String? ??
                          j['animal_name_en'] as String? ??
                          j['animal'] as String? ??

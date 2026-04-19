@@ -291,7 +291,7 @@ class AuthProvider extends ChangeNotifier {
 
         final id = _user?.id;
         if (id != null && id.isNotEmpty) {
-          unawaited(_notif?.fetchNotifications(id) ?? Future.value());
+          unawaited(_notif?.fetchNotifications(userId: id) ?? Future.value());
         }
       }
 

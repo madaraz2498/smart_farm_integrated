@@ -23,25 +23,41 @@ import 'package:smart_farm/features/admin/providers/message_provider.dart';
 import 'package:smart_farm/features/farmer/providers/message_provider.dart';
 import 'package:smart_farm/features/farmer/providers/dashboard_provider.dart';
 import 'package:smart_farm/providers/location_provider.dart';
+import 'package:smart_farm/core/utils/app_lifecycle_manager.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize app lifecycle manager
+  AppLifecycleManager.instance.initialize();
+  
   runApp(
     MultiProvider(
       providers: [
+        // Critical providers - loaded immediately
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => LocationProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
 
-        // Auth — gets NotificationProvider
+        // Auth gets NotificationProvider
         ChangeNotifierProxyProvider<NotificationProvider, AuthProvider>(
           create: (_) => AuthProvider(),
           update: (_, notif, auth) => auth!..updateNotificationProvider(notif),
         ),
 
-        // Chatbot — gets Auth + Notification
+        // Dashboard gets Auth + Location + Locale (critical for main view)
+        ChangeNotifierProxyProvider3<AuthProvider, LocationProvider,
+            LocaleProvider, DashboardProvider>(
+          create: (_) => DashboardProvider('0'),
+          update: (_, auth, loc, locale, dashboard) => dashboard!
+            ..updateUserId(auth.currentUser?.id ?? '0')
+            ..updateLocation(loc.lat, loc.lon)
+            ..updateLocale(locale.locale.languageCode),
+        ),
+
+        // Secondary providers - loaded after auth but optimized
         ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
             ChatbotProvider>(
           create: (_) => ChatbotProvider('0'),
@@ -50,7 +66,7 @@ void main() {
             ..updateNotifProvider(notif),
         ),
 
-        // Reports — gets Auth + Notification
+        // Reports gets Auth + Notification
         ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
             ReportsProvider>(
           create: (_) => ReportsProvider('0'),
@@ -59,7 +75,14 @@ void main() {
             ..updateNotifProvider(notif),
         ),
 
-        // Animal — gets Auth + Notification
+        // Message providers
+        ChangeNotifierProxyProvider<NotificationProvider,
+            FarmerMessageProvider>(
+          create: (_) => FarmerMessageProvider(),
+          update: (_, notif, msg) => msg!..updateNotifProvider(notif),
+        ),
+
+        // Service providers - lazy loaded when needed
         ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
             AnimalProvider>(
           create: (_) => AnimalProvider('0'),
@@ -68,7 +91,6 @@ void main() {
             ..updateNotifProvider(notif),
         ),
 
-        // Plant — gets Auth + Notification
         ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
             PlantProvider>(
           create: (_) => PlantProvider('0'),
@@ -77,7 +99,6 @@ void main() {
             ..updateNotifProvider(notif),
         ),
 
-        // Fruit — gets Auth + Notification
         ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
             FruitProvider>(
           create: (_) => FruitProvider('0'),
@@ -86,7 +107,6 @@ void main() {
             ..updateNotifProvider(notif),
         ),
 
-        // Soil — gets Auth + Notification
         ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
             SoilProvider>(
           create: (_) => SoilProvider('0'),
@@ -95,7 +115,6 @@ void main() {
             ..updateNotifProvider(notif),
         ),
 
-        // Crop — gets Auth + Notification
         ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
             CropProvider>(
           create: (_) => CropProvider('0'),
@@ -104,14 +123,13 @@ void main() {
             ..updateNotifProvider(notif),
         ),
 
+        // Admin providers
         ChangeNotifierProvider(create: (_) => AdminReportProvider()),
-
         ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
             AdminProvider>(
           create: (_) => AdminProvider(),
           update: (_, auth, notif, admin) {
-            debugPrint(
-                '[Main] Updating AdminProvider with NotificationProvider');
+            debugPrint('[Main] Updating AdminProvider');
             return admin!
               ..updateUserId(auth.currentUser?.id ?? '0')
               ..updateNotif(notif);
@@ -121,23 +139,6 @@ void main() {
         ChangeNotifierProxyProvider<AdminProvider, AdminMessageProvider>(
           create: (_) => AdminMessageProvider(),
           update: (_, admin, msg) => msg!..updateAdminProv(admin),
-        ),
-
-        // FarmerMessageProvider — gets NotificationProvider
-        ChangeNotifierProxyProvider<NotificationProvider,
-            FarmerMessageProvider>(
-          create: (_) => FarmerMessageProvider(),
-          update: (_, notif, msg) => msg!..updateNotifProvider(notif),
-        ),
-
-        // Dashboard — gets Auth + Location + Locale
-        ChangeNotifierProxyProvider3<AuthProvider, LocationProvider,
-            LocaleProvider, DashboardProvider>(
-          create: (_) => DashboardProvider('0'),
-          update: (_, auth, loc, locale, dashboard) => dashboard!
-            ..updateUserId(auth.currentUser?.id ?? '0')
-            ..updateLocation(loc.lat, loc.lon)
-            ..updateLocale(locale.locale.languageCode),
         ),
       ],
       child: const SmartFarmApp(),

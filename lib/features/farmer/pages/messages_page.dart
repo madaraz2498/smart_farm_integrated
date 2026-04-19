@@ -223,6 +223,7 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) => AlertDialog(
         title: Text(l10n.delete_message),
         content: Text(l10n.confirm_delete_message),

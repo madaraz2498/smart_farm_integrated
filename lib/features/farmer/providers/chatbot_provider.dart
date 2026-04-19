@@ -112,7 +112,7 @@ class ChatbotProvider extends ChangeNotifier {
       );
 
       if (userId.isNotEmpty && userId != '0') {
-        unawaited(_notifProvider?.fetchNotifications(userId) ?? Future.value());
+        unawaited(_notifProvider?.fetchNotifications(userId: userId) ?? Future.value());
       }
     } catch (e) {
       _status = ChatStatus.error;

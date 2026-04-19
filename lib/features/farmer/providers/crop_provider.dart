@@ -56,7 +56,7 @@ class CropProvider extends ChangeNotifier {
       );
 
       if (userId.isNotEmpty && userId != '0') {
-        unawaited(_notifProvider?.fetchNotifications(userId) ?? Future.value());
+        unawaited(_notifProvider?.fetchNotifications(userId: userId) ?? Future.value());
       }
     } on ApiException catch (e) {
       _error  = e.message;

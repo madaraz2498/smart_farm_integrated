@@ -22,7 +22,7 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userId = context.read<AuthProvider>().currentUser?.id;
       if (userId != null) {
-        context.read<NotificationProvider>().fetchNotifications(userId);
+        context.read<NotificationProvider>().fetchNotifications(userId: userId);
       }
     });
   }

@@ -254,7 +254,7 @@ class AuthService {
   /// This is critical to resolve 404 errors on profile images if the URL changed.
   Future<UserModel?> refreshUserProfile(UserModel current) async {
     try {
-      debugPrint('[AuthService] refreshUserProfile for \${current.id}');
+      debugPrint('[AuthService] refreshUserProfile for ${current.id}');
 
       // If admin, fetch from admin users list.
       if (current.role == UserRole.admin) {
@@ -272,48 +272,12 @@ class AuthService {
         return updated;
       }
 
-      // ── Farmer: GET /save-all-settings/{userId} ──────────────────────────
-      // The same endpoint used for PUT also supports GET to return current
-      // user settings including the latest profile_img URL from the server.
-      final raw = await _c.get('/save-all-settings/\${current.id}');
-
-      if (raw is Map) {
-        final data = Map<String, dynamic>.from(raw as Map);
-
-        // The response may be nested under a "user" key or flat
-        final Map<String, dynamic> userData =
-        data['user'] is Map
-            ? Map<String, dynamic>.from(data['user'] as Map)
-            : data;
-
-        final serverImg = userData['profile_img'] as String? ??
-            userData['image_url'] as String? ??
-            userData['avatar'] as String?;
-
-        final serverName = userData['full_name'] as String? ??
-            userData['name'] as String? ??
-            userData['username'] as String?;
-
-        final serverPhone = userData['phone'] as String?;
-
-        final updated = current.copyWith(
-          name: (serverName != null && serverName.isNotEmpty)
-              ? serverName
-              : current.name,
-          phone: serverPhone ?? current.phone,
-          profileImg: (serverImg != null && serverImg.isNotEmpty)
-              ? serverImg
-              : current.profileImg,
-        );
-
-        await _persistUpdated(updated);
-        debugPrint('[AuthService] refreshUserProfile farmer → profileImg=\${updated.profileImg}');
-        return updated;
-      }
-
+      // For farmers, use the existing session data since there's no dedicated profile endpoint
+      // Profile updates are handled through the save-all-settings PUT endpoint from settings screen
+      debugPrint('[AuthService] refreshUserProfile farmer - using cached data');
       return current;
     } catch (e) {
-      debugPrint('[AuthService] refreshUserProfile non-critical error: \$e');
+      debugPrint('[AuthService] refreshUserProfile non-critical error: $e');
       return current;
     }
   }

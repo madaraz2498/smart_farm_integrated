@@ -16,6 +16,7 @@ class AuthWrapper extends StatefulWidget {
 
 class _AuthWrapperState extends State<AuthWrapper> {
   AuthStatus? _lastStatus;
+  bool _authCallbackScheduled = false;
 
   @override
   void initState() {
@@ -31,10 +32,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
     final status = context.watch<AuthProvider>().status;
     
     if (status == AuthStatus.authenticated && _lastStatus != AuthStatus.authenticated) {
-      // Schedule the authentication logic after the current build frame
-      // to avoid "setState() or markNeedsBuild() called during build" error.
-      WidgetsBinding.instance.addPostFrameCallback((_) => _onAuthenticated());
+      // Guard: only schedule once per login transition to avoid duplicate fetches
+      if (!_authCallbackScheduled) {
+        _authCallbackScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) => _onAuthenticated());
+      }
     } else if (status == AuthStatus.unauthenticated && _lastStatus == AuthStatus.authenticated) {
+      _authCallbackScheduled = false;
       context.read<NotificationProvider>().stopRefreshTimer();
     }
     _lastStatus = status;
@@ -42,6 +46,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _onAuthenticated() async {
     if (!mounted) return;
+    _authCallbackScheduled = false;
     final userId = context.read<AuthProvider>().currentUser?.id;
     if (userId == null) return;
 
@@ -50,7 +55,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
     if (!mounted) return;
 
     final notifProvider = context.read<NotificationProvider>();
-    notifProvider.fetchNotifications(userId);
+    notifProvider.fetchNotifications(userId: userId);
     notifProvider.startRefreshTimer(userId);
   }
 

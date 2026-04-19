@@ -13,6 +13,8 @@ import '../../../shared/theme/app_theme.dart';
 
 import 'package:smart_farm/features/farmer/providers/reports_provider.dart';
 import 'package:smart_farm/features/farmer/providers/dashboard_provider.dart';
+import '../../../widgets/shared/offline_empty_state.dart';
+import '../../../widgets/shared/location_loading_state.dart';
 
 class FarmerWelcomePage extends StatefulWidget {
   const FarmerWelcomePage({super.key});
@@ -31,15 +33,52 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
   }
 
   Future<void> _loadInitialData() async {
-    final userId = context.read<AuthProvider>().currentUser?.id;
+    if (!mounted) return;
+    final authProvider = context.read<AuthProvider>();
+    final locationProvider = context.read<LocationProvider>();
+    
+    final userId = authProvider.currentUser?.id;
     if (userId == null) return;
 
-    // Ensure dashboard weather uses the latest GPS coordinates.
-    await context.read<LocationProvider>().requestLocation(force: true);
+    // Request location specifically for dashboard loading
+    // This will wait for fresh GPS on startup
+    await locationProvider.requestLocationForDashboard();
     if (!mounted) return;
 
-    await context.read<ReportsProvider>().load();
-    await context.read<DashboardProvider>().load();
+    // Dashboard will load automatically when location is ready
+    // Reports loading delayed to prevent startup duplication
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadReportsDelayed();
+      }
+    });
+  }
+
+  Future<void> _loadReportsDelayed() async {
+    if (!mounted) return;
+    
+    // Small delay to ensure dashboard loads first
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (!mounted) return;
+    
+    final reportsProvider = context.read<ReportsProvider>();
+    await reportsProvider.load();
+    debugPrint('[FarmerWelcomePage] reports loaded delayed');
+  }
+
+  String translateService(String service, AppLocalizations l10n) {
+    if (service == 'N/A' || service.isEmpty) {
+      return l10n.localeName == 'ar' ? ' unavailable' : 'N/A';
+    }
+    final Map<String, String> mapping = {
+      'Animal Weight Estimation': l10n.nav_animal_weight,
+      'Plant Disease Detection': l10n.nav_plant_disease,
+      'Crop Recommendation': l10n.nav_crop_recommendation,
+      'Soil Analysis': l10n.nav_soil_analysis,
+      'Fruit Quality Analysis': l10n.nav_fruit_quality,
+      'Smart Chatbot': l10n.nav_chatbot,
+    };
+    return mapping[service] ?? service;
   }
 
   @override
@@ -50,21 +89,6 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
     final dashboardProv = context.watch<DashboardProvider>();
     final dashboard = dashboardProv.dashboardData;
     final hPadding = Responsive.responsivePadding(context);
-
-    String translateService(String service) {
-      if (service == 'N/A' || service.isEmpty) {
-        return l10n.localeName == 'ar' ? 'غير متاح' : 'N/A';
-      }
-      final Map<String, String> mapping = {
-        'Animal Weight Estimation': l10n.nav_animal_weight,
-        'Plant Disease Detection': l10n.nav_plant_disease,
-        'Crop Recommendation': l10n.nav_crop_recommendation,
-        'Soil Analysis': l10n.nav_soil_analysis,
-        'Fruit Quality Analysis': l10n.nav_fruit_quality,
-        'Smart Chatbot': l10n.nav_chatbot,
-      };
-      return mapping[service] ?? service;
-    }
 
     final features = [
       (
@@ -121,26 +145,79 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: () async {
-          final userId = context.read<AuthProvider>().currentUser?.id;
+          if (!mounted) return;
+          final authProvider = context.read<AuthProvider>();
+          final locationProvider = context.read<LocationProvider>();
+          final messageProvider = context.read<FarmerMessageProvider>();
+          final reportsProvider = context.read<ReportsProvider>();
+          final dashboardProvider = context.read<DashboardProvider>();
+          
+          final userId = authProvider.currentUser?.id;
           if (userId != null) {
-            await context.read<LocationProvider>().requestLocation(force: true);
+            await locationProvider.refreshLocation();
             await Future.wait([
-              context.read<FarmerMessageProvider>().fetchMessages(userId),
-              context.read<ReportsProvider>().load(),
-              context.read<DashboardProvider>().load(),
+              messageProvider.fetchMessages(userId),
+              reportsProvider.load(),
+              dashboardProvider.refresh(),
             ]);
           }
         },
         color: AppColors.primary,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(hPadding, 32, hPadding, 32),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+        child: _buildContent(hPadding, l10n, name, nav, dashboardProv, dashboard, features),
+      ),
+    );
+  }
+
+  Widget _buildContent(
+    double hPadding,
+    AppLocalizations l10n,
+    String name,
+    NavigationProvider nav,
+    DashboardProvider dashboardProv,
+    dynamic dashboard,
+    List<dynamic> features,
+  ) {
+    final locationProvider = context.watch<LocationProvider>();
+    
+    // Show location loading state
+    if (locationProvider.isWaitingForFreshGps || dashboardProv.isWaitingForLocation) {
+      return const LocationLoadingState();
+    }
+    
+    // Show loading state
+    if (dashboardProv.isLoading && dashboardProv.dashboardData == null) {
+      return const LoadingState(message: 'Loading dashboard...');
+    }
+
+    // Show error state
+    if (dashboardProv.error != null && dashboardProv.dashboardData == null) {
+      return NoDataEmptyState(
+        title: 'Dashboard Error',
+        description: dashboardProv.error!,
+        icon: Icons.error_outline_rounded,
+        onAction: () => dashboardProv.refresh(),
+        actionText: 'Retry',
+      );
+    }
+
+    // Show empty state if no data
+    if (dashboardProv.dashboardData == null) {
+      return const NoDataEmptyState(
+        title: 'No Dashboard Data',
+        description: 'Unable to load dashboard information. Please check your connection and try again.',
+        icon: Icons.dashboard_outlined,
+      );
+    }
+
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(hPadding, 32, hPadding, 32),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           // Enhanced Header
           Row(
             children: [
@@ -162,7 +239,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -214,7 +291,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
                 icon: Icons.trending_up_rounded,
                 iconColor: const Color(0xFFF59E0B), // Amber
                 label: l10n.most_used,
-                value: translateService(dashboard?.mostUsedService ?? 'N/A'),
+                value: translateService(dashboard?.mostUsedService ?? 'N/A', l10n),
               ),
               _WeatherCard(
                 title: l10n.weather,
@@ -292,8 +369,6 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
                 ]),
             ),
           ),
-        ),
-      ),
     );
   }
 }

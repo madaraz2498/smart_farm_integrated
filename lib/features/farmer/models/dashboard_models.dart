@@ -47,6 +47,20 @@ class FarmerDashboardData {
   final String? weatherWind;
   final String? weatherDescription;
   final String? locationName;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'total_analyses': totalAnalyses,
+      'today_analyses': todayAnalyses,
+      'most_used_service': mostUsedService,
+      'weather': weather,
+      'weather_temp': weatherTemp,
+      'weather_humidity': weatherHumidity,
+      'weather_wind': weatherWind,
+      'weather_description': weatherDescription,
+      'location_name': locationName,
+    };
+  }
 }
 
 int _i(dynamic v) {

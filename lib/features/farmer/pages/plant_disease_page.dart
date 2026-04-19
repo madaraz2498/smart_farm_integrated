@@ -26,6 +26,7 @@ class _PlantDiseasePageState extends State<PlantDiseasePage> {
     final l10n = AppLocalizations.of(context)!;
     final source = await showDialog<ImageSource>(
       context: context,
+      barrierDismissible: true,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(l10n.choose_image,
@@ -237,7 +238,7 @@ class _PlantResultCard extends StatelessWidget {
         _statusBox(
           icon: Icons.error_outline,
           label: 'Status',
-          value: result.prediction,
+          value: result.condition,
           color: result.isHealthy ? AppColors.primary : AppColors.error,
         ),
         const SizedBox(height: 10),

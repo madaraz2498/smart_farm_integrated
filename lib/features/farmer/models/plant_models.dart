@@ -2,6 +2,7 @@
 class PlantDiseaseResponse {
   const PlantDiseaseResponse({
     required this.prediction,
+    required this.condition,
     required this.confidence,
     required this.isHealthy,
     this.cropType,
@@ -22,6 +23,8 @@ class PlantDiseaseResponse {
         payload['class'] as String? ??
         'Unknown';
 
+    final condition = payload['condition'] as String? ?? prediction;
+
     final treatments = payload['suggested_treatments'];
     final treatmentText = treatments is List
         ? treatments.map((e) => e.toString()).where((e) => e.trim().isNotEmpty).join('، ')
@@ -33,9 +36,10 @@ class PlantDiseaseResponse {
 
     return PlantDiseaseResponse(
       prediction: prediction,
+      condition: condition,
       confidence: _d(payload['confidence'] ?? payload['score'] ?? 0),
       isHealthy: isHealthy,
-      cropType: payload['crop_type_ar'] as String? ?? payload['crop_type_en'] as String?,
+      cropType: payload['crop_type'] as String? ?? payload['crop_type_ar'] as String? ?? payload['crop_type_en'] as String?,
       description: payload['description'] as String? ?? payload['message'] as String?,
       treatment: payload['treatment'] as String? ??
           payload['recommendation'] as String? ??
@@ -44,6 +48,7 @@ class PlantDiseaseResponse {
   }
 
   final String  prediction;
+  final String  condition;
   final double  confidence;
   final bool    isHealthy;
   final String? cropType;

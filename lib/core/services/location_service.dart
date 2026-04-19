@@ -85,4 +85,17 @@ class LocationService {
     }
     return null;
   }
+
+  /// Store location data in SharedPreferences
+  Future<void> storeLocation(Map<String, dynamic> location) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kCityKey, location['city'] ?? 'Unknown');
+      await prefs.setDouble(_kLatKey, location['lat']?.toDouble() ?? 0.0);
+      await prefs.setDouble(_kLonKey, location['lon']?.toDouble() ?? 0.0);
+      debugPrint('[LocationService] Location stored: ${location['city']}, ${location['lat']}, ${location['lon']}');
+    } catch (e) {
+      debugPrint('[LocationService] Error storing location: $e');
+    }
+  }
 }
