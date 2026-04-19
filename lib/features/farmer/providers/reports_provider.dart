@@ -79,10 +79,6 @@ class ReportsProvider extends ChangeNotifier {
         type: NotificationType.report,
       );
 
-      if (userId.isNotEmpty && userId != '0') {
-        unawaited(_notifProvider?.fetchNotifications(userId: userId) ?? Future.value());
-      }
-
       return true;
     } catch (e) {
       _error = e.toString();

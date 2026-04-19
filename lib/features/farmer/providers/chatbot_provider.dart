@@ -110,10 +110,6 @@ class ChatbotProvider extends ChangeNotifier {
             : response.response,
         type: NotificationType.chatbot,
       );
-
-      if (userId.isNotEmpty && userId != '0') {
-        unawaited(_notifProvider?.fetchNotifications(userId: userId) ?? Future.value());
-      }
     } catch (e) {
       _status = ChatStatus.error;
       _messages.add(ChatMessage(

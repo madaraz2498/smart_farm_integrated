@@ -234,7 +234,6 @@ class AdminProvider extends ChangeNotifier {
       );
 
       if (_userId.isNotEmpty && _userId != '0') {
-        unawaited(_notif?.fetchNotifications(userId: _userId) ?? Future.value());
       }
     } catch (e) {
       _statsError = 'Failed to toggle service.';
@@ -255,7 +254,6 @@ class AdminProvider extends ChangeNotifier {
       );
 
       if (_userId.isNotEmpty && _userId != '0') {
-        unawaited(_notif?.fetchNotifications(userId: _userId) ?? Future.value());
       }
     } catch (e) {
       _statsError = 'Failed to toggle setting.';

@@ -17,17 +17,6 @@ class NotificationQuickDialog extends StatefulWidget {
 
 class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId = context.read<AuthProvider>().currentUser?.id;
-      if (userId != null) {
-        context.read<NotificationProvider>().fetchNotifications(userId: userId);
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final provider = context.watch<NotificationProvider>();
     final l10n = AppLocalizations.of(context)!;

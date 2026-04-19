@@ -32,7 +32,7 @@ class NotificationProvider extends ChangeNotifier {
   bool _isFetching = false;
   DateTime? _lastFetchTime;
   // Minimum gap between two fetches (ignores calls that arrive too soon)
-  static const _kMinFetchInterval = Duration(seconds: 3);
+  static const _kMinFetchInterval = Duration(seconds: 10);
 
   Future<void> fetchNotifications({
     required String userId,

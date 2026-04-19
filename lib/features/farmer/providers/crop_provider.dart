@@ -54,10 +54,6 @@ class CropProvider extends ChangeNotifier {
             : 'Recommended crop: ${_result!.recommendedCrop} - Yield level: ${_result!.yieldDisplay}',
         type: NotificationType.report,
       );
-
-      if (userId.isNotEmpty && userId != '0') {
-        unawaited(_notifProvider?.fetchNotifications(userId: userId) ?? Future.value());
-      }
     } on ApiException catch (e) {
       _error  = e.message;
       _status = ScanStatus.error;
