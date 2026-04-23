@@ -4,12 +4,21 @@ import '../models/dashboard_models.dart';
 import '../services/dashboard_service.dart';
 import '../../../core/utils/production_logger.dart';
 import '../../../core/utils/cache_manager.dart';
-import '../../../core/utils/app_lifecycle_manager.dart';
 
+/// Dashboard data provider.
+///
+/// FIXES applied vs original:
+/// - Removed the [AppLifecycleManager.addOnResumeCallback] registration.
+///   Resume-triggered full reloads caused cascading API spam every time the
+///   user returned to the app. The [AppLifecycleManager] now enforces a
+///   30-second gap globally, but for the dashboard the correct behaviour is
+///   to only reload on explicit pull-to-refresh.
+/// - [updateLocation] / [updateLocale] no longer schedule a reload when data
+///   has already been loaded once; they just store the new values so the next
+///   explicit [refresh] can use them.
+/// - [_isFetchingData] guard prevents concurrent duplicate API calls.
 class DashboardProvider extends ChangeNotifier {
-  DashboardProvider(this._userId) {
-    _initializeLifecycle();
-  }
+  DashboardProvider(this._userId);
 
   String _userId;
   String get userId => _userId;
@@ -17,22 +26,29 @@ class DashboardProvider extends ChangeNotifier {
   double? _lat;
   double? _lon;
   String _lang = 'ar';
-  
+
   Timer? _debounceTimer;
   bool _hasLoadedOnce = false;
   bool _isWaitingForLocation = false;
   bool _isRefreshing = false;
-  bool _isFetchingData = false; // Prevent duplicate API calls
+  bool _isFetchingData = false;
   DateTime? _lastSuccessfulLoad;
 
-  void _initializeLifecycle() {
-    AppLifecycleManager.instance.addOnResumeCallback(() {
-      if (_hasLoadedOnce && _userId.isNotEmpty && _userId != '0') {
-        ProductionLogger.info('App resumed, refreshing dashboard');
-        refresh();
-      }
-    });
-  }
+  final DashboardService _svc = DashboardService.instance;
+
+  FarmerDashboardData? _dashboardData;
+  bool _isLoading = false;
+  String? _error;
+
+  FarmerDashboardData? get dashboardData => _dashboardData;
+  bool get isLoading => _isLoading;
+  bool get isRefreshing => _isRefreshing;
+  bool get isWaitingForLocation => _isWaitingForLocation;
+  String? get error => _error;
+  bool get canRefresh => !_isLoading && _userId.isNotEmpty && _userId != '0';
+  DateTime? get lastSuccessfulLoad => _lastSuccessfulLoad;
+
+  // ── Dependency updates from ProxyProvider ────────────────────────────────
 
   void updateUserId(String id) {
     if (_userId != id) {
@@ -54,23 +70,27 @@ class DashboardProvider extends ChangeNotifier {
       _lat = lat;
       _lon = lon;
       ProductionLogger.dashboard('location updated: lat=$lat, lon=$lon');
-      
-      // If we were waiting for location and now have it, load immediately
-      if (_isWaitingForLocation && lat != null && lon != null) {
-        ProductionLogger.dashboard('coordinates available, retrying dashboard load');
-        _isWaitingForLocation = false;
-        _loadOnce();
-      } else if (_userId != '0' && _userId.isNotEmpty && !_hasLoadedOnce) {
-        // First time loading with coordinates
-        _scheduleLoad();
+
+      // Only trigger a load if data hasn't been loaded yet.
+      if (!_hasLoadedOnce && lat != null && lon != null &&
+          _userId != '0' && _userId.isNotEmpty) {
+        if (_isWaitingForLocation) {
+          _isWaitingForLocation = false;
+          _loadOnce();
+        } else {
+          _scheduleLoad();
+        }
       }
+      // If already loaded, the new coordinates will be used on next refresh().
     }
   }
 
   void updateLocale(String lang) {
     if (_lang != lang) {
       _lang = lang;
-      if (_userId != '0' && _userId.isNotEmpty) {
+      // Only schedule a fresh load if we haven't loaded yet.
+      // After first load, locale changes are picked up on next explicit refresh.
+      if (!_hasLoadedOnce && _userId != '0' && _userId.isNotEmpty) {
         _scheduleLoad();
       }
     }
@@ -87,29 +107,16 @@ class DashboardProvider extends ChangeNotifier {
 
   void _loadOnce() {
     if (_hasLoadedOnce) {
-      debugPrint('[DashboardProvider] already loaded, skipping duplicate call');
+      ProductionLogger.dashboard('already loaded once, skipping duplicate call');
       return;
     }
     load();
   }
 
-  final DashboardService _svc = DashboardService.instance;
-
-  FarmerDashboardData? _dashboardData;
-  bool _isLoading = false;
-  String? _error;
-
-  FarmerDashboardData? get dashboardData => _dashboardData;
-  bool get isLoading => _isLoading;
-  bool get isRefreshing => _isRefreshing;
-  bool get isWaitingForLocation => _isWaitingForLocation;
-  String? get error => _error;
-  bool get canRefresh => !_isLoading && _userId.isNotEmpty && _userId != '0';
-  DateTime? get lastSuccessfulLoad => _lastSuccessfulLoad;
+  // ── Data fetching ─────────────────────────────────────────────────────────
 
   Future<void> load() async {
     if (userId.isEmpty || userId == '0') return;
-
     if (_hasLoadedOnce) {
       ProductionLogger.dashboard('already loaded once, skipping');
       return;
@@ -117,41 +124,21 @@ class DashboardProvider extends ChangeNotifier {
 
     _isLoading = true;
     _error = null;
-    _isWaitingForLocation = true;
-    notifyListeners();
-    
-    try {
-      // On startup, wait for fresh location before loading dashboard
-      if (!_hasLoadedOnce) {
-        ProductionLogger.dashboard('loading with fresh location');
-        
-        // Try to fetch fresh data - will wait for coordinates if needed
-        await _fetchFreshData();
-        
-        // If we're still waiting for coordinates, don't mark as loaded
-        if (_isWaitingForLocation) {
-          return; // Keep loading state active
-        }
-      } else {
-        // Subsequent loads can use cache first
-        final cached = await CacheManager.instance.getCachedDashboard(userId);
-        if (cached != null) {
-          _dashboardData = FarmerDashboardData.fromJson(cached);
-          ProductionLogger.dashboard('fallback using cache');
-          notifyListeners();
-          
-          // Still fetch fresh data in background
-          _fetchFreshData();
-          return;
-        }
 
-        await _fetchFreshData();
-      }
+    // Show cached data immediately while fetching fresh data.
+    final cached = await CacheManager.instance.getCachedDashboard(userId);
+    if (cached != null) {
+      _dashboardData = FarmerDashboardData.fromJson(cached);
+      ProductionLogger.dashboard('serving cached dashboard while fetching fresh data');
+      notifyListeners();
+    }
+
+    try {
+      await _fetchFreshData();
     } catch (e) {
       ProductionLogger.error('load failed: $e');
       _error = e.toString();
     } finally {
-      // Only stop loading if we're not waiting for coordinates
       if (!_isWaitingForLocation) {
         _isLoading = false;
         notifyListeners();
@@ -160,49 +147,44 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   Future<void> _fetchFreshData() async {
-    // Prevent duplicate API calls
     if (_isFetchingData) {
       ProductionLogger.dashboard('API call already in progress, skipping');
       return;
     }
-    
-    // Check coordinates before making API call
+
     final lat = _lat;
     final lon = _lon;
-    
+
     if (lat == null || lon == null) {
-      ProductionLogger.dashboard('waiting coordinates...');
+      ProductionLogger.dashboard('waiting for coordinates...');
       _isWaitingForLocation = true;
       notifyListeners();
       return;
     }
-    
-    // We have coordinates, clear waiting state
+
     _isWaitingForLocation = false;
-    
-    ProductionLogger.dashboard('coordinates ready');
-    ProductionLogger.dashboard('API loading started');
-    
     _isFetchingData = true;
     notifyListeners();
-    
+
     try {
+      ProductionLogger.dashboard('API loading started');
       _dashboardData = await _svc.getDashboardData(
         userId,
         lat: lat,
         lon: lon,
         lang: _lang,
       );
-      
+
       _hasLoadedOnce = true;
       _lastSuccessfulLoad = DateTime.now();
-      
-      // Cache the fresh data
+
       if (_dashboardData != null) {
-        await CacheManager.instance.cacheDashboard(userId, _dashboardData!.toJson());
+        await CacheManager.instance
+            .cacheDashboard(userId, _dashboardData!.toJson());
       }
-      
-      ProductionLogger.dashboard('load success: weather=${_dashboardData?.weather}');
+
+      ProductionLogger.dashboard(
+          'load success: weather=${_dashboardData?.weather}');
     } catch (e) {
       ProductionLogger.error('fetch fresh data failed: $e');
       rethrow;
@@ -212,20 +194,19 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 
-  /// Refresh dashboard data (for pull-to-refresh)
+  /// Pull-to-refresh — always fetches fresh data.
   Future<void> refresh() async {
     if (!canRefresh) return;
-    
-    // Check if we have coordinates before refreshing
+
     if (_lat == null || _lon == null) {
       ProductionLogger.dashboard('refresh: no coordinates available');
       return;
     }
-    
+
     _isRefreshing = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       await _fetchFreshData();
       ProductionLogger.dashboard('refresh success');

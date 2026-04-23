@@ -37,7 +37,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (userId != null) {
       await context
           .read<NotificationProvider>()
-          .fetchNotifications(userId: userId);
+          .fetchNotifications(userId: userId, force: true);
     }
   }
 

@@ -316,16 +316,12 @@ class WeeklyActivityChart extends StatelessWidget {
                         final label = localizedDay.length > 3
                             ? localizedDay.substring(0, 3)
                             : localizedDay;
-                        return SideTitleWidget(
-                          axisSide: meta.axisSide,
-                          space: 10,
-                          child: Text(
-                            label,
-                            style: const TextStyle(
-                                color: Color(0xFF64748B),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600),
-                          ),
+                        return Text(
+                          label,
+                          style: const TextStyle(
+                              color: Color(0xFF64748B),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600),
                         );
                       },
                     ),

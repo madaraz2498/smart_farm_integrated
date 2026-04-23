@@ -39,7 +39,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             onRefresh: () async {
               await Future.wait([
                 context.read<AdminProvider>().refreshAll(),
-                context.read<AdminReportProvider>().fetchAllReports(),
+                context.read<AdminReportProvider>().fetchAllReports(force: true),
               ]);
             },
             color: AppColors.primary,

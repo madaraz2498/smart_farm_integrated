@@ -3,6 +3,13 @@ import 'package:flutter/foundation.dart';
 import '../core/services/location_service.dart';
 import '../core/utils/production_logger.dart';
 
+/// Manages device location for the app session.
+///
+/// KEY INVARIANT: GPS hardware is accessed at most ONCE per session.
+/// - On cold start we load the persisted location immediately, then
+///   request a fresh GPS fix in the background (only once).
+/// - Subsequent calls to [requestLocation] are no-ops unless [force] is true.
+/// - [refreshLocation] clears the service-level session cache and re-fetches.
 class LocationProvider extends ChangeNotifier {
   LocationProvider() {
     _init();
@@ -14,18 +21,19 @@ class LocationProvider extends ChangeNotifier {
   double? _lat;
   double? _lon;
   bool _isLoading = false;
-  bool _hasRequestedOnce = false;
-  bool _isWaitingForFreshGps = false;
-  Completer<Map<String, dynamic>?>? _locationCompleter;
+  // True once a GPS request (successful or not) has completed this session.
+  bool _fetchedThisSession = false;
 
   String? get city => _city;
   double? get lat => _lat;
   double? get lon => _lon;
   bool get isLoading => _isLoading;
   bool get hasLocation => _city != null && _lat != null && _lon != null;
-  bool get isWaitingForFreshGps => _isWaitingForFreshGps;
+
+  // ── Initialise: load persisted location, then start background GPS fix ────
 
   Future<void> _init() async {
+    // 1. Load whatever was stored from last session — immediate, no GPS used.
     final stored = await _svc.getStoredLocation();
     if (stored != null) {
       _city = stored['city'];
@@ -34,121 +42,95 @@ class LocationProvider extends ChangeNotifier {
       ProductionLogger.location('loaded cached location: $_city, $_lat, $_lon');
       notifyListeners();
     }
+
+    // 2. Fire a single background GPS refresh so location stays up-to-date.
+    //    We do NOT await this — callers already have the cached value above.
+    _fetchOnce();
   }
 
-  /// Requests location permission and updates coordinates.
-  /// On startup, waits for fresh GPS unless permission denied or timeout.
-  Future<void> requestLocation({bool force = true, bool waitForFreshGps = true}) async {
-    // Prevent duplicate requests
-    if (_isLoading) {
-      ProductionLogger.location('already loading, waiting...');
-      if (_locationCompleter != null) {
-        await _locationCompleter!.future;
-      }
-      return;
-    }
+  // ── Single background fetch (runs at most once per session) ───────────────
 
-    // If we have cached location and not forcing fresh GPS, use cache immediately
-    if (!force && hasLocation && !waitForFreshGps) {
-      ProductionLogger.location('using cached location');
-      return;
-    }
-
-    // If we have cached location but should wait for fresh GPS
-    if (!force && hasLocation && waitForFreshGps && !_hasRequestedOnce) {
-      ProductionLogger.location('waiting fresh GPS...');
-      _isWaitingForFreshGps = true;
-      notifyListeners();
-    }
+  Future<void> _fetchOnce() async {
+    if (_fetchedThisSession || _isLoading) return;
 
     _isLoading = true;
-    _locationCompleter = Completer<Map<String, dynamic>?>();
     notifyListeners();
 
     try {
-      ProductionLogger.location('requesting fresh GPS...');
-      
-      // Add 5-second timeout for GPS request
+      ProductionLogger.location('requesting GPS (once per session)...');
       final loc = await _svc.getCurrentLocation().timeout(
-        const Duration(seconds: 5),
+        const Duration(seconds: 10),
         onTimeout: () {
-          ProductionLogger.location('GPS timeout after 5 seconds');
-          return null; // Return null to indicate GPS timeout
+          ProductionLogger.location('GPS timeout — keeping cached location');
+          return null;
         },
       );
-      
+
       if (loc != null) {
-        // Fresh GPS received - update and cache
         _city = loc['city'];
         _lat = loc['lat'];
         _lon = loc['lon'];
-        ProductionLogger.location('fresh GPS loaded: $_lat, $_lon');
-        
-        // Update cache with fresh GPS data
+        ProductionLogger.location('GPS ready: $_city ($_lat, $_lon)');
         await _svc.storeLocation(loc);
-        ProductionLogger.location('cache updated with fresh GPS');
-      } else {
-        // GPS failed or timed out
-        if (hasLocation) {
-          ProductionLogger.location('GPS failed, using cached location');
-        } else {
-          ProductionLogger.location('GPS failed, using fallback location');
-          final fallback = _getFallbackLocation();
-          if (fallback != null) {
-            _city = fallback['city'];
-            _lat = fallback['lat'];
-            _lon = fallback['lon'];
-          }
-        }
-      }
-      
-      _locationCompleter!.complete(loc);
-    } catch (e) {
-      ProductionLogger.error('GPS request failed: $e');
-      final fallback = _getFallbackLocation();
-      if (fallback != null) {
+      } else if (!hasLocation) {
+        // No GPS and no cache — apply fallback so the app is never stuck.
+        final fallback = _fallback();
         _city = fallback['city'];
         _lat = fallback['lat'];
         _lon = fallback['lon'];
-        ProductionLogger.location('using fallback location: $_city, $_lat, $_lon');
+        ProductionLogger.location('GPS unavailable, using fallback: $_city');
+      } else {
+        ProductionLogger.location('GPS unavailable, keeping cached: $_city');
       }
-      _locationCompleter!.complete(fallback);
+    } catch (e) {
+      ProductionLogger.error('GPS fetch error: $e');
+      if (!hasLocation) {
+        final fallback = _fallback();
+        _city = fallback['city'];
+        _lat = fallback['lat'];
+        _lon = fallback['lon'];
+      }
     } finally {
       _isLoading = false;
-      _hasRequestedOnce = true;
-      _isWaitingForFreshGps = false;
-      _locationCompleter = null;
+      _fetchedThisSession = true;
       notifyListeners();
     }
   }
 
-  Map<String, dynamic>? _getFallbackLocation() {
-    // Cairo fallback coordinates
-    return {
-      'city': 'Cairo',
-      'lat': 30.0444,
-      'lon': 31.2357,
-    };
-  }
+  // ── Public API ─────────────────────────────────────────────────────────────
 
-  /// Force refresh location (for manual refresh)
-  Future<void> refreshLocation() async {
-    _hasRequestedOnce = false;
-    await requestLocation(force: true, waitForFreshGps: false);
-  }
-
-  /// Request location specifically for dashboard loading
-  /// Waits for fresh GPS on startup, uses cache for subsequent calls
-  Future<void> requestLocationForDashboard() async {
-    if (_hasRequestedOnce) {
-      // Already requested once, use cache if available
-      if (hasLocation) {
-        ProductionLogger.location('dashboard using cached location');
-        return;
-      }
+  /// Called by [AuthWrapper] and [FarmerWelcomePage].
+  /// If GPS has already been fetched (or is in progress) this session,
+  /// this is a cheap no-op — guaranteeing zero duplicate GPS calls.
+  Future<void> requestLocation({bool force = false}) async {
+    if (!force && _fetchedThisSession) {
+      ProductionLogger.location('requestLocation: already fetched this session, skipping');
+      return;
     }
-    
-    // First time - wait for fresh GPS
-    await requestLocation(force: false, waitForFreshGps: true);
+    if (!force && _isLoading) {
+      ProductionLogger.location('requestLocation: fetch in progress, skipping');
+      return;
+    }
+    if (force) {
+      _svc.clearSessionCache();
+      _fetchedThisSession = false;
+    }
+    await _fetchOnce();
   }
+
+  /// Backward-compatible alias kept for [FarmerWelcomePage].
+  Future<void> requestLocationForDashboard() => requestLocation();
+
+  /// Manual pull-to-refresh: clears the session cache and re-fetches GPS.
+  Future<void> refreshLocation() async {
+    _svc.clearSessionCache();
+    _fetchedThisSession = false;
+    await _fetchOnce();
+  }
+
+  Map<String, dynamic> _fallback() => {
+        'city': 'Cairo',
+        'lat': 30.0444,
+        'lon': 31.2357,
+      };
 }

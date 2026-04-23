@@ -1,33 +1,47 @@
+import 'dart:async';
 import 'package:flutter/widgets.dart';
 import '../utils/production_logger.dart';
 
-/// App lifecycle manager to handle refresh when app is resumed
+/// App lifecycle manager to handle refresh when app is resumed.
+///
+/// FIXES applied:
+/// - Resume callbacks are debounced (500 ms) so rapid inactive→resumed
+///   transitions (e.g. permission dialogs) only fire once.
+/// - A minimum gap of 30 seconds is enforced between resume-triggered
+///   refreshes, preventing full data reloads every time the user briefly
+///   switches away and returns.
 class AppLifecycleManager extends WidgetsBindingObserver {
   static AppLifecycleManager? _instance;
-  static AppLifecycleManager get instance => _instance ??= AppLifecycleManager._();
-  
+  static AppLifecycleManager get instance =>
+      _instance ??= AppLifecycleManager._();
+
   AppLifecycleManager._();
-  
+
   final List<VoidCallback> _onResumeCallbacks = [];
   final List<VoidCallback> _onPauseCallbacks = [];
   final List<VoidCallback> _onInactiveCallbacks = [];
-  
+
   bool _isInitialized = false;
   AppLifecycleState? _lastState;
 
-  /// Initialize the lifecycle manager
+  // ── Resume debounce & gap guard ────────────────────────────────────────────
+  Timer? _resumeDebounce;
+  DateTime? _lastResumeExecution;
+  // Minimum wall-clock time between full resume-triggered refreshes.
+  static const _kMinResumeGap = Duration(seconds: 30);
+  // Debounce window to collapse rapid lifecycle transitions.
+  static const _kResumeDebounce = Duration(milliseconds: 500);
+
   void initialize() {
     if (_isInitialized) return;
-    
     WidgetsBinding.instance.addObserver(this);
     _isInitialized = true;
     ProductionLogger.info('App lifecycle manager initialized');
   }
 
-  /// Dispose the lifecycle manager
   void dispose() {
     if (!_isInitialized) return;
-    
+    _resumeDebounce?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _onResumeCallbacks.clear();
     _onPauseCallbacks.clear();
@@ -36,25 +50,24 @@ class AppLifecycleManager extends WidgetsBindingObserver {
     ProductionLogger.info('App lifecycle manager disposed');
   }
 
-  /// Add callback for app resume
   void addOnResumeCallback(VoidCallback callback) {
     _onResumeCallbacks.add(callback);
-    ProductionLogger.info('Added resume callback (${_onResumeCallbacks.length} total)');
+    ProductionLogger.info(
+        'Added resume callback (${_onResumeCallbacks.length} total)');
   }
 
-  /// Add callback for app pause
   void addOnPauseCallback(VoidCallback callback) {
     _onPauseCallbacks.add(callback);
-    ProductionLogger.info('Added pause callback (${_onPauseCallbacks.length} total)');
+    ProductionLogger.info(
+        'Added pause callback (${_onPauseCallbacks.length} total)');
   }
 
-  /// Add callback for app inactive
   void addOnInactiveCallback(VoidCallback callback) {
     _onInactiveCallbacks.add(callback);
-    ProductionLogger.info('Added inactive callback (${_onInactiveCallbacks.length} total)');
+    ProductionLogger.info(
+        'Added inactive callback (${_onInactiveCallbacks.length} total)');
   }
 
-  /// Remove a specific callback
   void removeCallback(VoidCallback callback) {
     _onResumeCallbacks.remove(callback);
     _onPauseCallbacks.remove(callback);
@@ -64,12 +77,12 @@ class AppLifecycleManager extends WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
-    ProductionLogger.info('App lifecycle state changed: $_lastState -> $state');
-    
+    ProductionLogger.info(
+        'App lifecycle state changed: $_lastState -> $state');
+
     switch (state) {
       case AppLifecycleState.resumed:
-        _handleResumed();
+        _scheduleResumed();
         break;
       case AppLifecycleState.paused:
         _handlePaused();
@@ -84,14 +97,35 @@ class AppLifecycleManager extends WidgetsBindingObserver {
         _handleHidden();
         break;
     }
-    
+
     _lastState = state;
   }
 
+  // ── Debounced resume ───────────────────────────────────────────────────────
+
+  void _scheduleResumed() {
+    // Cancel any previously scheduled (but not yet fired) resume callback.
+    _resumeDebounce?.cancel();
+    _resumeDebounce = Timer(_kResumeDebounce, _handleResumed);
+  }
+
   void _handleResumed() {
-    ProductionLogger.info('App resumed - executing ${_onResumeCallbacks.length} callbacks');
-    
-    for (final callback in _onResumeCallbacks) {
+    final now = DateTime.now();
+
+    // If the app returned from background less than [_kMinResumeGap] ago,
+    // skip the refresh — the user only briefly switched context.
+    if (_lastResumeExecution != null &&
+        now.difference(_lastResumeExecution!) < _kMinResumeGap) {
+      ProductionLogger.info(
+          'App resumed but within minimum gap (${_kMinResumeGap.inSeconds}s) — skipping refresh callbacks');
+      return;
+    }
+
+    _lastResumeExecution = now;
+    ProductionLogger.info(
+        'App resumed — executing ${_onResumeCallbacks.length} callbacks');
+
+    for (final callback in List<VoidCallback>.from(_onResumeCallbacks)) {
       try {
         callback();
       } catch (e) {
@@ -101,9 +135,9 @@ class AppLifecycleManager extends WidgetsBindingObserver {
   }
 
   void _handlePaused() {
-    ProductionLogger.info('App paused - executing ${_onPauseCallbacks.length} callbacks');
-    
-    for (final callback in _onPauseCallbacks) {
+    ProductionLogger.info(
+        'App paused — executing ${_onPauseCallbacks.length} callbacks');
+    for (final callback in List<VoidCallback>.from(_onPauseCallbacks)) {
       try {
         callback();
       } catch (e) {
@@ -113,9 +147,9 @@ class AppLifecycleManager extends WidgetsBindingObserver {
   }
 
   void _handleInactive() {
-    ProductionLogger.info('App inactive - executing ${_onInactiveCallbacks.length} callbacks');
-    
-    for (final callback in _onInactiveCallbacks) {
+    ProductionLogger.info(
+        'App inactive — executing ${_onInactiveCallbacks.length} callbacks');
+    for (final callback in List<VoidCallback>.from(_onInactiveCallbacks)) {
       try {
         callback();
       } catch (e) {
@@ -126,22 +160,17 @@ class AppLifecycleManager extends WidgetsBindingObserver {
 
   void _handleDetached() {
     ProductionLogger.info('App detached');
-    // Clean up resources when app is completely detached
     dispose();
   }
 
   void _handleHidden() {
     ProductionLogger.info('App hidden');
-    // Handle app being hidden (similar to inactive)
     _handleInactive();
   }
 
-  /// Check if app is currently in foreground
   bool get isAppInForeground => _lastState == AppLifecycleState.resumed;
-  
-  /// Check if app is currently in background
-  bool get isAppInBackground => 
-      _lastState == AppLifecycleState.paused || 
+  bool get isAppInBackground =>
+      _lastState == AppLifecycleState.paused ||
       _lastState == AppLifecycleState.hidden ||
       _lastState == AppLifecycleState.inactive;
 }

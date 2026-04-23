@@ -21,9 +21,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<LocationProvider>().requestLocation(force: false);
-    });
+    // LocationProvider._init() runs automatically on construction and handles
+    // loading the persisted location + scheduling a background GPS refresh.
+    // No explicit call needed here.
   }
 
   @override
@@ -50,9 +50,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
     final userId = context.read<AuthProvider>().currentUser?.id;
     if (userId == null) return;
 
-    // Refresh GPS location after login so weather uses current coordinates.
-    await context.read<LocationProvider>().requestLocation(force: true);
-    if (!mounted) return;
+    // Location is already being fetched in the background by LocationProvider._init().
+    // We do NOT force another GPS call here — that was the source of duplicate
+    // GPS requests logged as "already loading, waiting..." on every login.
 
     final notifProvider = context.read<NotificationProvider>();
     notifProvider.fetchNotifications(userId: userId);

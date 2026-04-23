@@ -1,5 +1,3 @@
-// lib/features/notifications/providers/notification_provider.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
@@ -11,104 +9,140 @@ class NotificationProvider extends ChangeNotifier {
   List<AppNotification> _notifications = [];
   FarmerNotificationSettings _farmerSettings =
   const FarmerNotificationSettings();
-  AdminNotificationSettings _adminSettings = const AdminNotificationSettings();
+  AdminNotificationSettings _adminSettings =
+  const AdminNotificationSettings();
 
   bool _isLoading = false;
   bool _isSettingsLoading = false;
   String? _error;
+
   Timer? _refreshTimer;
 
+  // ── SAFE FETCH CONTROL ─────────────────────────────
+  Future<void>? _inFlightFetch;
+  DateTime? _lastFetchTime;
+
+  static const _kMinFetchInterval = Duration(seconds: 10);
+
+  // ── TIMER GUARD ────────────────────────────────────
+  bool _timerBusy = false;
+
+  // ── GETTERS ────────────────────────────────────────
   List<AppNotification> get notifications => _notifications;
   FarmerNotificationSettings get farmerSettings => _farmerSettings;
   AdminNotificationSettings get adminSettings => _adminSettings;
+
   bool get isLoading => _isLoading;
   bool get isSettingsLoading => _isSettingsLoading;
   String? get error => _error;
-  int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
-  // ── Fetch notifications ───────────────────────────────────────────────────
+  int get unreadCount =>
+      _notifications.where((n) => !n.isRead).length;
 
-  // ── Fetch guard: prevents concurrent AND rapid-sequential duplicate calls ──
-  bool _isFetching = false;
-  DateTime? _lastFetchTime;
-  // Minimum gap between two fetches (ignores calls that arrive too soon)
-  static const _kMinFetchInterval = Duration(seconds: 10);
+  // ───────────────────────────────────────────────────
+  // CORE FETCH (ANTI DUPLICATE + THROTTLE)
+  // ───────────────────────────────────────────────────
 
   Future<void> fetchNotifications({
     required String userId,
     bool showLoading = true,
-  }) async {
-    // Block if already in-flight
-    if (_isFetching) return;
-
-    // Block if last fetch finished less than 3 seconds ago (debounce)
+    bool force = false,
+  }) {
     final now = DateTime.now();
-    if (_lastFetchTime != null &&
+
+    // ⛔ throttle (prevents spam)
+    if (!force &&
+        _lastFetchTime != null &&
         now.difference(_lastFetchTime!) < _kMinFetchInterval) {
-      return;
+      return Future.value();
     }
 
-    _isFetching = true;
+    // ⛔ prevent duplicate in-flight requests
+    if (_inFlightFetch != null) return _inFlightFetch!;
 
+    _inFlightFetch = _runFetch(userId, showLoading).whenComplete(() {
+      _inFlightFetch = null;
+    });
+
+    return _inFlightFetch!;
+  }
+
+  // ───────────────────────────────────────────────────
+  // INTERNAL FETCH
+  // ───────────────────────────────────────────────────
+
+  Future<void> _runFetch(String userId, bool showLoading) async {
     if (showLoading) {
       _isLoading = true;
       _error = null;
       notifyListeners();
     }
+
     try {
       final results = await _service.getNotifications(userId);
+
       _notifications = results
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      _error = null;
+
       _lastFetchTime = DateTime.now();
+      _error = null;
     } catch (e) {
       _error = e.toString();
     } finally {
-      _isFetching = false;
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Backward-compatible alias — allows calling with a positional userId arg:
-  ///   provider.fetchNotificationsForUser(userId)
+  // ───────────────────────────────────────────────────
+  // COMPAT
+  // ───────────────────────────────────────────────────
+
   Future<void> fetchNotificationsForUser(String userId) =>
       fetchNotifications(userId: userId, showLoading: false);
 
-  // ── startRefreshTimer also accepts the provider used via positional string ─
-
-  // ── Mark single as read ───────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────
+  // MARK AS READ (OPTIMIZED NOTIFY)
+  // ───────────────────────────────────────────────────
 
   Future<void> markAsRead(String notifId) async {
     final index = _notifications.indexWhere((n) => n.id == notifId);
     if (index == -1 || _notifications[index].isRead) return;
 
-    _notifications[index] = _notifications[index].copyWith(isRead: true);
+    _notifications[index] =
+        _notifications[index].copyWith(isRead: true);
     notifyListeners();
 
     final ok = await _service.markAsRead(notifId);
+
     if (!ok) {
-      _notifications[index] = _notifications[index].copyWith(isRead: false);
+      _notifications[index] =
+          _notifications[index].copyWith(isRead: false);
       notifyListeners();
     }
   }
 
-  // ── Mark all as read ──────────────────────────────────────────────────────
-
   Future<void> markAllAsRead({required String userId}) async {
     if (_notifications.isEmpty) return;
+
     final previous = List<AppNotification>.from(_notifications);
-    _notifications = _notifications.map((n) => n.copyWith(isRead: true)).toList();
+
+    _notifications =
+        _notifications.map((n) => n.copyWith(isRead: true)).toList();
+
     notifyListeners();
 
     final ok = await _service.markAllAsRead(userId);
+
     if (!ok) {
       _notifications = previous;
       notifyListeners();
     }
   }
 
-  // ── Delete single ─────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────
+  // DELETE (SAFE UI UPDATE)
+  // ───────────────────────────────────────────────────
 
   Future<void> deleteNotification(String notifId) async {
     final index = _notifications.indexWhere((n) => n.id == notifId);
@@ -118,28 +152,32 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
 
     final ok = await _service.deleteNotification(notifId);
+
     if (!ok) {
       _notifications.insert(index, removed);
       notifyListeners();
     }
   }
 
-  // ── Delete all ────────────────────────────────────────────────────────────
-
   Future<void> deleteAllNotifications({required String userId}) async {
     if (_notifications.isEmpty) return;
+
     final previous = List<AppNotification>.from(_notifications);
+
     _notifications = [];
     notifyListeners();
 
     final ok = await _service.deleteAllNotifications(userId);
+
     if (!ok) {
       _notifications = previous;
       notifyListeners();
     }
   }
 
-  // ── Farmer settings ───────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────
+  // SETTINGS (NO MULTIPLE NOTIFY FLOOD)
+  // ───────────────────────────────────────────────────
 
   Future<void> fetchFarmerSettings({required String userId}) async {
     _isSettingsLoading = true;
@@ -157,36 +195,71 @@ class NotificationProvider extends ChangeNotifier {
     required FarmerNotificationSettings updatedSettings,
   }) async {
     final previous = _farmerSettings;
+
     _farmerSettings = updatedSettings;
     notifyListeners();
 
-    final ok = await _service.updateFarmerSettings(userId, updatedSettings);
+    final ok =
+    await _service.updateFarmerSettings(userId, updatedSettings);
+
     if (!ok) {
       _farmerSettings = previous;
       notifyListeners();
     }
+
     return ok;
   }
-
-  // ── Admin settings ────────────────────────────────────────────────────────
 
   Future<bool> updateAdminSettings({
     required String userId,
     required AdminNotificationSettings updatedSettings,
   }) async {
     final previous = _adminSettings;
+
     _adminSettings = updatedSettings;
     notifyListeners();
 
-    final ok = await _service.updateAdminSettings(userId, updatedSettings);
+    final ok =
+    await _service.updateAdminSettings(userId, updatedSettings);
+
     if (!ok) {
       _adminSettings = previous;
       notifyListeners();
     }
+
     return ok;
   }
 
-  // ── Local / in-app notifications ──────────────────────────────────────────
+  // ───────────────────────────────────────────────────
+  // TIMER (ANTI OVERLAP FIX)
+  // ───────────────────────────────────────────────────
+
+  void startRefreshTimer(String userId) {
+    _refreshTimer?.cancel();
+
+    _refreshTimer =
+        Timer.periodic(const Duration(minutes: 1), (_) async {
+          if (_timerBusy) return;
+
+          _timerBusy = true;
+
+          await fetchNotifications(
+            userId: userId,
+            showLoading: false,
+          );
+
+          _timerBusy = false;
+        });
+  }
+
+  void stopRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+  }
+
+  // ───────────────────────────────────────────────────
+  // LOCAL NOTIFICATIONS
+  // ───────────────────────────────────────────────────
 
   void addLocalNotification({
     required String title,
@@ -196,7 +269,7 @@ class NotificationProvider extends ChangeNotifier {
     _notifications.insert(
       0,
       AppNotification(
-        id: 'local_\${DateTime.now().millisecondsSinceEpoch}',
+        id: 'local_${DateTime.now().millisecondsSinceEpoch}',
         userId: 'local',
         title: title,
         body: body,
@@ -205,35 +278,37 @@ class NotificationProvider extends ChangeNotifier {
         isRead: false,
       ),
     );
+
     notifyListeners();
   }
 
-  /// Backward-compatible alias — allows: provider.addNotification(title: '...', body: '...', type: ...)
   void addNotification({
     required String title,
     required String body,
     NotificationType type = NotificationType.system,
-  }) =>
-      addLocalNotification(title: title, body: body, type: type);
-
-  void addSystemNotification({required String title, required String body}) =>
-      addLocalNotification(
-          title: title, body: body, type: NotificationType.system);
-
-  // ── Timer ─────────────────────────────────────────────────────────────────
-
-  void startRefreshTimer(String userId) {
-    _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-      fetchNotifications(userId: userId, showLoading: false);
-    });
+  }) {
+    addLocalNotification(
+      title: title,
+      body: body,
+      type: type,
+    );
   }
 
-  void stopRefreshTimer() => _refreshTimer?.cancel();
+  void addSystemNotification({
+    required String title,
+    required String body,
+  }) {
+    addLocalNotification(
+      title: title,
+      body: body,
+      type: NotificationType.system,
+    );
+  }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _inFlightFetch = null;
     super.dispose();
   }
 }

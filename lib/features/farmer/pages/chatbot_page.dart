@@ -88,7 +88,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                   boxShadow: isDesktop
                       ? [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
@@ -600,7 +600,7 @@ class _SidebarShimmer extends StatelessWidget {
         height: 40,
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.5),
+          color: Colors.white.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
       ),
@@ -629,7 +629,7 @@ class _SuggestionsBar extends StatelessWidget {
             label: Text(s, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
             backgroundColor: AppColors.primarySurface,
             onPressed: () => onTap(s),
-            side: BorderSide(color: AppColors.primary.withOpacity(0.1)),
+            side: BorderSide(color: AppColors.primary.withValues(alpha: 0.1)),
           )).toList(),
         ),
       ]),
@@ -691,7 +691,7 @@ class _Bubble extends StatelessWidget {
                   bottomLeft: Radius.circular(msg.isUser ? 16 : 8),
                   bottomRight: Radius.circular(msg.isUser ? 8 : 16),
                 ),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
               ),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -702,7 +702,7 @@ class _Bubble extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(ts,
                         style: TextStyle(
-                            fontSize: 10, color: msg.isUser ? Colors.white.withOpacity(0.7) : AppColors.textDisabled)),
+                            fontSize: 10, color: msg.isUser ? Colors.white.withValues(alpha: 0.7) : AppColors.textDisabled)),
                   ]),
             ),
           ),
@@ -742,7 +742,7 @@ class _TypingIndicator extends StatelessWidget {
           decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
           child: Text(l10n.typing,
               style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic, color: AppColors.textSubtle)),
         ),

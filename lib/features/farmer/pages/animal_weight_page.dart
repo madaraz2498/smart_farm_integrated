@@ -179,7 +179,7 @@ class _AnimalUploadCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF4F66F2),
               borderRadius: BorderRadius.circular(14),
-              boxShadow: [BoxShadow(color: const Color(0xFF4F66F2).withOpacity(0.35), blurRadius: 12)],
+              boxShadow: [BoxShadow(color: const Color(0xFF4F66F2).withValues(alpha: 0.35), blurRadius: 12)],
             ),
             child: const Icon(Icons.remove_red_eye_outlined, color: Colors.white, size: 26),
           ),
@@ -255,7 +255,7 @@ class _AnimalResultCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.primarySurface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [

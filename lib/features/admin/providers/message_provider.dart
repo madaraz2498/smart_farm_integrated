@@ -17,6 +17,7 @@ class AdminMessageProvider extends ChangeNotifier {
 
   List<MessageModel> _messages = [];
   bool _loading = false;
+  bool _hasFetchedOnce = false;
   String? _error;
 
   List<MessageModel> get messages => _messages;
@@ -26,7 +27,12 @@ class AdminMessageProvider extends ChangeNotifier {
 
   // ── Fetch Messages ─────────────────────────────────────────────────────────
 
-  Future<void> fetchMessages() async {
+  Future<void> fetchMessages({bool force = false}) async {
+    // Skip if already in-flight (prevents concurrent duplicate API calls).
+    if (_loading) return;
+    // Skip if already loaded and caller is not explicitly forcing a refresh.
+    if (_hasFetchedOnce && !force) return;
+
     _loading = true;
     _error = null;
     notifyListeners();
@@ -34,6 +40,7 @@ class AdminMessageProvider extends ChangeNotifier {
     try {
       final list = await _svc.getAllMessages();
       _messages = list;
+      _hasFetchedOnce = true;
       _enrichMessages();
       _error = null;
     } catch (e) {
@@ -87,6 +94,7 @@ class AdminMessageProvider extends ChangeNotifier {
       final success =
           await _svc.replyToMessage(messageId: messageId, reply: reply);
       if (success) {
+        _hasFetchedOnce = false; // invalidate cache so reload fetches fresh data
         await fetchMessages();
         return true;
       }
@@ -110,6 +118,7 @@ class AdminMessageProvider extends ChangeNotifier {
     try {
       final success = await _svc.deleteAnyMessage(messageId);
       if (success) {
+        _hasFetchedOnce = false; // invalidate cache so reload fetches fresh data
         await fetchMessages();
         return true;
       }

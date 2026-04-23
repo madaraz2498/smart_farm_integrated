@@ -26,12 +26,21 @@ class AdminReportProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get generatedReports =>
       List.unmodifiable(_generatedReports);
 
+  bool _hasFetchedOnce = false;
+
   void setRange(String range) {
     _selectedRange = range;
+    // Range changed — always re-fetch.
+    _hasFetchedOnce = false;
     fetchAllReports();
   }
 
-  Future<void> fetchAllReports() async {
+  Future<void> fetchAllReports({bool force = false}) async {
+    // Skip if already in-flight.
+    if (_isLoading) return;
+    // Skip if already loaded and no force signal.
+    if (_hasFetchedOnce && !force) return;
+
     final isSilent = _stats != null;
 
     if (!isSilent) {
@@ -42,7 +51,8 @@ class AdminReportProvider extends ChangeNotifier {
 
     try {
       _stats = await _service.getDashboardStats(range: _selectedRange);
-      _error = null; // Clear error on success
+      _hasFetchedOnce = true;
+      _error = null;
     } catch (e) {
       _error = e.toString();
     } finally {

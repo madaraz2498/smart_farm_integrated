@@ -32,7 +32,7 @@ class _ReportsPageState extends State<ReportsPage> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
           child: RefreshIndicator(
-            onRefresh: () => prov.load(),
+            onRefresh: () => prov.load(force: true),
             color: AppColors.primary,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),

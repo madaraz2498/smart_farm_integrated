@@ -54,7 +54,7 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
             constraints: const BoxConstraints(maxWidth: 900),
             child: RefreshIndicator(
               onRefresh: () =>
-                  context.read<AdminMessageProvider>().fetchMessages(),
+                  context.read<AdminMessageProvider>().fetchMessages(force: true),
               color: AppColors.primary,
               child: Column(
                 children: [

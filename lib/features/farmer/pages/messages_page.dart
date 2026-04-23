@@ -32,11 +32,19 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
     });
   }
 
+  /// Initial load — uses the loaded-once guard (no-op if already loaded).
   Future<void> _loadMessages() async {
-    final auth = context.read<AuthProvider>();
-    final userId = auth.currentUser?.id;
+    final userId = context.read<AuthProvider>().currentUser?.id;
     if (userId != null) {
       context.read<FarmerMessageProvider>().fetchMessages(userId);
+    }
+  }
+
+  /// Pull-to-refresh — bypasses the guard to force a fresh fetch.
+  Future<void> _refreshMessages() async {
+    final userId = context.read<AuthProvider>().currentUser?.id;
+    if (userId != null) {
+      await context.read<FarmerMessageProvider>().fetchMessages(userId, force: true);
     }
   }
 
@@ -125,7 +133,7 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
           child: RefreshIndicator(
-            onRefresh: _loadMessages,
+            onRefresh: _refreshMessages,
             color: AppColors.primary,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),

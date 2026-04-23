@@ -92,7 +92,7 @@ class SfResultCard extends StatelessWidget {
         color:        AppColors.surface,
         borderRadius: BorderRadius.circular(AppSizes.radiusCard),
         border:       Border.all(color: AppColors.cardBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(title, style: AppTextStyles.cardTitle),
@@ -180,7 +180,7 @@ class SfErrorBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color:        const Color(0xFFFEF2F2),
         borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-        border:       Border.all(color: AppColors.error.withOpacity(0.3)),
+        border:       Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Row(children: [
         const Icon(Icons.error_outline, size: 16, color: AppColors.error),

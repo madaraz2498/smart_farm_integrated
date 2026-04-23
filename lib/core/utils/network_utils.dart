@@ -7,7 +7,9 @@ import '../utils/production_logger.dart';
 /// Network utility with retry handling and timeout for API calls
 class NetworkUtils {
   static const int _defaultTimeout = 30; // seconds
-  static const int _maxRetries = 3;
+  // Reduced from 3 to 1: retrying twice on slow connections triples the
+  // perceived latency for the user. One retry is enough for transient failures.
+  static const int _maxRetries = 1;
   static const Duration _retryDelay = Duration(seconds: 2);
 
   /// HTTP GET with retry and timeout
@@ -118,13 +120,17 @@ class NetworkUtils {
         
       } catch (e) {
         ProductionLogger.error('Request failed (attempt ${attempt + 1}): $e');
-        
-        // Last attempt, rethrow the exception
-        if (attempt == retries) {
+
+        // Do not retry on timeout — the server is unreachable or the network
+        // is too slow; a retry would just multiply the wait time.
+        final isTimeout = e is TimeoutException ||
+            e.toString().toLowerCase().contains('timeout');
+
+        if (attempt == retries || isTimeout) {
           rethrow;
         }
-        
-        // Wait before retry
+
+        // Wait before retry with linear backoff.
         await Future.delayed(_retryDelay * (attempt + 1));
       }
     }

@@ -424,7 +424,6 @@ class ServiceUsageBarChart extends StatelessWidget {
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipColor: (_) => AppColors.textDark.withValues(alpha: 0.9),
-            tooltipRoundedRadius: 8,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final label = LabelMapper.getLocalizedService(
                   data[groupIndex].service, l10n);
@@ -469,9 +468,7 @@ class ServiceUsageBarChart extends StatelessWidget {
                 final isLabelArabic =
                     RegExp(r'[\u0600-\u06FF]').hasMatch(localizedLabel);
 
-                return SideTitleWidget(
-                  axisSide: meta.axisSide,
-                  space: 12,
+                return Transform.rotate(
                   angle: isAr ? 0.4 : -0.4,
                   child: Directionality(
                     textDirection:
@@ -572,14 +569,11 @@ class UserGrowthLineChart extends StatelessWidget {
                 final label =
                     LabelMapper.getLocalizedMonth(data[index].month, l10n);
 
-                return SideTitleWidget(
-                  axisSide: meta.axisSide,
-                  child: Directionality(
-                    textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-                    child: Text(label,
-                        style: const TextStyle(
-                            color: AppColors.textSubtle, fontSize: 10)),
-                  ),
+                return Directionality(
+                  textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+                  child: Text(label,
+                      style: const TextStyle(
+                          color: AppColors.textSubtle, fontSize: 10)),
                 );
               },
             ),
@@ -640,7 +634,6 @@ class DailyActivityLineChart extends StatelessWidget {
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (_) => AppColors.textDark,
-            tooltipRoundedRadius: 8,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
                 final day =
@@ -673,14 +666,11 @@ class DailyActivityLineChart extends StatelessWidget {
                 final label =
                     LabelMapper.getLocalizedDay(data[index].day, l10n);
 
-                return SideTitleWidget(
-                  axisSide: meta.axisSide,
-                  child: Directionality(
-                    textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
-                    child: Text(label,
-                        style: const TextStyle(
-                            color: AppColors.textSubtle, fontSize: 10)),
-                  ),
+                return Directionality(
+                  textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+                  child: Text(label,
+                      style: const TextStyle(
+                          color: AppColors.textSubtle, fontSize: 10)),
                 );
               },
             ),

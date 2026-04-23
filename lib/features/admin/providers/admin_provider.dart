@@ -89,6 +89,8 @@ class AdminProvider extends ChangeNotifier {
   Future<void> loadStats({bool force = false}) async {
     // If we have data and not forcing, just return.
     if (_stats != null && !force) return;
+    // Prevent concurrent duplicate calls.
+    if (_statsLoading) return;
 
     // If we already have data, don't show the full-screen loader (silent refresh).
     final isSilent = _stats != null;
@@ -115,6 +117,8 @@ class AdminProvider extends ChangeNotifier {
   // ── Load users ─────────────────────────────────────────────────────────────
   Future<void> loadUsers({bool force = false}) async {
     if (_users.isNotEmpty && !force) return;
+    // Prevent concurrent duplicate calls.
+    if (_usersLoading) return;
 
     final isSilent = _users.isNotEmpty;
 

@@ -1,127 +1,161 @@
 // lib/features/notifications/services/notification_service.dart
 
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 import '../../../core/network/api_client.dart';
 import '../models/notification_model.dart';
 
 class NotificationService {
   final ApiClient _apiClient = ApiClient.instance;
 
-  // GET /notifications/notifications/my-notifications/{user_id}
-  Future<List<AppNotification>> getNotifications(String userId) async {
+  // ─────────────────────────────────────────────
+  // Helpers
+  // ─────────────────────────────────────────────
+
+  Future<T?> _safeCall<T>(Future<T> Function() request, String tag) async {
     try {
-      final response = await _apiClient
-          .get('/notifications/notifications/my-notifications/$userId');
+      return await request().timeout(
+        const Duration(seconds: 15),
+      );
+    } on TimeoutException {
+      debugPrint('[NotificationService][$tag] TIMEOUT');
+      return null;
+    } catch (e) {
+      debugPrint('[NotificationService][$tag] ERROR: $e');
+      return null;
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // GET notifications
+  // ─────────────────────────────────────────────
+
+  Future<List<AppNotification>> getNotifications(String userId) async {
+    final response = await _safeCall(
+          () => _apiClient.get(
+        '/notifications/notifications/my-notifications/$userId',
+      ),
+      'getNotifications',
+    );
+
+    if (response == null) return [];
+
+    try {
       if (response is List) {
         return response
-            .map((json) =>
-            AppNotification.fromJson(json as Map<String, dynamic>))
+            .map((json) => AppNotification.fromJson(json))
             .toList();
       }
+
       if (response is Map && response['notifications'] is List) {
         return (response['notifications'] as List)
-            .map((json) =>
-            AppNotification.fromJson(json as Map<String, dynamic>))
+            .map((json) => AppNotification.fromJson(json))
             .toList();
       }
+
       return [];
     } catch (e) {
-      debugPrint('[NotificationService] getNotifications error: $e');
+      debugPrint('[NotificationService] parse error: $e');
       return [];
     }
   }
 
-  // PATCH /notifications/notifications/read/{notif_id}
+  // ─────────────────────────────────────────────
+  // READ
+  // ─────────────────────────────────────────────
+
   Future<bool> markAsRead(String notifId) async {
-    try {
-      await _apiClient.patch('/notifications/notifications/read/$notifId');
-      return true;
-    } catch (e) {
-      debugPrint('[NotificationService] markAsRead error: $e');
-      return false;
-    }
+    final res = await _safeCall(
+          () => _apiClient.patch(
+        '/notifications/notifications/read/$notifId',
+      ),
+      'markAsRead',
+    );
+    return res != null;
   }
 
-  // PATCH /notifications/notifications/read-all/{user_id}
   Future<bool> markAllAsRead(String userId) async {
-    try {
-      await _apiClient.patch('/notifications/notifications/read-all/$userId');
-      return true;
-    } catch (e) {
-      debugPrint('[NotificationService] markAllAsRead error: $e');
-      return false;
-    }
+    final res = await _safeCall(
+          () => _apiClient.patch(
+        '/notifications/notifications/read-all/$userId',
+      ),
+      'markAllAsRead',
+    );
+    return res != null;
   }
 
-  // DELETE /notifications/notifications/delete/{notif_id}
+  // ─────────────────────────────────────────────
+  // DELETE
+  // ─────────────────────────────────────────────
+
   Future<bool> deleteNotification(String notifId) async {
-    try {
-      await _apiClient
-          .delete('/notifications/notifications/delete/$notifId');
-      return true;
-    } catch (e) {
-      debugPrint('[NotificationService] deleteNotification error: $e');
-      return false;
-    }
+    final res = await _safeCall(
+          () => _apiClient.delete(
+        '/notifications/notifications/delete/$notifId',
+      ),
+      'deleteNotification',
+    );
+    return res != null;
   }
 
-  // DELETE /notifications/notifications/delete-all/{user_id}
   Future<bool> deleteAll(String userId) async {
-    try {
-      await _apiClient
-          .delete('/notifications/notifications/delete-all/$userId');
-      return true;
-    } catch (e) {
-      debugPrint('[NotificationService] deleteAll error: $e');
-      return false;
-    }
+    final res = await _safeCall(
+          () => _apiClient.delete(
+        '/notifications/notifications/delete-all/$userId',
+      ),
+      'deleteAll',
+    );
+    return res != null;
   }
 
-  // Backwards-compatible alias (older call sites).
-  Future<bool> deleteAllNotifications(String userId) => deleteAll(userId);
+  Future<bool> deleteAllNotifications(String userId) =>
+      deleteAll(userId);
 
-  // GET /notifications/notifications/get-settings/{user_id}
-  Future<FarmerNotificationSettings?> getFarmerSettings(String userId) async {
-    try {
-      final response = await _apiClient
-          .get('/notifications/notifications/get-settings/$userId');
-      if (response is Map<String, dynamic>) {
-        return FarmerNotificationSettings.fromJson(response);
-      }
-      return null;
-    } catch (e) {
-      debugPrint('[NotificationService] getFarmerSettings error: $e');
-      return null;
+  // ─────────────────────────────────────────────
+  // SETTINGS
+  // ─────────────────────────────────────────────
+
+  Future<FarmerNotificationSettings?> getFarmerSettings(
+      String userId) async {
+    final response = await _safeCall(
+          () => _apiClient.get(
+        '/notifications/notifications/get-settings/$userId',
+      ),
+      'getFarmerSettings',
+    );
+
+    if (response is Map<String, dynamic>) {
+      return FarmerNotificationSettings.fromJson(response);
     }
+
+    return null;
   }
 
-  // PATCH /notifications/notifications/farmer-settings/{user_id}
   Future<bool> updateFarmerSettings(
-      String userId, FarmerNotificationSettings settings) async {
-    try {
-      await _apiClient.patch(
+      String userId,
+      FarmerNotificationSettings settings,
+      ) async {
+    final res = await _safeCall(
+          () => _apiClient.patch(
         '/notifications/notifications/farmer-settings/$userId',
         body: settings.toJson(),
-      );
-      return true;
-    } catch (e) {
-      debugPrint('[NotificationService] updateFarmerSettings error: $e');
-      return false;
-    }
+      ),
+      'updateFarmerSettings',
+    );
+    return res != null;
   }
 
-  // PATCH /notifications/notifications/admin-settings/{user_id}
   Future<bool> updateAdminSettings(
-      String userId, AdminNotificationSettings settings) async {
-    try {
-      await _apiClient.patch(
+      String userId,
+      AdminNotificationSettings settings,
+      ) async {
+    final res = await _safeCall(
+          () => _apiClient.patch(
         '/notifications/notifications/admin-settings/$userId',
         body: settings.toJson(),
-      );
-      return true;
-    } catch (e) {
-      debugPrint('[NotificationService] updateAdminSettings error: $e');
-      return false;
-    }
+      ),
+      'updateAdminSettings',
+    );
+    return res != null;
   }
 }

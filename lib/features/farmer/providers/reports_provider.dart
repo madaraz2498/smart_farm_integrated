@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
+import '../../../core/utils/production_logger.dart';
 import '../models/report_models.dart';
 import '../services/reports_service.dart';
 
@@ -18,6 +19,7 @@ class ReportsProvider extends ChangeNotifier {
       _userId = id;
       _stats = null;
       _reports = [];
+      _hasLoadedOnce = false; // reset so new user triggers a fresh load
       notifyListeners();
     }
   }
@@ -31,6 +33,7 @@ class ReportsProvider extends ChangeNotifier {
   FarmerReportStats? _stats;
   List<FarmerReportItem> _reports = [];
   bool _isLoading = false;
+  bool _hasLoadedOnce = false;
   String? _error;
 
   FarmerReportStats? get stats => _stats;
@@ -39,7 +42,13 @@ class ReportsProvider extends ChangeNotifier {
   bool get isGenerating => _isLoading && _reports.isNotEmpty;
   String? get error => _error;
 
-  Future<void> load() async {
+  Future<void> load({bool force = false}) async {
+    // Skip if already loading or already loaded (unless forced by pull-to-refresh).
+    if (_isLoading) return;
+    if (_hasLoadedOnce && !force) {
+      ProductionLogger.reports('reports already loaded, skipping duplicate call');
+      return;
+    }
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -57,6 +66,7 @@ class ReportsProvider extends ChangeNotifier {
 
       list.sort((a, b) => b.date.compareTo(a.date));
       _reports = list.take(3).toList();
+      _hasLoadedOnce = true;
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -71,6 +81,8 @@ class ReportsProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await _svc.generate(userId, period: period);
+      // Force-reload so the newly generated report appears in the list.
+      _hasLoadedOnce = false;
       await load();
 
       _notifProvider?.addNotification(

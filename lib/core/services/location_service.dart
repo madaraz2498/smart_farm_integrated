@@ -11,11 +11,43 @@ class LocationService {
   static const String _kLatKey = 'user_lat';
   static const String _kLonKey = 'user_lon';
 
+  // ── Session-level in-memory cache ─────────────────────────────────────────
+  // Once GPS succeeds in this app session, we never call Geolocator again
+  // unless clearSessionCache() is explicitly called (manual refresh only).
+  Map<String, dynamic>? _sessionCache;
+
+  // In-flight deduplication: if a GPS request is already running, subsequent
+  // callers await the same Future instead of spawning a new concurrent GPS call.
+  Future<Map<String, dynamic>?>? _inFlight;
+
   Future<Map<String, dynamic>?> getCurrentLocation() async {
+    // Return session cache immediately — no GPS hardware call needed.
+    if (_sessionCache != null) {
+      debugPrint('[LocationService] returning session-cached location');
+      return _sessionCache;
+    }
+
+    // If a request is already in-flight, wait for it instead of spawning a
+    // second concurrent GPS call (the root cause of "already loading" loops).
+    if (_inFlight != null) {
+      debugPrint('[LocationService] GPS already in-flight, awaiting existing request...');
+      return _inFlight;
+    }
+
+    _inFlight = _fetchFromGPS();
+    try {
+      final result = await _inFlight!;
+      _sessionCache = result; // cache on success
+      return result;
+    } finally {
+      _inFlight = null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> _fetchFromGPS() async {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       return null;
@@ -97,5 +129,12 @@ class LocationService {
     } catch (e) {
       debugPrint('[LocationService] Error storing location: $e');
     }
+  }
+
+  /// Clears the in-memory session cache so the next [getCurrentLocation] call
+  /// triggers a real GPS request. Only used by [LocationProvider.refreshLocation].
+  void clearSessionCache() {
+    _sessionCache = null;
+    debugPrint('[LocationService] session cache cleared for manual refresh');
   }
 }

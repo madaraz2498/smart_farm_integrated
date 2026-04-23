@@ -16,6 +16,7 @@ class FarmerMessageProvider extends ChangeNotifier {
 
   List<MessageModel> _messages = [];
   bool               _loading  = false;
+  bool               _hasFetchedOnce = false;
   String?            _error;
 
   List<MessageModel> get messages     => _messages;
@@ -25,7 +26,12 @@ class FarmerMessageProvider extends ChangeNotifier {
 
   // ── Fetch Messages ─────────────────────────────────────────────────────────
 
-  Future<void> fetchMessages(String userId) async {
+  Future<void> fetchMessages(String userId, {bool force = false}) async {
+    // Prevent concurrent duplicate network calls.
+    if (_loading) return;
+    // Use cached data if already loaded and not forcing a refresh.
+    if (_hasFetchedOnce && !force) return;
+
     _loading = true;
     _error   = null;
     notifyListeners();
@@ -34,6 +40,7 @@ class FarmerMessageProvider extends ChangeNotifier {
 
     try {
       _messages = await _svc.getMyMessages(userId);
+      _hasFetchedOnce = true;
       _error    = null;
 
       // Notify farmer when admin replies to a message

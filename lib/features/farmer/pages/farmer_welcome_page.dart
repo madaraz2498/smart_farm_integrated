@@ -34,36 +34,17 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
 
   Future<void> _loadInitialData() async {
     if (!mounted) return;
-    final authProvider = context.read<AuthProvider>();
-    final locationProvider = context.read<LocationProvider>();
-    
-    final userId = authProvider.currentUser?.id;
+    final userId = context.read<AuthProvider>().currentUser?.id;
     if (userId == null) return;
 
-    // Request location specifically for dashboard loading
-    // This will wait for fresh GPS on startup
-    await locationProvider.requestLocationForDashboard();
-    if (!mounted) return;
+    // LocationProvider._init() already runs on construction and fetches GPS
+    // in the background. DashboardProvider auto-loads once coordinates arrive
+    // via the ProxyProvider update chain. No location call needed here.
 
-    // Dashboard will load automatically when location is ready
-    // Reports loading delayed to prevent startup duplication
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _loadReportsDelayed();
-      }
-    });
-  }
-
-  Future<void> _loadReportsDelayed() async {
+    // Load reports with a small delay so dashboard gets network priority.
+    await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
-    
-    // Small delay to ensure dashboard loads first
-    await Future.delayed(const Duration(milliseconds: 1000));
-    if (!mounted) return;
-    
-    final reportsProvider = context.read<ReportsProvider>();
-    await reportsProvider.load();
-    debugPrint('[FarmerWelcomePage] reports loaded delayed');
+    await context.read<ReportsProvider>().load();
   }
 
   String translateService(String service, AppLocalizations l10n) {
@@ -151,16 +132,20 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
           final messageProvider = context.read<FarmerMessageProvider>();
           final reportsProvider = context.read<ReportsProvider>();
           final dashboardProvider = context.read<DashboardProvider>();
-          
+
           final userId = authProvider.currentUser?.id;
-          if (userId != null) {
-            await locationProvider.refreshLocation();
-            await Future.wait([
-              messageProvider.fetchMessages(userId),
-              reportsProvider.load(),
-              dashboardProvider.refresh(),
-            ]);
-          }
+          if (userId == null) return;
+
+          // Refresh GPS first so dashboard gets updated coordinates.
+          await locationProvider.refreshLocation();
+          if (!mounted) return;
+
+          // Run all secondary refreshes concurrently.
+          await Future.wait([
+            dashboardProvider.refresh(),
+            reportsProvider.load(),
+            messageProvider.fetchMessages(userId),
+          ]);
         },
         color: AppColors.primary,
         child: _buildContent(hPadding, l10n, name, nav, dashboardProv, dashboard, features),
@@ -179,8 +164,9 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
   ) {
     final locationProvider = context.watch<LocationProvider>();
     
-    // Show location loading state
-    if (locationProvider.isWaitingForFreshGps || dashboardProv.isWaitingForLocation) {
+    // Show location loading state while GPS is still being acquired and
+    // the dashboard has no coordinates yet to work with.
+    if (locationProvider.isLoading && dashboardProv.isWaitingForLocation) {
       return const LocationLoadingState();
     }
     

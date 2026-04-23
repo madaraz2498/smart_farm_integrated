@@ -261,7 +261,7 @@ class _ResultTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.radiusCard),
         border: Border.all(color: AppColors.cardBorder),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -272,9 +272,9 @@ class _ResultTile extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppSizes.radiusMid),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Center(
               child: Text(value,
