@@ -170,12 +170,10 @@ class _ChatHeader extends StatelessWidget {
     final prov = context.watch<ChatbotProvider>();
     
     // Find current session or use a placeholder
-    ChatSession? currentSession;
-    try {
-      currentSession = prov.sessions.firstWhere((s) => s.id == prov.currentSessionId);
-    } catch (_) {
-      currentSession = null;
-    }
+    final currentSession = prov.sessions.cast<ChatSession?>().firstWhere(
+      (s) => s?.id == prov.currentSessionId,
+      orElse: () => null,
+    );
 
     return Container(
       height: isDesktop ? 74 : 60,

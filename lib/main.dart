@@ -24,13 +24,18 @@ import 'package:smart_farm/features/farmer/providers/message_provider.dart';
 import 'package:smart_farm/features/farmer/providers/dashboard_provider.dart';
 import 'package:smart_farm/providers/location_provider.dart';
 import 'package:smart_farm/core/utils/app_lifecycle_manager.dart';
+import 'package:smart_farm/core/network/token_storage.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Migrate any legacy tokens from SharedPreferences → flutter_secure_storage.
+  await TokenStorage.migrateFromSharedPreferences();
+
   // Initialize app lifecycle manager
   AppLifecycleManager.instance.initialize();
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -129,7 +134,7 @@ void main() {
             AdminProvider>(
           create: (_) => AdminProvider(),
           update: (_, auth, notif, admin) {
-            debugPrint('[Main] Updating AdminProvider');
+            ProductionLogger.info('Updating AdminProvider');
             return admin!
               ..updateUserId(auth.currentUser?.id ?? '0')
               ..updateNotif(notif);

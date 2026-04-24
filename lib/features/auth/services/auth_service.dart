@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../../core/utils/production_logger.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/token_storage.dart';
 import '../../../shared/models/user_model.dart';
@@ -43,14 +44,14 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    debugPrint('[AuthService] register  email=$email');
+    ProductionLogger.auth('register  email=$email');
     try {
       final formFields = {
         'name': name.trim(),
         'email': email.trim(),
         'password': password.trim(),
       };
-      debugPrint('[AuthService] register body: $formFields');
+      ProductionLogger.auth('register body: $formFields');
       final raw = await _c.postForm('/register', formFields);
 
       final resp =
@@ -59,14 +60,15 @@ class AuthService {
       if (resp.hasToken) return _persist(resp, fallbackEmail: email.trim());
 
       // Register gave no token → auto-login
-      debugPrint('[AuthService] register: no token, auto-logging in');
+      ProductionLogger.auth('register: no token, auto-logging in');
       return await login(email: email.trim(), password: password.trim());
     } on ApiException catch (e) {
       if (e.isConflict)
         return AuthResult.fail('Email already registered. Please sign in.');
       if (e.isValidation) return AuthResult.fail('Invalid input: ${e.message}');
       return AuthResult.fail(e.message);
-    } catch (_) {
+    } catch (e) {
+      ProductionLogger.error('Register failed', e);
       return AuthResult.fail('Registration failed. Please try again.');
     }
   }
@@ -77,13 +79,13 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    debugPrint('[AuthService] login  email=$email');
+    ProductionLogger.auth('login  email=$email');
     try {
       final formFields = {
         'email': email.trim(),
         'password': password.trim(),
       };
-      debugPrint('[AuthService] login body: $formFields');
+      ProductionLogger.auth('login body: $formFields');
       final raw = await _c.postForm('/login', formFields);
 
       final resp = _parse(raw, fallbackEmail: email.trim());
@@ -94,7 +96,8 @@ class AuthService {
       if (e.isValidation)
         return AuthResult.fail('Please enter a valid email and password.');
       return AuthResult.fail(e.message);
-    } catch (_) {
+    } catch (e) {
+      ProductionLogger.error('Login failed', e);
       return AuthResult.fail('An unexpected error occurred. Please try again.');
     }
   }
@@ -102,14 +105,14 @@ class AuthService {
   // ── Logout ────────────────────────────────────────────────────────────────
 
   Future<void> logout() async {
-    debugPrint('[AuthService] logout');
+    ProductionLogger.auth('logout');
     final stored = await TokenStorage.getUser();
     final uid = stored['id'] ?? '';
     if (uid.isNotEmpty) {
       try {
         await _c.post('/logout/$uid');
-      } catch (_) {
-        /* non-critical */
+      } catch (e) {
+        ProductionLogger.warning('logout API call failed (non-critical)', e);
       }
     }
     _c.setToken(null);
@@ -146,7 +149,7 @@ class AuthService {
       }
       return {'success': true};
     } catch (e) {
-      debugPrint('[AuthService] updateProfile error: $e');
+      ProductionLogger.auth('updateProfile error: $e');
       rethrow;
     }
   }
@@ -163,7 +166,7 @@ class AuthService {
       });
       return true;
     } catch (e) {
-      debugPrint('[AuthService] changePassword error: $e');
+      ProductionLogger.auth('changePassword error: $e');
       rethrow;
     }
   }
@@ -175,7 +178,7 @@ class AuthService {
       await _c.postForm('/forgot-password', {'email': email.trim()});
       return true;
     } catch (e) {
-      debugPrint('[AuthService] forgotPassword error: $e');
+      ProductionLogger.auth('forgotPassword error: $e');
       rethrow;
     }
   }
@@ -193,7 +196,7 @@ class AuthService {
       });
       return true;
     } catch (e) {
-      debugPrint('[AuthService] resetPassword error: $e');
+      ProductionLogger.auth('resetPassword error: $e');
       rethrow;
     }
   }
@@ -214,26 +217,23 @@ class AuthService {
 
       // Guard: if cached data is corrupted (id missing or "0"), force re-login.
       if (name.isEmpty && email.isEmpty) {
-        debugPrint('[AuthService] restoreSession: empty name+email → clearing');
+        ProductionLogger.auth('restoreSession: empty name+email → clearing');
         await _clear();
         return null;
       }
       if (id.isEmpty || id == '0') {
-        debugPrint(
-            '[AuthService] restoreSession: invalid id="$id" → clearing corrupted cache');
+        ProductionLogger.auth('[AuthService] restoreSession: invalid id="$id" → clearing corrupted cache');
         await _clear();
         return null;
       }
 
       _c.setToken(token);
-      debugPrint(
-          '[AuthService] session restored for $name (id=$id, role=$role)');
+      ProductionLogger.auth('session restored for $name (id=$id, role=$role)');
 
       // Sanitize profile image URL: if it contains the broken guessed path, clear it.
       String? sanitizedImg = profileImg;
       if (sanitizedImg != null && sanitizedImg.contains('/uploads/users/')) {
-        debugPrint(
-            '[AuthService] sanitizing broken profile path: $sanitizedImg');
+        ProductionLogger.auth('sanitizing broken profile path: $sanitizedImg');
         sanitizedImg = null;
       }
 
@@ -242,9 +242,9 @@ class AuthService {
         name: name.isNotEmpty ? name : email.split('@').first,
         email: email,
         role: role == 'admin' ? UserRole.admin : UserRole.farmer,
-        profileImg: sanitizedImg,
-      );
-    } catch (_) {
+        profileImg: sanitizedImg,);
+    } catch (e) {
+      ProductionLogger.error('restoreSession failed', e);
       await _clear();
       return null;
     }
@@ -254,7 +254,7 @@ class AuthService {
   /// This is critical to resolve 404 errors on profile images if the URL changed.
   Future<UserModel?> refreshUserProfile(UserModel current) async {
     try {
-      debugPrint('[AuthService] refreshUserProfile for ${current.id}');
+      ProductionLogger.auth('refreshUserProfile for ${current.id}');
 
       // If admin, fetch from admin users list.
       if (current.role == UserRole.admin) {
@@ -274,10 +274,10 @@ class AuthService {
 
       // For farmers, use the existing session data since there's no dedicated profile endpoint
       // Profile updates are handled through the save-all-settings PUT endpoint from settings screen
-      debugPrint('[AuthService] refreshUserProfile farmer - using cached data');
+      ProductionLogger.auth('refreshUserProfile farmer - using cached data');
       return current;
     } catch (e) {
-      debugPrint('[AuthService] refreshUserProfile non-critical error: $e');
+      ProductionLogger.auth('refreshUserProfile non-critical error: $e');
       return current;
     }
   }
@@ -333,14 +333,12 @@ class AuthService {
           if (top['message'] != null) 'message': top['message'],
         };
 
-        debugPrint(
-            '[AuthService] _parse nested → id=${flattened['id']}, name=${flattened['name']}');
+        ProductionLogger.auth('[AuthService] _parse nested → id=${flattened['id']}, name=${flattened['name']}');
         return AuthResponse.fromJson(flattened);
       }
 
       // Flat shape: { "access_token": "...", "id": ..., "name": "...", ... }
-      debugPrint(
-          '[AuthService] _parse flat → id=${top['id'] ?? top['user_id']}, name=${top['name'] ?? top['username']}');
+      ProductionLogger.auth('_parse flat → id=${top['id'] ?? top['user_id']}, name=${top['name'] ?? top['username']}');
       return AuthResponse.fromJson(top);
     }
 
@@ -357,16 +355,14 @@ class AuthService {
       return AuthResult.fail('No token received from server.');
     _c.setToken(resp.accessToken);
     final email = resp.email.isNotEmpty ? resp.email : fallbackEmail;
-    debugPrint(
-        '[AuthService] _persist → userId=${resp.userId}, name=${resp.displayName}, email=$email, role=${resp.role}');
+    ProductionLogger.auth('_persist → userId=${resp.userId}, name=${resp.displayName}, email=$email, role=${resp.role}');
     await TokenStorage.save(
       token: resp.accessToken,
       userId: resp.userId,
       userName: resp.displayName,
       userEmail: email,
       userRole: resp.role,
-      profileImg: resp.profileImg,
-    );
+      profileImg: resp.profileImg,);
     return AuthResult.ok(UserModel(
       id: resp.userId,
       name: resp.displayName,

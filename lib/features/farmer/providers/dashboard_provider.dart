@@ -203,6 +203,8 @@ class DashboardProvider extends ChangeNotifier {
       return;
     }
 
+    // Reset the "loaded once" guard so _fetchFreshData actually runs.
+    _hasLoadedOnce = false;
     _isRefreshing = true;
     _error = null;
     notifyListeners();

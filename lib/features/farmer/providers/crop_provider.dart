@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import '../../../core/network/api_exception.dart';
+import '../models/scan_status.dart';
+import '../../../core/utils/production_logger.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
 import '../models/crop_models.dart';
 import '../services/crop_service.dart';
-
-enum ScanStatus { idle, loading, result, error }
 
 class CropProvider extends ChangeNotifier {
   CropProvider(this._userId);
@@ -57,7 +57,8 @@ class CropProvider extends ChangeNotifier {
     } on ApiException catch (e) {
       _error  = e.message;
       _status = ScanStatus.error;
-    } catch (_) {
+    } catch (e) {
+      ProductionLogger.error('Crop recommendation failed', e);
       _error  = 'Recommendation failed. Please try again.';
       _status = ScanStatus.error;
     }

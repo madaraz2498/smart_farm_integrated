@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../shared/models/message_model.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class FarmerMessageService {
   FarmerMessageService._();
@@ -28,10 +29,10 @@ class FarmerMessageService {
       await _c.postForm('/messages/send', fields);
       return true;
     } on ApiException catch (e) {
-      debugPrint('[FarmerMessageService] sendMessage error: ${e.message}');
+      ProductionLogger.info('sendMessage error: ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('[FarmerMessageService] sendMessage unknown error: $e');
+      ProductionLogger.info('sendMessage unknown error: $e');
       return false;
     }
   }
@@ -43,16 +44,16 @@ class FarmerMessageService {
 
       // 🔍 DEBUG: Print raw API response to see all field names
       if (raw.isNotEmpty) {
-        debugPrint('[FarmerMessageService] Sample message keys: ${(raw.first as Map).keys.toList()}');
-        debugPrint('[FarmerMessageService] Sample message data: ${raw.first}');
+        ProductionLogger.info('Sample message keys: ${(raw.first as Map).keys.toList()}');
+        ProductionLogger.info('Sample message data: ${raw.first}');
       }
 
       return raw.map((m) => MessageModel.fromJson(m)).toList();
     } on ApiException catch (e) {
-      debugPrint('[FarmerMessageService] getMyMessages error: ${e.message}');
+      ProductionLogger.info('getMyMessages error: ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('[FarmerMessageService] getMyMessages unknown error: $e');
+      ProductionLogger.info('getMyMessages unknown error: $e');
       return [];
     }
   }
@@ -64,10 +65,10 @@ class FarmerMessageService {
       await _c.delete('/messages/delete/$messageId', query: query);
       return true;
     } on ApiException catch (e) {
-      debugPrint('[FarmerMessageService] deleteMyMessage error: ${e.message}');
+      ProductionLogger.info('deleteMyMessage error: ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('[FarmerMessageService] deleteMyMessage unknown error: $e');
+      ProductionLogger.info('deleteMyMessage unknown error: $e');
       return false;
     }
   }

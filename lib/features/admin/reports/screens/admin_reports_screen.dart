@@ -12,6 +12,7 @@ import '../../../../shared/theme/app_theme.dart';
 import '../models/report_model.dart';
 import '../providers/report_provider.dart';
 import '../utils/label_mapper.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class AdminReportsScreen extends StatefulWidget {
   const AdminReportsScreen({super.key});
@@ -247,7 +248,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                       try {
                         await provider.generateNewReport(notifProvider);
                       } catch (e) {
-                        debugPrint('Error generating report: $e');
+                        ProductionLogger.reports('Error generating report: $e');
                       }
                     },
               style: ElevatedButton.styleFrom(

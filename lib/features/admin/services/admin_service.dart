@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/utils/production_logger.dart';
 import '../models/admin_models.dart';
 
 /// All admin API endpoints — corrected paths (no doubled prefixes).
@@ -38,15 +39,16 @@ class AdminService {
 
   Future<DashboardStats> getDashboardStats() async {
     const path = '/admin/dashboard/stats';
-    debugPrint('[AdminService] GET $path');
+    ProductionLogger.info('GET $path');
     try {
       final data = await _c.get(path);
-      debugPrint('[AdminService] getDashboardStats response: $data');
+      ProductionLogger.info('getDashboardStats response: $data');
       return DashboardStats.fromJson(data as Map<String, dynamic>);
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to load dashboard statistics.');
+    } catch (e) {
+      ProductionLogger.error('load_dashboard_statistics', e);
+      throw ApiException('Failed to load dashboard statistics.');
     }
   }
 
@@ -54,23 +56,24 @@ class AdminService {
 
   Future<UserManagementData> getUsersAndSummary() async {
     const path = '/admin/users/summary-and-list';
-    debugPrint('[AdminService] GET $path');
+    ProductionLogger.info('GET $path');
     try {
       final data = await _c.get(path);
-      debugPrint('[AdminService] getUsersAndSummary response: $data');
+      ProductionLogger.info('getUsersAndSummary response: $data');
       return UserManagementData.fromJson(data as Map<String, dynamic>);
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to load user data.');
+    } catch (e) {
+      ProductionLogger.error('load_user_data', e);
+      throw ApiException('Failed to load user data.');
     }
   }
 
   Future<List<AdminUser>> searchUsers(String query) async {
-    debugPrint('[AdminService] GET /admin/users/search?query=$query');
+    ProductionLogger.info('GET /admin/users/search?query=$query');
     try {
       final data = await _c.get('/admin/users/search', query: {'query': query});
-      debugPrint('[AdminService] searchUsers response: $data');
+      ProductionLogger.info('searchUsers response: $data');
       if (data is List) {
         return data
             .map((e) => AdminUser.fromJson(e as Map<String, dynamic>))
@@ -84,79 +87,86 @@ class AdminService {
       return [];
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Search failed.');
+    } catch (e) {
+      ProductionLogger.error('search_failed', e);
+      throw ApiException('Search failed.');
     }
   }
 
   Future<void> deleteUser(String userId) async {
-    debugPrint('[AdminService] DELETE /admin/users/delete/$userId');
+    ProductionLogger.info('DELETE /admin/users/delete/$userId');
     try {
       await _c.delete('/admin/users/delete/$userId');
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to delete user.');
+    } catch (e) {
+      ProductionLogger.error('delete_user', e);
+      throw ApiException('Failed to delete user.');
     }
   }
 
   Future<void> deactivateUser(String userId) async {
-    debugPrint('[AdminService] PATCH /admin/users/deactivate/$userId');
+    ProductionLogger.info('PATCH /admin/users/deactivate/$userId');
     try {
       await _c.patch('/admin/users/deactivate/$userId');
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to deactivate user.');
+    } catch (e) {
+      ProductionLogger.error('deactivate_user', e);
+      throw ApiException('Failed to deactivate user.');
     }
   }
 
   Future<void> activateUser(String userId) async {
-    debugPrint('[AdminService] PATCH /admin/users/activate/$userId');
+    ProductionLogger.info('PATCH /admin/users/activate/$userId');
     try {
       await _c.patch('/admin/users/activate/$userId');
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to activate user.');
+    } catch (e) {
+      ProductionLogger.error('activate_user', e);
+      throw ApiException('Failed to activate user.');
     }
   }
 
   Future<void> promoteToAdmin(String email) async {
     const path = '/admin/users/promote-to-admin';
-    debugPrint('[AdminService] POST $path  query: {email: $email}');
+    ProductionLogger.info('POST $path  query: {email: $email}');
     try {
       await _c.post(path, query: {'email': email});
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to promote user.');
+    } catch (e) {
+      ProductionLogger.error('promote_user', e);
+      throw ApiException('Failed to promote user.');
     }
   }
 
   Future<void> updateNotificationSettings(
       String userId, Map<String, dynamic> settings) async {
     final path = '/admin/users/settings/notifications/$userId';
-    debugPrint('[AdminService] PATCH $path  body: $settings');
+    ProductionLogger.info('PATCH $path  body: $settings');
     try {
       await _c.patch(path, body: settings);
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to update notification settings.');
+    } catch (e) {
+      ProductionLogger.error('update_notification_settings', e);
+      throw ApiException('Failed to update notification settings.');
     }
   }
 
   Future<void> updateAdminNotificationSettings(
       String userId, Map<String, dynamic> settings) async {
     final path = '/notifications/notifications/admin-settings/$userId';
-    debugPrint('[AdminService] PATCH $path  body: $settings');
+    ProductionLogger.info('PATCH $path  body: $settings');
     try {
       await _c.patch(path, body: settings);
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to update admin notification settings.');
+    } catch (e) {
+      ProductionLogger.error('update_admin_notification_settings', e);
+      throw ApiException('Failed to update admin notification settings.');
     }
   }
 
@@ -164,65 +174,66 @@ class AdminService {
 
   Future<Map<String, dynamic>> getSystemStatus() async {
     const path = '/admin/system/admin/system/status';
-    debugPrint('[AdminService] GET $path');
+    ProductionLogger.info('GET $path');
     try {
       final data = await _c.get(path);
-      debugPrint('[AdminService] getSystemStatus response: $data');
+      ProductionLogger.info('getSystemStatus response: $data');
       return (data as Map<String, dynamic>?) ?? {};
     } catch (e) {
-      debugPrint('[AdminService] getSystemStatus non-critical: $e');
+      ProductionLogger.info('getSystemStatus non-critical: $e');
       return {};
     }
   }
 
   Future<Map<String, dynamic>> getSystemSettings() async {
     const path = '/admin/system/admin/system/settings';
-    debugPrint('[AdminService] GET $path');
+    ProductionLogger.info('GET $path');
     try {
       final data = await _c.get(path);
-      debugPrint('[AdminService] getSystemSettings response: $data');
+      ProductionLogger.info('getSystemSettings response: $data');
       return (data as Map<String, dynamic>?) ?? {};
     } catch (e) {
-      debugPrint('[AdminService] getSystemSettings non-critical: $e');
+      ProductionLogger.info('getSystemSettings non-critical: $e');
       return {};
     }
   }
 
   Future<void> toggleSystemSetting(String settingName) async {
     final path = '/admin/system/admin/system/settings/toggle/$settingName';
-    debugPrint('[AdminService] POST $path');
+    ProductionLogger.info('POST $path');
     try {
       await _c.post(path);
     } catch (e) {
-      debugPrint('[AdminService] toggleSetting non-critical: $e');
+      ProductionLogger.info('toggleSetting non-critical: $e');
     }
   }
 
   Future<Map<String, dynamic>> toggleService(String moduleName) async {
     final path = '/admin/system/toggle-service/$moduleName';
-    debugPrint('[AdminService] POST $path');
+    ProductionLogger.info('POST $path');
     try {
       final r = await _c.post(path);
       return r is Map<String, dynamic> ? r : {};
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to toggle service.');
+    } catch (e) {
+      ProductionLogger.error('toggle_service', e);
+      throw ApiException('Failed to toggle service.');
     }
   }
 
   Future<List<Map<String, dynamic>>> getModelsTable() async {
     const path = '/admin/system/models-table';
-    debugPrint('[AdminService] GET $path');
+    ProductionLogger.info('GET $path');
     try {
       final data = await _c.get(path);
-      debugPrint('[AdminService] getModelsTable response: $data');
+      ProductionLogger.info('getModelsTable response: $data');
       if (data is List) return data.cast<Map<String, dynamic>>();
       if (data is Map && data['models'] is List) {
         return (data['models'] as List).cast<Map<String, dynamic>>();
       }
     } catch (e) {
-      debugPrint('[AdminService] getModelsTable non-critical: $e');
+      ProductionLogger.info('getModelsTable non-critical: $e');
     }
     return [];
   }
@@ -231,13 +242,13 @@ class AdminService {
 
   Future<Map<String, dynamic>> getAdminReportStats() async {
     const path = '/admin/reports/admin/reports/dashboard-stats';
-    debugPrint('[AdminService] GET $path');
+    ProductionLogger.info('GET $path');
     try {
       final data = await _c.get(path);
-      debugPrint('[AdminService] getAdminReportStats response: $data');
+      ProductionLogger.info('getAdminReportStats response: $data');
       return (data as Map<String, dynamic>?) ?? {};
     } catch (e) {
-      debugPrint('[AdminService] getAdminReportStats non-critical: $e');
+      ProductionLogger.info('getAdminReportStats non-critical: $e');
       return {};
     }
   }
@@ -248,13 +259,14 @@ class AdminService {
   }) async {
     const path = '/admin/reports/admin/reports/generate-pdf';
     final body = {'period': period, 'format': format};
-    debugPrint('[AdminService] POST $path  body: $body');
+    ProductionLogger.info('POST $path  body: $body');
     try {
       await _c.post(path, body: body);
     } on ApiException {
       rethrow;
-    } catch (_) {
-      throw const ApiException('Failed to generate PDF report.');
+    } catch (e) {
+      ProductionLogger.error('generate_pdf_report', e);
+      throw ApiException('Failed to generate PDF report.');
     }
   }
 }

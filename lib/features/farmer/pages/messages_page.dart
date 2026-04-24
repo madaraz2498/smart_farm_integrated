@@ -9,6 +9,7 @@ import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/message_status_badge.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/message_provider.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class FarmerMessagesPage extends StatefulWidget {
   const FarmerMessagesPage({super.key});
@@ -577,8 +578,8 @@ class _MessageCard extends StatelessWidget {
     
     // Debug logging to check reply data
     if (message.isReplied || (replyText != null && replyText.isNotEmpty)) {
-      debugPrint('Message ${message.id} has reply: $replyText');
-      debugPrint('isReplied: ${message.isReplied}');
+      ProductionLogger.info('Message ${message.id} has reply: $replyText');
+      ProductionLogger.info('isReplied: ${message.isReplied}');
     }
 
     return Container(

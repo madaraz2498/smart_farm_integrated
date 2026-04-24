@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/crop_models.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 /// POST /crops/recommend-smart-expert — form-encoded (FastAPI Form fields)
 class CropService {
@@ -10,15 +11,15 @@ class CropService {
   final ApiClient _c = ApiClient.instance;
 
   Future<CropRecommendationResponse> recommend(CropRecommendationRequest req) async {
-    debugPrint('[CropService] POST /crops/recommend-smart-expert');
-    debugPrint('[CropService] body: ${req.toForm()}');
+    ProductionLogger.info('POST /crops/recommend-smart-expert');
+    ProductionLogger.info('body: ${req.toForm()}');
     try {
       final data = await _c.postForm('/crops/recommend-smart-expert', req.toForm());
-      debugPrint('[CropService] response: $data');
+      ProductionLogger.info('response: $data');
       return CropRecommendationResponse.fromJson(_asMap(data));
     } on ApiException { rethrow; }
     catch (e) {
-      debugPrint('[CropService] error: $e');
+      ProductionLogger.info('error: $e');
       throw const ApiException('Crop recommendation failed.');
     }
   }

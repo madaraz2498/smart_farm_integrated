@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:smart_farm/features/auth/providers/auth_provider.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import 'package:smart_farm/providers/navigation_provider.dart';
+import 'package:smart_farm/core/network/api_client.dart';
 import 'package:smart_farm/shared/theme/app_theme.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -435,10 +437,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       ? Image.network(
                           imgUrl.startsWith('http')
                               ? imgUrl
-                              : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl',
+                              : '${ApiClient.baseUrl}$imgUrl',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            debugPrint('Image load error: $error');
+                            ProductionLogger.info('Image load error: $error');
                             return _buildInitials(isAdmin, name, size: 40);
                           },
                         )

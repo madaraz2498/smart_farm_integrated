@@ -66,9 +66,9 @@ class AppLogger {
   }
   
   static void _log(String category, String message, [Object? error]) {
+    if (!kDebugMode) return;
     final timestamp = DateTime.now().toIso8601String().substring(11, 19);
     final logMessage = '$_prefix[$category] $timestamp: $message';
-    
     if (error != null) {
       debugPrint('$logMessage - Error: $error');
     } else {

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exception.dart';
 import 'package:smart_farm/shared/models/message_model.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class AdminMessageService {
   AdminMessageService._();
@@ -17,10 +18,10 @@ class AdminMessageService {
       final List<dynamic> raw = await _c.get('/messages/admin/all-messages');
       return raw.map((m) => MessageModel.fromJson(m)).toList();
     } on ApiException catch (e) {
-      debugPrint('[AdminMessageService] getAllMessages error: ${e.message}');
+      ProductionLogger.info('getAllMessages error: ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('[AdminMessageService] getAllMessages unknown error: $e');
+      ProductionLogger.info('getAllMessages unknown error: $e');
       return [];
     }
   }
@@ -39,10 +40,10 @@ class AdminMessageService {
       await _c.postForm('/messages/admin/reply', fields);
       return true;
     } on ApiException catch (e) {
-      debugPrint('[AdminMessageService] replyToMessage error: ${e.message}');
+      ProductionLogger.info('replyToMessage error: ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('[AdminMessageService] replyToMessage unknown error: $e');
+      ProductionLogger.info('replyToMessage unknown error: $e');
       return false;
     }
   }
@@ -54,10 +55,10 @@ class AdminMessageService {
       await _c.delete('/messages/admin/delete/$messageId');
       return true;
     } on ApiException catch (e) {
-      debugPrint('[AdminMessageService] deleteAnyMessage error: ${e.message}');
+      ProductionLogger.info('deleteAnyMessage error: ${e.message}');
       rethrow;
     } catch (e) {
-      debugPrint('[AdminMessageService] deleteAnyMessage unknown error: $e');
+      ProductionLogger.info('deleteAnyMessage unknown error: $e');
       return false;
     }
   }

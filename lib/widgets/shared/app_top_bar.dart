@@ -9,6 +9,7 @@ import 'package:smart_farm/features/notifications/providers/notification_provide
 import 'package:smart_farm/features/notifications/widgets/notification_quick_dialog.dart';
 import 'package:smart_farm/providers/navigation_provider.dart';
 import 'package:smart_farm/shared/theme/app_theme.dart';
+import 'package:smart_farm/core/network/api_client.dart';
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   const AppTopBar({super.key, required this.showBurger});
@@ -131,7 +132,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                             child: Image.network(
                               auth.currentUser!.profileImg!.startsWith('http')
                                   ? auth.currentUser!.profileImg!
-                                  : 'https://mahmoud123mahmoud-smartfarm-api.hf.space${auth.currentUser!.profileImg!}',
+                                  : '${ApiClient.baseUrl}${auth.currentUser!.profileImg!}',
                               width: 32,
                               height: 32,
                               fit: BoxFit.cover,
@@ -178,7 +179,7 @@ class _AvatarChip extends StatelessWidget {
                   ? Image.network(
                       imgUrl.startsWith('http')
                           ? imgUrl
-                          : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl',
+                          : '${ApiClient.baseUrl}$imgUrl',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           _buildInitials(),

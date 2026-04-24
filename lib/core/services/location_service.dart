@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class LocationService {
   LocationService._();
@@ -23,14 +24,14 @@ class LocationService {
   Future<Map<String, dynamic>?> getCurrentLocation() async {
     // Return session cache immediately — no GPS hardware call needed.
     if (_sessionCache != null) {
-      debugPrint('[LocationService] returning session-cached location');
+      ProductionLogger.location('returning session-cached location');
       return _sessionCache;
     }
 
     // If a request is already in-flight, wait for it instead of spawning a
     // second concurrent GPS call (the root cause of "already loading" loops).
     if (_inFlight != null) {
-      debugPrint('[LocationService] GPS already in-flight, awaiting existing request...');
+      ProductionLogger.location('GPS already in-flight, awaiting existing request...');
       return _inFlight;
     }
 
@@ -75,19 +76,17 @@ class LocationService {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: locationSettings,
       );
-      debugPrint(
-          '[LocationService] Position => lat=${position.latitude}, lon=${position.longitude}, accuracy=${position.accuracy}');
+      ProductionLogger.location('[LocationService] Position => lat=${position.latitude}, lon=${position.longitude}, accuracy=${position.accuracy}');
 
       final placemarks = await placemarkFromCoordinates(
         position.latitude,
-        position.longitude,
-      );
+        position.longitude,);
 
       String city = 'Unknown';
       if (placemarks.isNotEmpty) {
         city = placemarks.first.locality ?? placemarks.first.subAdministrativeArea ?? 'Unknown';
       }
-      debugPrint('[LocationService] Resolved city => $city');
+      ProductionLogger.location('Resolved city => $city');
 
       // Store in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
@@ -101,7 +100,7 @@ class LocationService {
         'lon': position.longitude,
       };
     } catch (e) {
-      debugPrint('[LocationService] Error: $e');
+      ProductionLogger.location('Error: $e');
       return null;
     }
   }
@@ -125,9 +124,9 @@ class LocationService {
       await prefs.setString(_kCityKey, location['city'] ?? 'Unknown');
       await prefs.setDouble(_kLatKey, location['lat']?.toDouble() ?? 0.0);
       await prefs.setDouble(_kLonKey, location['lon']?.toDouble() ?? 0.0);
-      debugPrint('[LocationService] Location stored: ${location['city']}, ${location['lat']}, ${location['lon']}');
+      ProductionLogger.location('Location stored: \${location["city"]}, \${location["lat"]}, \${location["lon"]}');
     } catch (e) {
-      debugPrint('[LocationService] Error storing location: $e');
+      ProductionLogger.location('Error storing location: $e');
     }
   }
 
@@ -135,6 +134,6 @@ class LocationService {
   /// triggers a real GPS request. Only used by [LocationProvider.refreshLocation].
   void clearSessionCache() {
     _sessionCache = null;
-    debugPrint('[LocationService] session cache cleared for manual refresh');
+    ProductionLogger.location('session cache cleared for manual refresh');
   }
 }

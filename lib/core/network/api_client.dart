@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:smart_farm/core/utils/production_logger.dart';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -25,7 +26,7 @@ class ApiClient {
 
   void setToken(String? t) {
     _token = t;
-    debugPrint('[ApiClient] token ${t != null ? "SET" : "CLEARED"}');
+    ProductionLogger.api('token ${t != null ? "SET" : "CLEARED"}');
   }
 
   String? get token => _token;
@@ -48,7 +49,7 @@ class ApiClient {
 
   Future<dynamic> get(String path, {Map<String, String>? query}) async {
     final uri = _uri(path, query);
-    debugPrint('[GET] $uri');
+    ProductionLogger.api('GET $uri');
     try {
       return _handle(await http.get(uri, headers: _jsonHeaders()).timeout(_timeout));
     } on SocketException  { throw const ApiException('No internet connection.', statusCode: 0); }
@@ -60,7 +61,7 @@ class ApiClient {
   Future<dynamic> post(String path,
       {Map<String, dynamic>? body, Map<String, String>? query}) async {
     final uri = _uri(path, query);
-    debugPrint('[POST-JSON] $uri');
+    ProductionLogger.api('POST $uri');
     try {
       return _handle(await http
           .post(uri,
@@ -79,7 +80,7 @@ class ApiClient {
 
   Future<dynamic> postForm(String path, Map<String, String> fields) async {
     final uri = _uri(path);
-    debugPrint('[POST-FORM] $uri  keys=${fields.keys.toList()}');
+    ProductionLogger.api('POST-FORM $uri  keys=${fields.keys.toList()}');
     try {
       return _handle(await http.post(uri,
           headers: _formHeaders(),
@@ -93,7 +94,7 @@ class ApiClient {
 
   Future<dynamic> put(String path, {Map<String, dynamic>? body}) async {
     final uri = _uri(path);
-    debugPrint('[PUT] $uri');
+    ProductionLogger.api('PUT $uri');
     try {
       return _handle(await http.put(uri,
           headers: _jsonHeaders(),
@@ -109,7 +110,7 @@ class ApiClient {
   Future<dynamic> patch(String path,
       {Map<String, dynamic>? body, Map<String, String>? query}) async {
     final uri = _uri(path, query);
-    debugPrint('[PATCH] $uri');
+    ProductionLogger.api('PATCH $uri');
     try {
       return _handle(await http
           .patch(uri,
@@ -128,7 +129,7 @@ class ApiClient {
   Future<dynamic> patchForm(String path, Map<String, String> fields,
       {Map<String, String>? query}) async {
     final uri = _uri(path, query);
-    debugPrint('[PATCH-FORM] $uri  keys=${fields.keys.toList()}');
+    ProductionLogger.api('PATCH-FORM $uri  keys=${fields.keys.toList()}');
     try {
       return _handle(await http
           .patch(uri, headers: _formHeaders(), body: fields)
@@ -144,7 +145,7 @@ class ApiClient {
 
   Future<dynamic> delete(String path, {Map<String, String>? query}) async {
     final uri = _uri(path, query);
-    debugPrint('[DELETE] $uri');
+    ProductionLogger.api('DELETE $uri');
     try {
       return _handle(
           await http.delete(uri, headers: _jsonHeaders()).timeout(_timeout));
@@ -193,7 +194,7 @@ class ApiClient {
     Map<String, String>? fields,
   }) async {
     final uri = _uri(path);
-    debugPrint('[$method-MULTIPART] $uri  field=$fileField');
+    ProductionLogger.api('[$method-MULTIPART] $uri  field=$fileField');
     try {
       final req = http.MultipartRequest(method, uri);
       if (_token != null) req.headers['Authorization'] = 'Bearer $_token';
@@ -218,9 +219,9 @@ class ApiClient {
   // ── Response handler ───────────────────────────────────────────────────────
 
   dynamic _handle(http.Response r) {
-    debugPrint('[RESPONSE] ${r.statusCode}  ${r.request?.url}');
+    ProductionLogger.api('RESPONSE ${r.statusCode}  ${r.request?.url}');
     if (kDebugMode && r.body.isNotEmpty) {
-      debugPrint('[BODY] ${r.body.length > 500 ? "${r.body.substring(0, 500)}…" : r.body}');
+      ProductionLogger.api('BODY ${r.body.length > 500 ? "${r.body.substring(0, 500)}…" : r.body}');
     }
 
     if (r.statusCode >= 200 && r.statusCode < 300) {
@@ -229,7 +230,7 @@ class ApiClient {
     }
 
     final msg = _extractMessage(r);
-    debugPrint('[ApiClient] Error ${r.statusCode}: $msg');
+    ProductionLogger.api('Error ${r.statusCode}: $msg');
     switch (r.statusCode) {
       case 400:
         throw ApiException(msg, statusCode: 400);

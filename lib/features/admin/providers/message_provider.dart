@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'admin_provider.dart';
 import 'package:smart_farm/shared/models/message_model.dart';
 import '../services/message_service.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class AdminMessageProvider extends ChangeNotifier {
   final AdminMessageService _svc = AdminMessageService.instance;
@@ -45,7 +46,7 @@ class AdminMessageProvider extends ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = e.toString();
-      debugPrint('[AdminMessageProvider] fetchMessages error: $e');
+      ProductionLogger.info('fetchMessages error: $e');
     } finally {
       _loading = false;
       notifyListeners();
@@ -57,8 +58,7 @@ class AdminMessageProvider extends ChangeNotifier {
     bool changed = false;
 
     // Debug users length
-    debugPrint(
-        '[AdminMessageProvider] Enriching ${_messages.length} messages. AdminProvider has ${_adminProv!.users.length} users.');
+    ProductionLogger.info('Enriching _${_messages.length} messages. AdminProvider has _${_adminProv!.users.length} users.');
 
     for (int i = 0; i < _messages.length; i++) {
       final msg = _messages[i];
@@ -68,8 +68,7 @@ class AdminMessageProvider extends ChangeNotifier {
           msg.userName == 'Unknown User' ||
           msg.userName == 'مستخدم مجهول') {
         final name = _adminProv!.getUserNameById(msg.userId);
-        debugPrint(
-            '[AdminMessageProvider] Message ${msg.id} has userId ${msg.userId}. Found name: "$name"');
+        ProductionLogger.info('Message ${msg.id} has userId ${msg.userId}. Found name: "$name"');
 
         if (name.isNotEmpty && name != msg.userName) {
           _messages[i] = msg.copyWith(userName: name);

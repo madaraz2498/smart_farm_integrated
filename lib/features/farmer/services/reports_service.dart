@@ -6,6 +6,7 @@ import 'package:open_filex/open_filex.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/report_models.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 /// Farmer report endpoints:
 ///
@@ -22,10 +23,10 @@ class ReportsService {
 
   Future<FarmerReportStats> getStats(String userId) async {
     final path = '/farmer_reports/stats/$userId';
-    debugPrint('[ReportsService] GET $path');
+    ProductionLogger.reports('GET $path');
     try {
       final data = await _c.get(path);
-      debugPrint('[ReportsService] getStats response: $data');
+      ProductionLogger.reports('getStats response: $data');
       if (data is Map<String, dynamic>) {
         final stats = FarmerReportStats.fromJson(data);
         if (stats.thisMonth == 0 && stats.totalReports > 0) {
@@ -40,7 +41,7 @@ class ReportsService {
       return const FarmerReportStats(
           totalReports: 0, thisMonth: 0, growth: '+0%');
     } catch (e) {
-      debugPrint('[ReportsService] getStats non-critical: $e');
+      ProductionLogger.reports('getStats non-critical: $e');
       return const FarmerReportStats(
           totalReports: 0, thisMonth: 0, growth: '+0%');
     }
@@ -50,10 +51,10 @@ class ReportsService {
 
   Future<List<FarmerReportItem>> listReports(String userId) async {
     final path = '/farmer_reports/list/$userId';
-    debugPrint('[ReportsService] GET $path');
+    ProductionLogger.reports('GET $path');
     try {
       final data = await _c.get(path);
-      debugPrint('[ReportsService] listReports response: $data');
+      ProductionLogger.reports('listReports response: $data');
       if (data is List) {
         return data
             .map((e) => FarmerReportItem.fromJson(e as Map<String, dynamic>))
@@ -66,7 +67,7 @@ class ReportsService {
       }
       return [];
     } catch (e) {
-      debugPrint('[ReportsService] listReports error: $e');
+      ProductionLogger.reports('listReports error: $e');
       rethrow;
     }
   }
@@ -76,10 +77,10 @@ class ReportsService {
   Future<void> generate(String userId, {String period = 'all'}) async {
     final path = '/farmer_reports/generate/$userId';
     final query = {'period': period};
-    debugPrint('[ReportsService] POST $path?period=$period');
+    ProductionLogger.reports('POST $path?period=$period');
     try {
       final result = await _c.post(path, query: query);
-      debugPrint('[ReportsService] generate response: $result');
+      ProductionLogger.reports('generate response: $result');
       // We intentionally ignore any download_url here.
       // The user downloads manually via the list item button.
     } on ApiException {
@@ -96,7 +97,7 @@ class ReportsService {
     String url = manualUrl ??
         '${ApiClient.baseUrl}/farmer_reports/download/$reportId';
 
-    debugPrint('[ReportsService] Downloading PDF: $url');
+    ProductionLogger.reports('Downloading PDF: $url');
 
     try {
       // First check if report exists by making a HEAD request
@@ -131,7 +132,7 @@ class ReportsService {
             'report_${reportId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
         final file = File('${dir.path}/$fileName');
         await file.writeAsBytes(bytes);
-        debugPrint('[ReportsService] PDF saved to: ${file.path}');
+        ProductionLogger.reports('PDF saved to: ${file.path}');
         return file.path;
       } else {
         throw ApiException(
@@ -140,7 +141,7 @@ class ReportsService {
         );
       }
     } catch (e) {
-      debugPrint('[ReportsService] Download error: $e');
+      ProductionLogger.reports('Download error: $e');
       if (e is ApiException) rethrow;
       throw ApiException('An error occurred while downloading the PDF: $e');
     }
@@ -149,7 +150,7 @@ class ReportsService {
   // ── Open local file ───────────────────────────────────────────────────────
 
   Future<void> openLocalFile(String localPath) async {
-    debugPrint('[ReportsService] Opening local file: $localPath');
+    ProductionLogger.reports('Opening local file: $localPath');
     final result = await OpenFilex.open(localPath);
     if (result.type != ResultType.done) {
       throw ApiException('Could not open PDF: ${result.message}');
@@ -160,12 +161,12 @@ class ReportsService {
 
   Future<Map<String, dynamic>> getUserSummary(String userId) async {
     final path = '/reports/user-summary/$userId';
-    debugPrint('[ReportsService] GET $path');
+    ProductionLogger.reports('GET $path');
     try {
       final data = await _c.get(path);
       return (data as Map<String, dynamic>?) ?? {};
     } catch (e) {
-      debugPrint('[ReportsService] getUserSummary non-critical: $e');
+      ProductionLogger.reports('getUserSummary non-critical: $e');
       return {};
     }
   }

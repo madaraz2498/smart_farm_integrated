@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/network/api_client.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/admin_models.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class UserListTable extends StatefulWidget {
   final List<AdminUser> users;
@@ -246,9 +248,9 @@ class _UserListTableState extends State<UserListTable> {
                 ? DecorationImage(
                     image: NetworkImage(imgUrl.startsWith('http')
                         ? imgUrl
-                        : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl'),
+                        : '${ApiClient.baseUrl}$imgUrl'),
                     fit: BoxFit.cover,
-                    onError: (e, s) => debugPrint('Table image error: $e'))
+                    onError: (e, s) => ProductionLogger.warning('Table image error: $e'))
                 : null),
       ),
       child: (localBytes == null && (imgUrl == null || imgUrl.isEmpty))

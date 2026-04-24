@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 import '../models/report_model.dart';
 import '../services/report_service.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class AdminReportProvider extends ChangeNotifier {
   final ReportService _service = ReportService();
@@ -86,7 +87,7 @@ class AdminReportProvider extends ChangeNotifier {
       return null;
     } catch (e) {
       // Do not set global _error to avoid breaking main UI
-      debugPrint('[AdminReportProvider] generate error: $e');
+      ProductionLogger.reports('generate error: $e');
       rethrow;
     } finally {
       _isGenerating = false;

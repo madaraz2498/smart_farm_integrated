@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import '../../../core/network/api_client.dart';
 import '../models/notification_model.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class NotificationService {
   final ApiClient _apiClient = ApiClient.instance;
@@ -18,10 +19,10 @@ class NotificationService {
         const Duration(seconds: 15),
       );
     } on TimeoutException {
-      debugPrint('[NotificationService][$tag] TIMEOUT');
+      ProductionLogger.notifications('[$tag] TIMEOUT');
       return null;
     } catch (e) {
-      debugPrint('[NotificationService][$tag] ERROR: $e');
+      ProductionLogger.notifications('[$tag] ERROR: $e');
       return null;
     }
   }
@@ -55,7 +56,7 @@ class NotificationService {
 
       return [];
     } catch (e) {
-      debugPrint('[NotificationService] parse error: $e');
+      ProductionLogger.notifications('parse error: $e');
       return [];
     }
   }

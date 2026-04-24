@@ -56,7 +56,7 @@ class ReportsProvider extends ChangeNotifier {
       final results = await Future.wait([
         _svc.getStats(userId),
         _svc.listReports(userId).catchError((e) {
-          debugPrint('[ReportsProvider] listReports failed: $e');
+          ProductionLogger.reports('listReports failed: $e');
           _error = 'Failed to load report list from server: $e';
           return <FarmerReportItem>[];
         }),

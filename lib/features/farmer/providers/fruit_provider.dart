@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/network/api_exception.dart';
+import '../models/scan_status.dart';
+import '../../../core/utils/production_logger.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
 import '../models/fruit_models.dart';
 import '../services/fruit_service.dart';
-
-enum ScanStatus { idle, loading, result, error }
 
 class FruitProvider extends ChangeNotifier {
   FruitProvider(this._userId);
@@ -67,7 +67,8 @@ class FruitProvider extends ChangeNotifier {
     } on ApiException catch (e) {
       _error  = e.message;
       _status = ScanStatus.error;
-    } catch (_) {
+    } catch (e) {
+      ProductionLogger.error('Fruit analysis failed', e);
       _error  = 'Analysis failed. Please try again.';
       _status = ScanStatus.error;
     }

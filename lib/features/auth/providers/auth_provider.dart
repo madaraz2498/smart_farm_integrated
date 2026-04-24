@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../../../core/network/token_storage.dart';
+import '../../../core/utils/production_logger.dart';
 import '../../../shared/models/user_model.dart';
 import '../../notifications/providers/notification_provider.dart';
 import '../../notifications/models/notification_model.dart';
@@ -60,7 +61,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('[AuthProvider] _init error: $e');
+      ProductionLogger.auth('_init error: $e');
       _status = AuthStatus.unauthenticated;
       notifyListeners();
     }
@@ -82,7 +83,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('[AuthProvider] loadUserProfile error: $e');
+      ProductionLogger.auth('loadUserProfile error: $e');
     }
   }
 
@@ -261,7 +262,8 @@ class AuthProvider extends ChangeNotifier {
       }
 
       return r;
-    } catch (_) {
+    } catch (e) {
+      ProductionLogger.error('Login failed', e);
       _setError('Unexpected error. Please try again.');
       return AuthResult.fail(_error!);
     } finally {
@@ -295,7 +297,8 @@ class AuthProvider extends ChangeNotifier {
       }
 
       return r;
-    } catch (_) {
+    } catch (e) {
+      ProductionLogger.error('Register failed', e);
       _setError('Registration failed. Please try again.');
       return AuthResult.fail(_error!);
     } finally {

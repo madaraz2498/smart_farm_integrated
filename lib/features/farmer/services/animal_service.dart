@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/animal_models.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 /// POST /animals/estimate-weight
 /// Content-Type: multipart/form-data
@@ -17,8 +18,7 @@ class AnimalService {
     required String userId,
     required String lang,
   }) async {
-    debugPrint(
-        '[AnimalService] POST /animals/estimate-weight  file=$fileName  userId=$userId');
+    ProductionLogger.info('[AnimalService] POST /animals/estimate-weight  file=$fileName  userId=$userId');
     try {
       final data = await _c.postMultipart(
         '/animals/estimate-weight',
@@ -28,14 +28,13 @@ class AnimalService {
         fields: {
           'user_id': userId,
           'lang': _normalizeLang(lang),
-        },
-      );
-      debugPrint('[AnimalService] response: $data');
+        },);
+      ProductionLogger.info('response: $data');
       return AnimalWeightResponse.fromJson(_asMap(data));
     } on ApiException {
       rethrow;
     } catch (e) {
-      debugPrint('[AnimalService] error: $e');
+      ProductionLogger.info('error: $e');
       throw const ApiException('Animal weight estimation failed.');
     }
   }

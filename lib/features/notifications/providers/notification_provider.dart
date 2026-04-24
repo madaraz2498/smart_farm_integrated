@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
@@ -7,6 +8,10 @@ class NotificationProvider extends ChangeNotifier {
   final NotificationService _service = NotificationService();
 
   List<AppNotification> _notifications = [];
+
+  // Raw unfiltered list — preserved so filter changes re-apply without a new fetch
+  List<AppNotification> _rawNotifications = [];
+
   FarmerNotificationSettings _farmerSettings =
   const FarmerNotificationSettings();
   AdminNotificationSettings _adminSettings =
@@ -81,8 +86,9 @@ class NotificationProvider extends ChangeNotifier {
     try {
       final results = await _service.getNotifications(userId);
 
-      _notifications = results
-        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      // Cache raw results so filter changes can re-apply without a new fetch
+      _rawNotifications = results;
+      _applyFilters();
 
       _lastFetchTime = DateTime.now();
       _error = null;
@@ -184,7 +190,10 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
 
     final result = await _service.getFarmerSettings(userId);
-    if (result != null) _farmerSettings = result;
+    if (result != null) {
+      _farmerSettings = result;
+      _applyFilters(); // sync filter to loaded settings
+    }
 
     _isSettingsLoading = false;
     notifyListeners();
@@ -197,14 +206,14 @@ class NotificationProvider extends ChangeNotifier {
     final previous = _farmerSettings;
 
     _farmerSettings = updatedSettings;
-    notifyListeners();
+    _applyFilters(); // re-filter in-memory list immediately — no fetch needed
 
     final ok =
     await _service.updateFarmerSettings(userId, updatedSettings);
 
     if (!ok) {
       _farmerSettings = previous;
-      notifyListeners();
+      _applyFilters(); // revert filter to match reverted settings
     }
 
     return ok;
@@ -303,6 +312,81 @@ class NotificationProvider extends ChangeNotifier {
       body: body,
       type: NotificationType.system,
     );
+  }
+
+  // ───────────────────────────────────────────────────
+  // ANALYSIS NOTIFICATION DETECTION
+  // ───────────────────────────────────────────────────
+
+  /// Applies current settings to [_rawNotifications] and assigns the result
+  /// to [_notifications], then calls [notifyListeners].
+  /// Call this whenever settings change OR after a fresh fetch.
+  void _applyFilters() {
+    var filtered = _rawNotifications;
+
+    if (!_farmerSettings.analysisCompletionAlerts) {
+      filtered =
+          _rawNotifications.where((n) => !_isAnalysisNotification(n)).toList();
+      if (kDebugMode) {
+        final removed = _rawNotifications.length - filtered.length;
+        // ignore: avoid_print
+        print(
+            '[NotificationProvider] Analysis notifications filtered: $removed removed');
+      }
+    }
+
+    _notifications = filtered
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    notifyListeners();
+  }
+
+  /// Returns true when a notification was produced by an analysis service
+  /// (animal, crop, plant, fruit, soil) so it can be filtered out when the
+  /// user disables [FarmerNotificationSettings.analysisCompletionAlerts].
+  ///
+  /// Detection is title-based because the backend maps all analysis results
+  /// to [NotificationType.report] or [NotificationType.system], making the
+  /// type field alone insufficient to distinguish them from other notifications.
+  bool _isAnalysisNotification(AppNotification n) {
+    final title = n.title.toLowerCase();
+    final body  = n.body.toLowerCase();
+
+    // ── English keyword matches ────────────────────────
+    const englishKeywords = [
+      'animal weight',   // animal provider
+      'crop recommendation', // crop provider
+      'plant disease',   // plant provider
+      'plant looks',     // plant provider (healthy variant)
+      'fruit quality',   // fruit provider
+      'soil analysis',   // soil provider
+      // generic terms used across providers
+      'weight estimation',
+      'recommendation',
+      'detection',
+      'analysis completed',
+      'analysis results',
+    ];
+
+    // ── Arabic keyword matches ────────────────────────
+    const arabicKeywords = [
+      'تحليل وزن الحيوان', // animal
+      'توصية المحصول',      // crop
+      'اكتشاف مرض',        // plant disease
+      'النبات بصحة',        // plant healthy
+      'تحليل جودة الفاكهة', // fruit
+      'تحليل التربة',       // soil
+      'نتائج تحليل',        // generic analysis results
+    ];
+
+    for (final kw in englishKeywords) {
+      if (title.contains(kw) || body.contains(kw)) return true;
+    }
+    for (final kw in arabicKeywords) {
+      if (title.contains(kw) || body.contains(kw)) return true;
+    }
+
+    return false;
   }
 
   @override

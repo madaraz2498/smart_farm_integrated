@@ -9,6 +9,7 @@ import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../core/network/api_client.dart';
 
 IconData _icon(String name) => switch (name) {
       'home_outlined' => Icons.home_outlined,
@@ -199,7 +200,7 @@ class _SidebarHeader extends StatelessWidget {
                 ? DecorationImage(
                     image: NetworkImage(imgUrl.startsWith('http')
                         ? imgUrl
-                        : 'https://mahmoud123mahmoud-smartfarm-api.hf.space$imgUrl'),
+                        : '${ApiClient.baseUrl}$imgUrl'),
                     fit: BoxFit.cover)
                 : null,
           ),

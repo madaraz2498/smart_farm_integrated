@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/utils/production_logger.dart';
 import '../../notifications/providers/notification_provider.dart';
 import '../models/admin_models.dart';
 import '../services/admin_service.dart';
 
 class AdminProvider extends ChangeNotifier {
   AdminProvider() {
-    debugPrint('[AdminProvider] Constructor called');
+    ProductionLogger.info('Constructor called');
   }
 
   final AdminService _svc = AdminService.instance;
@@ -19,8 +20,7 @@ class AdminProvider extends ChangeNotifier {
   }
 
   void updateNotif(NotificationProvider? n) {
-    debugPrint(
-        '[AdminProvider] updateNotif called. New provider is: ${n != null ? 'Present' : 'NULL'}');
+    ProductionLogger.info('[AdminProvider] updateNotif called. New provider is: ${n != null ? 'Present' : 'NULL'}');
     _notif = n;
   }
 
@@ -43,12 +43,10 @@ class AdminProvider extends ChangeNotifier {
   String? get usersError => _usersError;
 
   String getUserNameById(int id) {
-    try {
-      final user = _users.firstWhere((u) => u.id == id.toString());
-      return user.displayName;
-    } catch (_) {
-      return '';
-    }
+    return _users
+        .cast<AdminUser?>()
+        .firstWhere((u) => u?.id == id.toString(), orElse: () => null)
+        ?.displayName ?? '';
   }
 
   // ── System Status ──────────────────────────────────────────────────────────
@@ -78,7 +76,7 @@ class AdminProvider extends ChangeNotifier {
         _systemSettings = Map<String, bool>.from(settings['settings']);
       }
     } catch (e) {
-      debugPrint('[AdminProvider] loadSystemStatus error: $e');
+      ProductionLogger.info('loadSystemStatus error: $e');
     } finally {
       _systemLoading = false;
       notifyListeners();
@@ -106,7 +104,8 @@ class AdminProvider extends ChangeNotifier {
       _statsError = null; // Clear error on success
     } on ApiException catch (e) {
       _statsError = e.message;
-    } catch (_) {
+    } catch (e) {
+      ProductionLogger.error('loadStats failed', e);
       _statsError = 'Failed to load statistics.';
     } finally {
       _statsLoading = false;
@@ -134,7 +133,8 @@ class AdminProvider extends ChangeNotifier {
       _usersError = null; // Clear error on success
     } on ApiException catch (e) {
       _usersError = e.message;
-    } catch (_) {
+    } catch (e) {
+      ProductionLogger.error('loadUsers failed', e);
       _usersError = 'Failed to load users.';
     } finally {
       _usersLoading = false;
@@ -151,8 +151,7 @@ class AdminProvider extends ChangeNotifier {
 
       _notif?.addSystemNotification(
         title: 'User Deleted',
-        body: 'User account ($userId) has been permanently removed.',
-      );
+        body: 'User account ($userId) has been permanently removed.',);
 
       return true;
     } on ApiException catch (e) {
@@ -229,13 +228,11 @@ class AdminProvider extends ChangeNotifier {
       final res = await _svc.toggleService(moduleName);
       final status = res['new_status'] ?? 'updated';
 
-      debugPrint(
-          '[AdminProvider] Toggled $moduleName. Notif provider is: ${_notif != null ? 'Present' : 'NULL'}');
+      ProductionLogger.info('[AdminProvider] Toggled $moduleName. Notif provider is: ${_notif != null ? 'Present' : 'NULL'}');
 
       _notif?.addSystemNotification(
         title: 'Module Toggled',
-        body: 'AI Service ($moduleName) is now $status.',
-      );
+        body: 'AI Service ($moduleName) is now $status.',);
 
       if (_userId.isNotEmpty && _userId != '0') {
       }
@@ -249,13 +246,11 @@ class AdminProvider extends ChangeNotifier {
     try {
       await _svc.toggleSystemSetting(settingName);
 
-      debugPrint(
-          '[AdminProvider] Toggled setting: $settingName. Notif provider is: ${_notif != null ? 'Present' : 'NULL'}');
+      ProductionLogger.info('[AdminProvider] Toggled setting: $settingName. Notif provider is: ${_notif != null ? 'Present' : 'NULL'}');
 
       _notif?.addSystemNotification(
         title: 'Setting Changed',
-        body: 'System setting ($settingName) has been modified.',
-      );
+        body: 'System setting ($settingName) has been modified.',);
 
       if (_userId.isNotEmpty && _userId != '0') {
       }

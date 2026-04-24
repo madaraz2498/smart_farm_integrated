@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_farm/core/utils/responsive.dart';
+import 'package:smart_farm/features/farmer/models/scan_status.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/fruit_provider.dart';
 import '../../../shared/theme/app_theme.dart';

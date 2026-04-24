@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/dashboard_models.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class DashboardService {
   DashboardService._();
@@ -18,16 +19,16 @@ class DashboardService {
       'lon': lon.toString(),
       'lang': lang,
     };
-    debugPrint('[DashboardService] GET $path with query $query');
+    ProductionLogger.dashboard('GET $path with query $query');
     try {
       final data = await _c.get(path, query: query);
-      debugPrint('[DashboardService] getDashboardData response: $data');
+      ProductionLogger.dashboard('getDashboardData response: $data');
       if (data is Map<String, dynamic>) {
         return FarmerDashboardData.fromJson(data);
       }
       throw const ApiException('Invalid dashboard data received');
     } catch (e) {
-      debugPrint('[DashboardService] getDashboardData error: $e');
+      ProductionLogger.dashboard('getDashboardData error: $e');
       rethrow;
     }
   }

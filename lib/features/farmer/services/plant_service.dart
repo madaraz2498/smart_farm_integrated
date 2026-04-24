@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/plant_models.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 /// POST /plants/detect
 /// Content-Type: multipart/form-data
@@ -17,8 +18,7 @@ class PlantService {
     required String userId,
     required String lang,
   }) async {
-    debugPrint(
-        '[PlantService] POST /plants/detect  file=$fileName  userId=$userId');
+    ProductionLogger.info('[PlantService] POST /plants/detect  file=$fileName  userId=$userId');
     try {
       final data = await _c.postMultipart(
         '/plants/detect',
@@ -28,14 +28,13 @@ class PlantService {
         fields: {
           'user_id': userId,
           'lang': _normalizeLang(lang),
-        },
-      );
-      debugPrint('[PlantService] response: $data');
+        },);
+      ProductionLogger.info('response: $data');
       return PlantDiseaseResponse.fromJson(_asMap(data));
     } on ApiException {
       rethrow;
     } catch (e) {
-      debugPrint('[PlantService] error: $e');
+      ProductionLogger.info('error: $e');
       throw const ApiException('Plant disease analysis failed.');
     }
   }

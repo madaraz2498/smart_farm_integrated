@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/soil_models.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 /// POST /soil/analyze-soil — form-encoded (FastAPI Form fields)
 class SoilService {
@@ -10,15 +11,15 @@ class SoilService {
   final ApiClient _c = ApiClient.instance;
 
   Future<SoilAnalysisResponse> analyze(SoilAnalysisRequest req) async {
-    debugPrint('[SoilService] POST /soil/analyze-soil');
-    debugPrint('[SoilService] body: ${req.toForm()}');
+    ProductionLogger.info('POST /soil/analyze-soil');
+    ProductionLogger.info('body: ${req.toForm()}');
     try {
       final data = await _c.postForm('/soil/analyze-soil', req.toForm());
-      debugPrint('[SoilService] response: $data');
+      ProductionLogger.info('response: $data');
       return SoilAnalysisResponse.fromJson(_asMap(data));
     } on ApiException { rethrow; }
     catch (e) {
-      debugPrint('[SoilService] error: $e');
+      ProductionLogger.info('error: $e');
       throw const ApiException('Soil analysis failed.');
     }
   }

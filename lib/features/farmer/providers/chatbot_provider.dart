@@ -4,6 +4,7 @@ import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
 import '../services/chatbot_service.dart';
 import '../models/chatbot_models.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 enum ChatStatus { idle, loading, sending, error }
 
@@ -192,7 +193,7 @@ class ChatbotProvider extends ChangeNotifier {
     } catch (e) {
       _sessions[index] = oldSession;
       notifyListeners();
-      debugPrint('Rename failed: $e');
+      ProductionLogger.info('Rename failed: $e');
     }
   }
 
@@ -206,7 +207,7 @@ class ChatbotProvider extends ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      debugPrint('Delete failed: $e');
+      ProductionLogger.info('Delete failed: $e');
     }
   }
 

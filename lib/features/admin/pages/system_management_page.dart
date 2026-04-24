@@ -6,6 +6,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../providers/admin_provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/sf_button.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class SystemManagementPage extends StatefulWidget {
   const SystemManagementPage({super.key});
@@ -69,8 +70,7 @@ class _SystemManagementPageState extends State<SystemManagementPage>
 
   Future<void> _toggleService(String key, bool val) async {
     setState(() => _services[key] = val);
-    debugPrint(
-        '[SystemManagementPage] Calling AdminProvider.toggleService for $key');
+    ProductionLogger.info('[SystemManagementPage] Calling AdminProvider.toggleService for $key');
     await context.read<AdminProvider>().toggleService(key);
   }
 
@@ -149,8 +149,7 @@ class _SystemManagementPageState extends State<SystemManagementPage>
             ),
           ),
         ),
-      ),
-    );
+      ),);
   }
 
   Widget _buildAITab(AppLocalizations l10n) {

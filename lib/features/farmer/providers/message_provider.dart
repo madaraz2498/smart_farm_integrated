@@ -4,6 +4,7 @@ import 'package:smart_farm/shared/models/message_model.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
 import '../services/message_service.dart';
+import 'package:smart_farm/core/utils/production_logger.dart';
 
 class FarmerMessageProvider extends ChangeNotifier {
   final FarmerMessageService _svc = FarmerMessageService.instance;
@@ -56,7 +57,7 @@ class FarmerMessageProvider extends ChangeNotifier {
       }
     } catch (e) {
       _error = e.toString();
-      debugPrint('[FarmerMessageProvider] fetchMessages error: $e');
+      ProductionLogger.info('fetchMessages error: $e');
     } finally {
       _loading = false;
       notifyListeners();
