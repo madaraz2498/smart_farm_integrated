@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
-import 'package:smart_farm/providers/location_provider.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
 import '../../../widgets/shared/main_layout.dart';
@@ -30,7 +29,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final status = context.watch<AuthProvider>().status;
-    
+
     if (status == AuthStatus.authenticated && _lastStatus != AuthStatus.authenticated) {
       // Guard: only schedule once per login transition to avoid duplicate fetches
       if (!_authCallbackScheduled) {
@@ -47,14 +46,16 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Future<void> _onAuthenticated() async {
     if (!mounted) return;
     _authCallbackScheduled = false;
-    final userId = context.read<AuthProvider>().currentUser?.id;
+    final authProvider = context.read<AuthProvider>();
+    final userId = authProvider.currentUser?.id;
     if (userId == null) return;
 
-    // Location is already being fetched in the background by LocationProvider._init().
-    // We do NOT force another GPS call here — that was the source of duplicate
-    // GPS requests logged as "already loading, waiting..." on every login.
-
     final notifProvider = context.read<NotificationProvider>();
+
+    // Tell the notification provider which role is active so filters are applied
+    // correctly (admin sees all notifications; farmer applies analysis filter).
+    notifProvider.setIsAdmin(authProvider.isAdmin);
+
     notifProvider.fetchNotifications(userId: userId);
     notifProvider.startRefreshTimer(userId);
   }

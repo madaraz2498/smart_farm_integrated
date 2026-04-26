@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/production_logger.dart';
 import '../../notifications/providers/notification_provider.dart';
+import '../../notifications/models/notification_model.dart';
 import '../models/admin_models.dart';
 import '../services/admin_service.dart';
 
@@ -14,6 +15,7 @@ class AdminProvider extends ChangeNotifier {
   final AdminService _svc = AdminService.instance;
   NotificationProvider? _notif;
   String _userId = '0';
+  String _locale = 'en'; // tracks current app language for localised notifications
 
   void updateUserId(String id) {
     _userId = id;
@@ -22,6 +24,25 @@ class AdminProvider extends ChangeNotifier {
   void updateNotif(NotificationProvider? n) {
     ProductionLogger.info('[AdminProvider] updateNotif called. New provider is: ${n != null ? 'Present' : 'NULL'}');
     _notif = n;
+  }
+
+  void updateLocale(String languageCode) {
+    _locale = languageCode;
+  }
+
+  // ── Localised notification helpers ────────────────────────────────────────
+
+  bool get _isArabic => _locale == 'ar';
+
+  /// Returns [ar] when the app is in Arabic, otherwise [en].
+  String _t(String en, String ar) => _isArabic ? ar : en;
+
+  /// Fetches fresh notifications from the backend so the badge count and
+  /// feed update immediately after a service-toggle or setting change.
+  void _refreshNotifications() {
+    if (_notif != null && _userId.isNotEmpty && _userId != '0') {
+      _notif!.fetchNotifications(userId: _userId, showLoading: false, force: true);
+    }
   }
 
   // ── Stats ─────────────────────────────────────────────────────────────────
@@ -47,6 +68,15 @@ class AdminProvider extends ChangeNotifier {
         .cast<AdminUser?>()
         .firstWhere((u) => u?.id == id.toString(), orElse: () => null)
         ?.displayName ?? '';
+  }
+
+  /// Returns the email address for a user by their integer id.
+  /// Returns an empty string if the user is not found.
+  String getUserEmailById(int id) {
+    return _users
+        .cast<AdminUser?>()
+        .firstWhere((u) => u?.id == id.toString(), orElse: () => null)
+        ?.email ?? '';
   }
 
   // ── System Status ──────────────────────────────────────────────────────────
@@ -226,16 +256,24 @@ class AdminProvider extends ChangeNotifier {
   Future<void> toggleService(String moduleName) async {
     try {
       final res = await _svc.toggleService(moduleName);
-      final status = res['new_status'] ?? 'updated';
+      final rawStatus = (res['new_status'] ?? 'updated').toString();
+      final serviceName = (res['service'] ?? moduleName).toString();
 
-      ProductionLogger.info('[AdminProvider] Toggled $moduleName. Notif provider is: ${_notif != null ? 'Present' : 'NULL'}');
+      final isOnline = rawStatus.toLowerCase() == 'online';
 
-      _notif?.addSystemNotification(
-        title: 'Module Toggled',
-        body: 'AI Service ($moduleName) is now $status.',);
+      ProductionLogger.info('[AdminProvider] Toggled $moduleName ($serviceName) -> $rawStatus. Notif provider: ${_notif != null ? 'Present' : 'NULL'}');
 
-      if (_userId.isNotEmpty && _userId != '0') {
-      }
+      // Add a localised local notification immediately so the badge updates
+      _notif?.addLocalNotification(
+        title: _t('Service Alert 🚜', 'تنبيه الخدمات 🚜'),
+        body: isOnline
+            ? _t('✅ Service ($serviceName) started successfully.', 'تم تشغيل ✅ خدمة ($serviceName) بنجاح.')
+            : _t('❌ Service ($serviceName) stopped successfully.', 'تم إيقاف ❌ خدمة ($serviceName) بنجاح.'),
+        type: NotificationType.system,
+      );
+
+      // Then fetch from backend so the feed stays in sync
+      _refreshNotifications();
     } catch (e) {
       _statsError = 'Failed to toggle service.';
       notifyListeners();
@@ -246,14 +284,15 @@ class AdminProvider extends ChangeNotifier {
     try {
       await _svc.toggleSystemSetting(settingName);
 
-      ProductionLogger.info('[AdminProvider] Toggled setting: $settingName. Notif provider is: ${_notif != null ? 'Present' : 'NULL'}');
+      ProductionLogger.info('[AdminProvider] Toggled setting: $settingName. Notif provider: ${_notif != null ? 'Present' : 'NULL'}');
 
-      _notif?.addSystemNotification(
-        title: 'Setting Changed',
-        body: 'System setting ($settingName) has been modified.',);
+      _notif?.addLocalNotification(
+        title: _t('System Setting Changed', 'تغيير إعداد النظام'),
+        body: _t('Setting ($settingName) has been updated.', 'تم تحديث الإعداد ($settingName).'),
+        type: NotificationType.system,
+      );
 
-      if (_userId.isNotEmpty && _userId != '0') {
-      }
+      _refreshNotifications();
     } catch (e) {
       _statsError = 'Failed to toggle setting.';
       notifyListeners();
@@ -265,10 +304,12 @@ class AdminProvider extends ChangeNotifier {
     try {
       await _svc.updateAdminNotificationSettings(userId, settings);
 
-      _notif?.addSystemNotification(
-        title: 'Settings Updated',
-        body: 'Admin notification settings have been updated.',
+      _notif?.addLocalNotification(
+        title: _t('Settings Updated', 'تم تحديث الإعدادات'),
+        body: _t('Admin notification settings have been updated.', 'تم تحديث إعدادات إشعارات المسؤول.'),
+        type: NotificationType.system,
       );
+      _refreshNotifications();
       return true;
     } on ApiException catch (e) {
       _statsError = e.message;

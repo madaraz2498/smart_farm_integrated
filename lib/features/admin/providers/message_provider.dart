@@ -13,6 +13,7 @@ class AdminMessageProvider extends ChangeNotifier {
     _adminProv = p;
     if (_messages.isNotEmpty) {
       _enrichMessages();
+      notifyListeners(); // notify UI after enrichment from late-arriving provider
     }
   }
 
@@ -57,21 +58,35 @@ class AdminMessageProvider extends ChangeNotifier {
     if (_adminProv == null) return;
     bool changed = false;
 
-    // Debug users length
-    ProductionLogger.info('Enriching _${_messages.length} messages. AdminProvider has _${_adminProv!.users.length} users.');
+    ProductionLogger.info(
+        'Enriching _${_messages.length} messages. AdminProvider has _${_adminProv!.users.length} users.');
 
     for (int i = 0; i < _messages.length; i++) {
       final msg = _messages[i];
-      // Check for 'Unknown User' specifically as shown in screenshot
-      if (msg.userName.isEmpty ||
+
+      final needsName = msg.userName.isEmpty ||
           msg.userName == 'User' ||
           msg.userName == 'Unknown User' ||
-          msg.userName == 'مستخدم مجهول') {
-        final name = _adminProv!.getUserNameById(msg.userId);
-        ProductionLogger.info('Message ${msg.id} has userId ${msg.userId}. Found name: "$name"');
+          msg.userName == 'مستخدم مجهول';
 
-        if (name.isNotEmpty && name != msg.userName) {
-          _messages[i] = msg.copyWith(userName: name);
+      final needsEmail = msg.userEmail.isEmpty;
+
+      if (needsName || needsEmail) {
+        final name = needsName ? _adminProv!.getUserNameById(msg.userId) : null;
+        final email =
+        needsEmail ? _adminProv!.getUserEmailById(msg.userId) : null;
+
+        ProductionLogger.info(
+            'Message ${msg.id} userId=${msg.userId}. name="$name" email="$email"');
+
+        if ((name != null && name.isNotEmpty && name != msg.userName) ||
+            (email != null && email.isNotEmpty && email != msg.userEmail)) {
+          _messages[i] = msg.copyWith(
+            userName:
+            (name != null && name.isNotEmpty) ? name : msg.userName,
+            userEmail:
+            (email != null && email.isNotEmpty) ? email : msg.userEmail,
+          );
           changed = true;
         }
       }
@@ -91,7 +106,7 @@ class AdminMessageProvider extends ChangeNotifier {
 
     try {
       final success =
-          await _svc.replyToMessage(messageId: messageId, reply: reply);
+      await _svc.replyToMessage(messageId: messageId, reply: reply);
       if (success) {
         _hasFetchedOnce = false; // invalidate cache so reload fetches fresh data
         await fetchMessages();

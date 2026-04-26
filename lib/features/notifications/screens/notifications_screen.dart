@@ -22,7 +22,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userId = context.read<AuthProvider>().currentUser?.id;
       if (userId != null) {
-        context.read<NotificationProvider>().fetchNotifications(userId: userId);
+        // Always force-refresh when the full screen opens so data is current
+        context.read<NotificationProvider>().fetchNotifications(
+          userId: userId,
+          force: true,
+        );
       }
     });
   }
@@ -133,39 +137,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               onRefresh: _onRefresh,
               child: provider.isLoading
                   ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      children: const [
-                        SizedBox(height: 120),
-                        Center(child: CircularProgressIndicator()),
-                      ],
-                    )
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                children: const [
+                  SizedBox(height: 120),
+                  Center(child: CircularProgressIndicator()),
+                ],
+              )
                   : provider.error != null
-                      ? ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(16),
-                          children: [
-                            SizedBox(
-                              height: MediaQuery.sizeOf(context).height * 0.7,
-                              child: _buildErrorState(provider, userId),
-                            ),
-                          ],
-                        )
-                      : provider.notifications.isEmpty
-                          ? _buildEmptyState(l10n)
-                          : ListView.separated(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: provider.notifications.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final item = provider.notifications[index];
-                                return _NotificationCard(
-                                  item: item,
-                                  userId: userId ?? '',
-                                );
-                              },
-                            ),
+                  ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.7,
+                    child: _buildErrorState(provider, userId),
+                  ),
+                ],
+              )
+                  : provider.notifications.isEmpty
+                  ? _buildEmptyState(l10n)
+                  : ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: provider.notifications.length,
+                separatorBuilder: (_, __) =>
+                const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final item = provider.notifications[index];
+                  return _NotificationCard(
+                    item: item,
+                    userId: userId ?? '',
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -241,7 +245,7 @@ class _NotificationCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     final title =
-        item.title.trim().isEmpty ? l10n.notifications : item.title.trim();
+    item.title.trim().isEmpty ? l10n.notifications : item.title.trim();
     final body = item.body.trim();
 
     return InkWell(
@@ -275,7 +279,7 @@ class _NotificationCard extends StatelessWidget {
                     style: AppTextStyles.cardTitle.copyWith(
                       fontSize: 14,
                       color:
-                          item.isRead ? AppColors.textSubtle : AppColors.textDark,
+                      item.isRead ? AppColors.textSubtle : AppColors.textDark,
                     ),
                   ),
                   if (body.isNotEmpty) ...[
@@ -328,10 +332,10 @@ class _NotificationCard extends StatelessWidget {
   }
 
   String _formatTime(
-    DateTime dt, {
-    required AppLocalizations l10n,
-    required String? backendText,
-  }) {
+      DateTime dt, {
+        required AppLocalizations l10n,
+        required String? backendText,
+      }) {
     final backend = backendText?.trim();
     if (backend != null && backend.isNotEmpty) {
       final duration = AppNotification.parseBackendTimeToDuration(backend);
@@ -366,7 +370,7 @@ class _TypeIcon extends StatelessWidget {
     final (IconData icon, Color color) = switch (type) {
       NotificationType.report => (Icons.article_outlined, AppColors.info),
       NotificationType.chatbot =>
-        (Icons.chat_bubble_outline_rounded, AppColors.adminAccent),
+      (Icons.chat_bubble_outline_rounded, AppColors.adminAccent),
       NotificationType.user => (Icons.person_outline_rounded, AppColors.warning),
       NotificationType.system => (Icons.settings_outlined, AppColors.textSubtle),
     };

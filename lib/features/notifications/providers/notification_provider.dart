@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
+// ignore_for_file: avoid_print
 
 class NotificationProvider extends ChangeNotifier {
   final NotificationService _service = NotificationService();
@@ -17,6 +18,15 @@ class NotificationProvider extends ChangeNotifier {
   AdminNotificationSettings _adminSettings =
   const AdminNotificationSettings();
 
+  // ── ROLE FLAG ──────────────────────────────────────
+  // Set this from AuthWrapper / initState so filters know which role to apply.
+  bool _isAdmin = false;
+  void setIsAdmin(bool value) {
+    if (_isAdmin == value) return;
+    _isAdmin = value;
+    _applyFilters(); // re-apply filters when role changes
+  }
+
   bool _isLoading = false;
   bool _isSettingsLoading = false;
   String? _error;
@@ -27,7 +37,7 @@ class NotificationProvider extends ChangeNotifier {
   Future<void>? _inFlightFetch;
   DateTime? _lastFetchTime;
 
-  static const _kMinFetchInterval = Duration(seconds: 10);
+  static const _kMinFetchInterval = Duration(seconds: 5);
 
   // ── TIMER GUARD ────────────────────────────────────
   bool _timerBusy = false;
@@ -199,6 +209,21 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Loads admin notification settings from the backend.
+  /// Call this from the admin settings page instead of [fetchFarmerSettings].
+  Future<void> fetchAdminSettings({required String userId}) async {
+    _isSettingsLoading = true;
+    notifyListeners();
+
+    final result = await _service.getAdminSettings(userId);
+    if (result != null) {
+      _adminSettings = result;
+    }
+
+    _isSettingsLoading = false;
+    notifyListeners();
+  }
+
   Future<bool> updateFarmerSettings({
     required String userId,
     required FarmerNotificationSettings updatedSettings,
@@ -247,7 +272,7 @@ class NotificationProvider extends ChangeNotifier {
     _refreshTimer?.cancel();
 
     _refreshTimer =
-        Timer.periodic(const Duration(minutes: 1), (_) async {
+        Timer.periodic(const Duration(seconds: 30), (_) async {
           if (_timerBusy) return;
 
           _timerBusy = true;
@@ -321,7 +346,19 @@ class NotificationProvider extends ChangeNotifier {
   /// Applies current settings to [_rawNotifications] and assigns the result
   /// to [_notifications], then calls [notifyListeners].
   /// Call this whenever settings change OR after a fresh fetch.
+  ///
+  /// Admin users always see ALL notifications — the analysis-completion filter
+  /// is a farmer-only preference and must not affect the admin feed.
   void _applyFilters() {
+    // Admin users: no filtering — show everything
+    if (_isAdmin) {
+      _notifications = List<AppNotification>.from(_rawNotifications)
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      notifyListeners();
+      return;
+    }
+
+    // Farmer users: apply analysis-completion filter
     var filtered = _rawNotifications;
 
     if (!_farmerSettings.analysisCompletionAlerts) {
@@ -329,7 +366,6 @@ class NotificationProvider extends ChangeNotifier {
           _rawNotifications.where((n) => !_isAnalysisNotification(n)).toList();
       if (kDebugMode) {
         final removed = _rawNotifications.length - filtered.length;
-        // ignore: avoid_print
         print(
             '[NotificationProvider] Analysis notifications filtered: $removed removed');
       }

@@ -42,10 +42,10 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
           if (showBurger)
             Builder(
                 builder: (ctx) => IconButton(
-                      icon: const Icon(Icons.menu_rounded,
-                          color: AppColors.textDark, size: 22),
-                      onPressed: () => Scaffold.of(ctx).openDrawer(),
-                    )),
+                  icon: const Icon(Icons.menu_rounded,
+                      color: AppColors.textDark, size: 22),
+                  onPressed: () => Scaffold.of(ctx).openDrawer(),
+                )),
           Expanded(
             child: Center(
               child: Text(
@@ -63,6 +63,15 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               icon: const Icon(Icons.notifications_outlined,
                   color: AppColors.textDark, size: 22),
               onPressed: () {
+                // Kick off a background refresh immediately on tap
+                final userId = context.read<AuthProvider>().currentUser?.id;
+                if (userId != null) {
+                  context.read<NotificationProvider>().fetchNotifications(
+                    userId: userId,
+                    showLoading: false,
+                    force: true,
+                  );
+                }
                 showDialog(
                   context: context,
                   barrierColor: Colors.black.withValues(alpha: 0.2),
@@ -82,7 +91,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     constraints:
-                        const BoxConstraints(minWidth: 14, minHeight: 14),
+                    const BoxConstraints(minWidth: 14, minHeight: 14),
                     decoration: const BoxDecoration(
                         color: AppColors.notifRed, shape: BoxShape.circle),
                     child: Center(
@@ -120,29 +129,29 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                 backgroundColor: AppColors.primary,
                 child: auth.localProfileImage != null
                     ? ClipOval(
-                        child: Image.memory(
-                          auth.localProfileImage!,
-                          width: 32,
-                          height: 32,
-                          fit: BoxFit.cover,
-                        ),
-                      )
+                  child: Image.memory(
+                    auth.localProfileImage!,
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.cover,
+                  ),
+                )
                     : auth.currentUser?.profileImg != null
-                        ? ClipOval(
-                            child: Image.network(
-                              auth.currentUser!.profileImg!.startsWith('http')
-                                  ? auth.currentUser!.profileImg!
-                                  : '${ApiClient.baseUrl}${auth.currentUser!.profileImg!}',
-                              width: 32,
-                              height: 32,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.person_rounded,
-                                      color: Colors.white, size: 18),
-                            ),
-                          )
-                        : const Icon(Icons.person_rounded,
-                            color: Colors.white, size: 18),
+                    ? ClipOval(
+                  child: Image.network(
+                    auth.currentUser!.profileImg!.startsWith('http')
+                        ? auth.currentUser!.profileImg!
+                        : '${ApiClient.baseUrl}${auth.currentUser!.profileImg!}',
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.person_rounded,
+                        color: Colors.white, size: 18),
+                  ),
+                )
+                    : const Icon(Icons.person_rounded,
+                    color: Colors.white, size: 18),
               ),
             ),
           ),
@@ -176,15 +185,15 @@ class _AvatarChip extends StatelessWidget {
           child: localBytes != null
               ? Image.memory(localBytes, fit: BoxFit.cover)
               : (imgUrl != null && imgUrl.isNotEmpty
-                  ? Image.network(
-                      imgUrl.startsWith('http')
-                          ? imgUrl
-                          : '${ApiClient.baseUrl}$imgUrl',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildInitials(),
-                    )
-                  : _buildInitials()),
+              ? Image.network(
+            imgUrl.startsWith('http')
+                ? imgUrl
+                : '${ApiClient.baseUrl}$imgUrl',
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) =>
+                _buildInitials(),
+          )
+              : _buildInitials()),
         ),
       ),
       const SizedBox(width: 8),
@@ -204,8 +213,8 @@ class _AvatarChip extends StatelessWidget {
     return Center(
       child: isAdmin
           ? const Text('A',
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+          style:
+          TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
           : const Icon(Icons.person_rounded, color: Colors.white, size: 18),
     );
   }

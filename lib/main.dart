@@ -130,14 +130,15 @@ void main() async {
 
         // Admin providers
         ChangeNotifierProvider(create: (_) => AdminReportProvider()),
-        ChangeNotifierProxyProvider2<AuthProvider, NotificationProvider,
-            AdminProvider>(
+        ChangeNotifierProxyProvider3<AuthProvider, NotificationProvider,
+            LocaleProvider, AdminProvider>(
           create: (_) => AdminProvider(),
-          update: (_, auth, notif, admin) {
+          update: (_, auth, notif, locale, admin) {
             ProductionLogger.info('Updating AdminProvider');
             return admin!
               ..updateUserId(auth.currentUser?.id ?? '0')
-              ..updateNotif(notif);
+              ..updateNotif(notif)
+              ..updateLocale(locale.locale.languageCode);
           },
         ),
 

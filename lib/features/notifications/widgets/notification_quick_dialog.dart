@@ -17,6 +17,23 @@ class NotificationQuickDialog extends StatefulWidget {
 
 class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
   @override
+  void initState() {
+    super.initState();
+    // Force-refresh when the dialog opens so the user always sees fresh data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final userId = context.read<AuthProvider>().currentUser?.id;
+      if (userId != null) {
+        context.read<NotificationProvider>().fetchNotifications(
+          userId: userId,
+          showLoading: false,
+          force: true,
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<NotificationProvider>();
     final l10n = AppLocalizations.of(context)!;
@@ -50,107 +67,107 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  l10n.notifications,
-                  style: AppTextStyles.cardTitle.copyWith(
-                    fontSize: 16,
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l10n.notifications,
+                        style: AppTextStyles.cardTitle.copyWith(
+                          fontSize: 16,
+                        ),
+                      ),
+                      if (provider.unreadCount > 0)
+                        TextButton(
+                          onPressed: () {
+                            final userId = context.read<AuthProvider>().currentUser?.id;
+                            if (userId != null) provider.markAllAsRead(userId: userId);
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            l10n.mark_all_as_read,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                if (provider.unreadCount > 0)
-                  TextButton(
-                    onPressed: () {
-                      final userId = context.read<AuthProvider>().currentUser?.id;
-                      if (userId != null) provider.markAllAsRead(userId: userId);
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                const Divider(height: 1, color: AppColors.divider),
+
+                // List
+                if (provider.isLoading)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 30),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (notifications.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 30),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(Icons.notifications_none_rounded,
+                              size: 40,
+                              color: AppColors.textDisabled.withValues(alpha: 0.5)),
+                          const SizedBox(height: 10),
+                          Text(l10n.no_notifications,
+                              style: AppTextStyles.caption.copyWith(fontSize: 12)),
+                        ],
+                      ),
                     ),
-                    child: Text(
-                      l10n.mark_all_as_read,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                  )
+                else
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      itemCount: notifications.length,
+                      separatorBuilder: (_, __) =>
+                      const Divider(height: 1, color: AppColors.divider),
+                      itemBuilder: (context, index) {
+                        final item = notifications[index];
+                        return _NotificationItem(item: item);
+                      },
+                    ),
+                  ),
+
+                // Footer
+                const Divider(height: 1, color: AppColors.divider),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const NotificationsScreen()),
+                        );
+                      },
+                      child: Text(
+                        l10n.view_all_notifications,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ),
+                ),
               ],
-            ),
-          ),
-          const Divider(height: 1, color: AppColors.divider),
-
-          // List
-          if (provider.isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 30),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (notifications.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 30),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.notifications_none_rounded,
-                        size: 40,
-                        color: AppColors.textDisabled.withValues(alpha: 0.5)),
-                    const SizedBox(height: 10),
-                    Text(l10n.no_notifications,
-                        style: AppTextStyles.caption.copyWith(fontSize: 12)),
-                  ],
-                ),
-              ),
-            )
-          else
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: EdgeInsets.zero,
-                itemCount: notifications.length,
-                separatorBuilder: (_, __) =>
-                const Divider(height: 1, color: AppColors.divider),
-                itemBuilder: (context, index) {
-                  final item = notifications[index];
-                  return _NotificationItem(item: item);
-                },
-              ),
-            ),
-
-          // Footer
-          const Divider(height: 1, color: AppColors.divider),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const NotificationsScreen()),
-                  );
-                },
-                child: Text(
-                  l10n.view_all_notifications,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
             ),
           ),
         ),
@@ -268,10 +285,10 @@ class _NotificationItem extends StatelessWidget {
   }
 
   String _formatTime(
-    DateTime dt, {
-    required AppLocalizations l10n,
-    required String? backendText,
-  }) {
+      DateTime dt, {
+        required AppLocalizations l10n,
+        required String? backendText,
+      }) {
     final backend = backendText?.trim();
     if (backend != null && backend.isNotEmpty) {
       final duration = AppNotification.parseBackendTimeToDuration(backend);

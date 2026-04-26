@@ -25,7 +25,8 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userId = context.read<AuthProvider>().currentUser?.id;
       if (userId != null) {
-        context.read<NotificationProvider>().fetchFarmerSettings(userId: userId);
+        // Load admin-specific notification settings (NOT farmer settings)
+        context.read<NotificationProvider>().fetchAdminSettings(userId: userId);
       }
     });
   }
@@ -64,154 +65,154 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                // Header
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.settings_outlined,
-                          color: AppColors.primary, size: 24),
-                    ),
-                    const SizedBox(width: 14),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l10n.settings, style: AppTextStyles.pageTitle),
-                        Text(l10n.manage_account_preferences,
-                            style: AppTextStyles.pageSubtitle),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-
-                // Theme Preference
-                _buildSection(
-                  icon: Icons.palette_outlined,
-                  title: l10n.theme_preference,
-                  child: Column(
-                    children: [
-                      _buildRadioTile(
-                        title: l10n.light_mode,
-                        value: false,
-                        groupValue: themeProvider.isDark,
-                        onChanged: (v) => themeProvider.isDark
-                            ? themeProvider.toggleTheme()
-                            : null,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildRadioTile(
-                        title: l10n.dark_mode,
-                        value: true,
-                        groupValue: themeProvider.isDark,
-                        onChanged: (v) => !themeProvider.isDark
-                            ? themeProvider.toggleTheme()
-                            : null,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Language Selection
-                _buildSection(
-                  icon: Icons.language_outlined,
-                  title: l10n.language_selection,
-                  child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.cardBorder),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: localeProvider.locale.languageCode,
-                        isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down,
-                            color: AppColors.textSubtle),
-                        items: [
-                          DropdownMenuItem(
-                              value: 'en', child: Text(l10n.english)),
-                          DropdownMenuItem(
-                              value: 'ar', child: Text(l10n.arabic)),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) localeProvider.setLocale(Locale(v));
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Notification Preferences
-                _buildSection(
-                  icon: Icons.notifications_none_outlined,
-                  title: l10n.notification_preferences,
-                  child: Consumer<NotificationProvider>(
-                    builder: (context, notif, _) {
-                      final userId =
-                          context.read<AuthProvider>().currentUser?.id ?? '';
-                      return Column(
+                      // Header
+                      Row(
                         children: [
-                          _buildSwitchTile(
-                            title: l10n.push_notifications,
-                            value: notif.adminSettings.pushNotifications,
-                            onChanged: notif.isSettingsLoading
-                                ? null
-                                : (v) => notif.updateAdminSettings(
-                              userId: userId,
-                              updatedSettings: AdminNotificationSettings(
-                                pushNotifications: v,
-                                emailNotifications:
-                                notif.adminSettings.emailNotifications,
-                                smsNotifications:
-                                notif.adminSettings.smsNotifications,
-                              ),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySurface,
+                              borderRadius: BorderRadius.circular(10),
                             ),
+                            child: const Icon(Icons.settings_outlined,
+                                color: AppColors.primary, size: 24),
                           ),
-                          const Divider(height: 1, color: AppColors.divider),
-                          _buildSwitchTile(
-                            title: l10n.email_notifications,
-                            value: notif.adminSettings.emailNotifications,
-                            onChanged: notif.isSettingsLoading
-                                ? null
-                                : (v) => notif.updateAdminSettings(
-                              userId: userId,
-                              updatedSettings: AdminNotificationSettings(
-                                pushNotifications:
-                                notif.adminSettings.pushNotifications,
-                                emailNotifications: v,
-                                smsNotifications:
-                                notif.adminSettings.smsNotifications,
-                              ),
-                            ),
+                          const SizedBox(width: 14),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(l10n.settings, style: AppTextStyles.pageTitle),
+                              Text(l10n.manage_account_preferences,
+                                  style: AppTextStyles.pageSubtitle),
+                            ],
                           ),
-                          if (notif.isSettingsLoading)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 8),
-                              child: LinearProgressIndicator(),
-                            ),
                         ],
-                      );
-                    },
-                  ),
-                ),
+                      ),
+                      const SizedBox(height: 32),
 
-                const SizedBox(height: 32),
-                SfOutlineButton(
-                  label: l10n.logout,
-                  color: AppColors.error,
-                  onPressed: _logout,
-                  icon: Icons.logout,
-                ),
-                const SizedBox(height: 24),
+                      // Theme Preference
+                      _buildSection(
+                        icon: Icons.palette_outlined,
+                        title: l10n.theme_preference,
+                        child: Column(
+                          children: [
+                            _buildRadioTile(
+                              title: l10n.light_mode,
+                              value: false,
+                              groupValue: themeProvider.isDark,
+                              onChanged: (v) => themeProvider.isDark
+                                  ? themeProvider.toggleTheme()
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildRadioTile(
+                              title: l10n.dark_mode,
+                              value: true,
+                              groupValue: themeProvider.isDark,
+                              onChanged: (v) => !themeProvider.isDark
+                                  ? themeProvider.toggleTheme()
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Language Selection
+                      _buildSection(
+                        icon: Icons.language_outlined,
+                        title: l10n.language_selection,
+                        child: Container(
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.cardBorder),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: localeProvider.locale.languageCode,
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down,
+                                  color: AppColors.textSubtle),
+                              items: [
+                                DropdownMenuItem(
+                                    value: 'en', child: Text(l10n.english)),
+                                DropdownMenuItem(
+                                    value: 'ar', child: Text(l10n.arabic)),
+                              ],
+                              onChanged: (v) {
+                                if (v != null) localeProvider.setLocale(Locale(v));
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Notification Preferences
+                      _buildSection(
+                        icon: Icons.notifications_none_outlined,
+                        title: l10n.notification_preferences,
+                        child: Consumer<NotificationProvider>(
+                          builder: (context, notif, _) {
+                            final userId =
+                                context.read<AuthProvider>().currentUser?.id ?? '';
+                            return Column(
+                              children: [
+                                _buildSwitchTile(
+                                  title: l10n.push_notifications,
+                                  value: notif.adminSettings.pushNotifications,
+                                  onChanged: notif.isSettingsLoading
+                                      ? null
+                                      : (v) => notif.updateAdminSettings(
+                                    userId: userId,
+                                    updatedSettings: AdminNotificationSettings(
+                                      pushNotifications: v,
+                                      emailNotifications:
+                                      notif.adminSettings.emailNotifications,
+                                      smsNotifications:
+                                      notif.adminSettings.smsNotifications,
+                                    ),
+                                  ),
+                                ),
+                                const Divider(height: 1, color: AppColors.divider),
+                                _buildSwitchTile(
+                                  title: l10n.email_notifications,
+                                  value: notif.adminSettings.emailNotifications,
+                                  onChanged: notif.isSettingsLoading
+                                      ? null
+                                      : (v) => notif.updateAdminSettings(
+                                    userId: userId,
+                                    updatedSettings: AdminNotificationSettings(
+                                      pushNotifications:
+                                      notif.adminSettings.pushNotifications,
+                                      emailNotifications: v,
+                                      smsNotifications:
+                                      notif.adminSettings.smsNotifications,
+                                    ),
+                                  ),
+                                ),
+                                if (notif.isSettingsLoading)
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 8),
+                                    child: LinearProgressIndicator(),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+                      SfOutlineButton(
+                        label: l10n.logout,
+                        color: AppColors.error,
+                        onPressed: _logout,
+                        icon: Icons.logout,
+                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
@@ -327,7 +328,7 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
           ),
         ],
       ),

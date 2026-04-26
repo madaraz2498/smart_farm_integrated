@@ -53,27 +53,34 @@ class MessageModel {
     return MessageModel(
       id: json['id'] ?? 0,
       userId: json['user_id'] ?? 0,
-      userName: json['user_name'] ??
+      // Support both new API fields (sender_name/sender_email) and legacy fields
+      userName: json['sender_name'] ??
+          json['user_name'] ??
           json['username'] ??
           json['user']?['username'] ??
           json['user']?['name'] ??
           'User',
-      userEmail:
-      json['user_email'] ?? json['email'] ?? json['user']?['email'] ?? '',
+      userEmail: json['sender_email'] ??
+          json['user_email'] ??
+          json['email'] ??
+          json['user']?['email'] ??
+          '',
       subject: json['subject'] ?? '',
       content: json['content'] ?? json['message'] ?? '',
       reply: replyStr,
-      createdAt:
-      parseDate(json['created_at'] ?? json['timestamp'] ?? json['date']),
+      // Support both 'date' (new API) and 'created_at' (legacy)
+      createdAt: parseDate(
+          json['date'] ?? json['created_at'] ?? json['timestamp']),
       repliedAt: json['reply_at'] != null ||
           json['replied_at'] != null ||
           json['reply_time'] != null
           ? parseDate(json['reply_at'] ??
           json['replied_at'] ??
           json['reply_time'])
-          : (replyStr != null ? parseDate(json['updated_at']) : null),
+          : (replyStr != null ? parseDate(json['updated_at'] ?? json['date']) : null),
       isReplied: json['is_replied'] == true ||
           json['is_replied'] == 1 ||
+          json['status'] == 'Replied' ||
           json['status'] == 'replied' ||
           json['status'] == 'answered' ||
           replyStr != null,

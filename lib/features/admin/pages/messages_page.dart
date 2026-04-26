@@ -76,24 +76,24 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
                     child: provider.isLoading && provider.messages.isEmpty
                         ? const Center(child: CircularProgressIndicator())
                         : provider.messages.isEmpty
-                            ? _buildEmptyState(l10n)
-                            : ListView.separated(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: pagePadding),
-                                itemCount: provider.messages.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 16),
-                                itemBuilder: (context, index) {
-                                  final msg = provider.messages[index];
-                                  return _MessageCard(
-                                    message: msg,
-                                    onReply: () =>
-                                        _showReplyDialog(context, msg),
-                                    onDelete: () =>
-                                        _confirmDelete(context, msg.id),
-                                  );
-                                },
-                              ),
+                        ? _buildEmptyState(l10n)
+                        : ListView.separated(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: pagePadding),
+                      itemCount: provider.messages.length,
+                      separatorBuilder: (_, __) =>
+                      const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final msg = provider.messages[index];
+                        return _MessageCard(
+                          message: msg,
+                          onReply: () =>
+                              _showReplyDialog(context, msg),
+                          onDelete: () =>
+                              _confirmDelete(context, msg.id),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -137,10 +137,10 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
             onPressed: () async {
               if (_replyController.text.isNotEmpty) {
                 final success =
-                    await context.read<AdminMessageProvider>().replyToMessage(
-                          messageId: msg.id,
-                          reply: _replyController.text,
-                        );
+                await context.read<AdminMessageProvider>().replyToMessage(
+                  messageId: msg.id,
+                  reply: _replyController.text,
+                );
                 if (success) {
                   if (mounted) Navigator.pop(context);
                   _replyController.clear();
@@ -169,7 +169,7 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
           TextButton(
             onPressed: () async {
               final success =
-                  await context.read<AdminMessageProvider>().deleteMessage(id);
+              await context.read<AdminMessageProvider>().deleteMessage(id);
               if (success) {
                 if (mounted) Navigator.pop(context);
                 _snack(l10n.success_msg);
@@ -262,6 +262,17 @@ class _MessageCard extends StatelessWidget {
     final repliedAt = message.repliedAt ?? message.createdAt;
     final replyDateStr = DateFormat.yMMMd(locale).add_Hm().format(repliedAt);
 
+    // Resolve display name — fall back to email prefix if name is generic
+    final displayName =
+    (message.userName.isEmpty ||
+        message.userName == 'User' ||
+        message.userName == 'Unknown User' ||
+        message.userName == 'مستخدم مجهول')
+        ? (message.userEmail.isNotEmpty
+        ? message.userEmail.split('@').first
+        : l10n.unknown_user)
+        : message.userName;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -299,9 +310,7 @@ class _MessageCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      message.userName.isEmpty || message.userName == 'User'
-                          ? l10n.unknown_user
-                          : message.userName,
+                      displayName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -309,17 +318,27 @@ class _MessageCard extends StatelessWidget {
                       ),
                     ),
                     if (message.userEmail.isNotEmpty)
-                      Text(
-                        message.userEmail,
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 13,
-                        ),
+                      Row(
+                        children: [
+                          Icon(Icons.email_outlined,
+                              size: 12, color: Colors.grey.shade500),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              message.userEmail,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                   ],
                 ),
               ),
-              // Status & Date & Actions
+              // Status & Actions
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -339,20 +358,31 @@ class _MessageCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    dateStr,
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 11,
-                    ),
-                  ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          // 2. Message Content Area
+
+          // 2. Sent-at timestamp — clearly visible below the header
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(Icons.access_time_rounded,
+                  size: 13, color: Colors.grey.shade400),
+              const SizedBox(width: 4),
+              Text(
+                dateStr,
+                style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+          // 3. Message Content Area
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -366,7 +396,7 @@ class _MessageCard extends StatelessWidget {
                 // Subject Tag
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFF10B981).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -386,10 +416,10 @@ class _MessageCard extends StatelessWidget {
                 // Message Body
                 Align(
                   alignment:
-                      isRtl ? Alignment.centerRight : Alignment.centerRight,
+                  isRtl ? Alignment.centerRight : Alignment.centerLeft,
                   child: Text(
                     message.content,
-                    textAlign: isRtl ? TextAlign.right : TextAlign.right,
+                    textAlign: isRtl ? TextAlign.right : TextAlign.left,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -453,7 +483,7 @@ class _MessageCard extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(14),
@@ -474,7 +504,7 @@ class _MessageCard extends StatelessWidget {
               ),
             ),
           ],
-          // 3. Reply Button (if not replied)
+          // 4. Reply Button (if not replied)
           if (!message.isReplied) ...[
             const SizedBox(height: 16),
             Align(
@@ -488,7 +518,7 @@ class _MessageCard extends StatelessWidget {
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),

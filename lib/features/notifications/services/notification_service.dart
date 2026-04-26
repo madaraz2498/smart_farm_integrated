@@ -132,6 +132,21 @@ class NotificationService {
     return null;
   }
 
+  Future<AdminNotificationSettings?> getAdminSettings(String userId) async {
+    final response = await _safeCall(
+          () => _apiClient.get(
+        '/notifications/notifications/admin-settings/$userId',
+      ),
+      'getAdminSettings',
+    );
+
+    if (response is Map<String, dynamic>) {
+      return AdminNotificationSettings.fromJson(response);
+    }
+
+    return null;
+  }
+
   Future<bool> updateFarmerSettings(
       String userId,
       FarmerNotificationSettings settings,
