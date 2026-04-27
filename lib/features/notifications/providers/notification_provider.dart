@@ -27,6 +27,15 @@ class NotificationProvider extends ChangeNotifier {
     _applyFilters(); // re-apply filters when role changes
   }
 
+  // ✅ Language for UI text direction sync
+  String _language = 'ar';
+  void setLanguage(String lang) {
+    if (_language == lang) return;
+    _language = lang;
+    notifyListeners();
+  }
+  String get language => _language;
+
   bool _isLoading = false;
   bool _isSettingsLoading = false;
   String? _error;

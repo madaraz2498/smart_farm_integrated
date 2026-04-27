@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
+import 'package:smart_farm/providers/locale_provider.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
 import '../../../widgets/shared/main_layout.dart';
@@ -52,8 +53,11 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
     final notifProvider = context.read<NotificationProvider>();
 
-    // Tell the notification provider which role is active so filters are applied
-    // correctly (admin sees all notifications; farmer applies analysis filter).
+    // ✅ Sync language so translations work immediately after login
+    final lang = context.read<LocaleProvider>().locale.languageCode;
+    notifProvider.setLanguage(lang);
+
+    // Role filter: admin sees all, farmer applies analysis filter
     notifProvider.setIsAdmin(authProvider.isAdmin);
 
     notifProvider.fetchNotifications(userId: userId);
@@ -63,6 +67,11 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    // ✅ Keep language in sync when user changes locale in settings
+    final lang = context.watch<LocaleProvider>().locale.languageCode;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<NotificationProvider>().setLanguage(lang);
+    });
     return switch (auth.status) {
       AuthStatus.unknown => const Scaffold(
           body: Center(

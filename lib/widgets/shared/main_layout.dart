@@ -75,11 +75,10 @@ class MainLayout extends StatelessWidget {
     }
 
     if (isAdmin) {
-      return ChangeNotifierProvider(
-        create: (_) => AdminProvider(),
-        child: _Shell(
-            isWide: isWide, pageIndex: nav.adminIndex, pages: _adminPages),
-      );
+      // ✅ FIX: AdminProvider already registered in main.dart MultiProvider
+      // Do NOT create a second instance here — causes duplicate API calls
+      return _Shell(
+          isWide: isWide, pageIndex: nav.adminIndex, pages: _adminPages);
     }
     return _Shell(
         isWide: isWide, pageIndex: nav.farmerIndex, pages: _farmerPages);
