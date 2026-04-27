@@ -50,15 +50,25 @@ class FarmerDashboardData {
 
   Map<String, dynamic> toJson() {
     return {
-      'total_analyses': totalAnalyses,
-      'today_analyses': todayAnalyses,
-      'most_used_service': mostUsedService,
-      'weather': weather,
-      'weather_temp': weatherTemp,
-      'weather_humidity': weatherHumidity,
-      'weather_wind': weatherWind,
-      'weather_description': weatherDescription,
-      'location_name': locationName,
+      // 'statistics' must be a Map so fromJson can cast it correctly.
+      // Flat keys written previously ('total_analyses' etc.) were never read
+      // back by fromJson, causing the statistics to silently reset to 0 on
+      // cache restore.
+      'statistics': {
+        'total': totalAnalyses,
+        'today': todayAnalyses,
+        'most_used': mostUsedService,
+      },
+      // 'weather' must be a Map so fromJson can cast it correctly.
+      // Previously this stored a plain String, which caused the crash:
+      //   type 'String' is not a subtype of type 'Map<String, dynamic>?'
+      'weather': {
+        'temp': weatherTemp ?? '',
+        'desc': weatherDescription ?? '',
+        'humidity': weatherHumidity,
+        'wind': weatherWind,
+        'location': locationName,
+      },
     };
   }
 }

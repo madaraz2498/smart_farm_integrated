@@ -62,5 +62,10 @@ class AuthResponse {
 
   bool   get hasToken    => accessToken.isNotEmpty;
   String get displayName => username.isNotEmpty ? username : email.split('@').first;
-  UserRole get userRole  => role.toLowerCase() == 'admin' ? UserRole.admin : UserRole.farmer;
+  UserRole get userRole {
+    final roleLower = role.toLowerCase();
+    if (roleLower == 'super_admin') return UserRole.super_admin;
+    if (roleLower == 'admin') return UserRole.admin;
+    return UserRole.farmer;
+  }
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/admin_provider.dart';
 import '../widgets/user_stat_cards.dart';
 import '../widgets/user_list_table.dart';
@@ -32,6 +33,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final pagePadding = Responsive.responsivePadding(context);
+    final authProvider = context.watch<AuthProvider>();
 
     return Consumer<AdminProvider>(
       builder: (context, provider, _) {
@@ -61,11 +63,15 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       UserListTable(
                         users: provider.users,
                         searchQuery: _searchQuery,
+                        authProvider: authProvider,
                         onEdit: (user) =>
                             UserManagementDialogs.showUserManagementDialog(
                           context,
                           user,
+                          authProvider: authProvider,
                           onPromote: (u) => provider.promoteToAdmin(u.email),
+                          onPromoteToSuperAdmin: (u) => provider.promoteToSuperAdmin(u.email),
+                          onDemoteToFarmer: (u) => provider.demoteToFarmer(u.email),
                           onToggleStatus: (u) => u.isActive
                               ? provider.deactivateUser(u.id)
                               : provider.activateUser(u.id),
@@ -98,9 +104,41 @@ class _UserManagementPageState extends State<UserManagementPage> {
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            Text(
-              l10n.manage_users_roles_permissions,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.manage_users_roles_permissions,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.security_outlined, size: 10, color: Colors.blue.shade700),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'You Are Super Admin',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -143,29 +181,33 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
   List<StatCardData> _buildSummaryCards(
       AdminProvider provider, AppLocalizations l10n) {
-    final users = provider.users;
-    final activeCount = users.where((u) => u.isActive).length;
-    final totalCount = users.length;
+    final allUsers = provider.users;
+    final visibleUsers = allUsers.where((u) => u.role.toLowerCase() != 'super_admin').toList();
+    
+    final activeCount = visibleUsers.where((u) => u.isActive).length;
+    final totalVisibleCount = visibleUsers.length;
     final adminCount =
-        users.where((u) => u.isAdmin || u.role.toLowerCase() == 'admin').length;
-    final inactiveCount = totalCount - activeCount;
+        visibleUsers.where((u) => u.role.toLowerCase() == 'admin').length;
+    final farmerCount =
+        visibleUsers.where((u) => u.role.toLowerCase() == 'farmer').length;
+    final inactiveCount = totalVisibleCount - activeCount;
 
     return [
       StatCardData(
         label: l10n.total_users_label,
-        value: '$totalCount',
+        value: '$totalVisibleCount',
         svgPath: AppAssets.totalUsers,
         color: const Color(0xFF6366F1),
       ),
       StatCardData(
-        label: l10n.admins_label,
+        label: 'Admins',
         value: '$adminCount',
         svgPath: AppAssets.admin,
         color: const Color(0xFF7C3AED),
       ),
       StatCardData(
-        label: l10n.active_users_label,
-        value: '$activeCount',
+        label: 'Farmers',
+        value: '$farmerCount',
         svgPath: AppAssets.activeUsers,
         color: const Color(0xFF10B981),
       ),

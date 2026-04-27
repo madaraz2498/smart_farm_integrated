@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/production_logger.dart';
 import '../../../core/network/api_exception.dart';
@@ -57,15 +55,20 @@ class AuthService {
       final resp =
       _parse(raw, fallbackName: name.trim(), fallbackEmail: email.trim());
 
-      if (resp.hasToken) return _persist(resp, fallbackEmail: email.trim());
+      if (resp.hasToken) {
+        return _persist(resp, fallbackEmail: email.trim());
+      }
 
       // Register gave no token → auto-login
       ProductionLogger.auth('register: no token, auto-logging in');
       return await login(email: email.trim(), password: password.trim());
     } on ApiException catch (e) {
-      if (e.isConflict)
+      if (e.isConflict) {
         return AuthResult.fail('Email already registered. Please sign in.');
-      if (e.isValidation) return AuthResult.fail('Invalid input: ${e.message}');
+      }
+      if (e.isValidation) {
+        return AuthResult.fail('Invalid input: ${e.message}');
+      }
       return AuthResult.fail(e.message);
     } catch (e) {
       ProductionLogger.error('Register failed', e);
@@ -206,7 +209,9 @@ class AuthService {
   Future<UserModel?> restoreSession() async {
     try {
       final token = await TokenStorage.getToken();
-      if (token == null || token.isEmpty) return null;
+      if (token == null || token.isEmpty) {
+        return null;
+      }
 
       final stored = await TokenStorage.getUser();
       final name = stored['name'] ?? '';
@@ -241,7 +246,7 @@ class AuthService {
         id: id,
         name: name.isNotEmpty ? name : email.split('@').first,
         email: email,
-        role: role == 'admin' ? UserRole.admin : UserRole.farmer,
+        role: role == 'super_admin' ? UserRole.super_admin : role == 'admin' ? UserRole.admin : UserRole.farmer,
         profileImg: sanitizedImg,);
     } catch (e) {
       ProductionLogger.error('restoreSession failed', e);
@@ -256,8 +261,8 @@ class AuthService {
     try {
       ProductionLogger.auth('refreshUserProfile for ${current.id}');
 
-      // If admin, fetch from admin users list.
-      if (current.role == UserRole.admin) {
+      // If admin or super_admin, fetch from admin users list.
+      if (current.role == UserRole.admin || current.role == UserRole.super_admin) {
         final adminSvc = AdminService.instance;
         final data = await adminSvc.getUsersAndSummary();
         final found = data.users.firstWhere((u) => u.id == current.id);
@@ -284,18 +289,23 @@ class AuthService {
 
   Future<void> _persistUpdated(UserModel u) async {
     final token = await TokenStorage.getToken();
-    if (token == null) return;
+    if (token == null) {
+        return;
+      }
     await TokenStorage.save(
       token: token,
       userId: u.id,
       userName: u.name,
       userEmail: u.email,
-      userRole: u.role == UserRole.admin ? 'admin' : 'farmer',
+      userRole: u.role == UserRole.super_admin ? 'super_admin' : u.role == UserRole.admin ? 'admin' : 'farmer',
       profileImg: u.profileImg,
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  Future<void> _clear() async {
+    _c.setToken(null);
+    await TokenStorage.clearAuth();
+  }
 
   /// Parses the raw API response into an [AuthResponse].
   ///
@@ -370,10 +380,5 @@ class AuthService {
       role: resp.userRole,
       profileImg: resp.profileImg,
     ));
-  }
-
-  Future<void> _clear() async {
-    _c.setToken(null);
-    await TokenStorage.clearAuth();
   }
 }

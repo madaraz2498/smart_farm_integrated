@@ -126,11 +126,19 @@ class DashboardProvider extends ChangeNotifier {
     _error = null;
 
     // Show cached data immediately while fetching fresh data.
+    // Wrapped in try-catch: old/corrupt cache entries (e.g. the previous
+    // toJson format that stored 'weather' as a String instead of a Map)
+    // must not crash the app — we simply discard them and wait for the API.
     final cached = await CacheManager.instance.getCachedDashboard(userId);
     if (cached != null) {
-      _dashboardData = FarmerDashboardData.fromJson(cached);
-      ProductionLogger.dashboard('serving cached dashboard while fetching fresh data');
-      notifyListeners();
+      try {
+        _dashboardData = FarmerDashboardData.fromJson(cached);
+        ProductionLogger.dashboard('serving cached dashboard while fetching fresh data');
+        notifyListeners();
+      } catch (e) {
+        ProductionLogger.error('Cached dashboard is corrupt or outdated, discarding: $e');
+        await CacheManager.instance.clearUserCache(userId);
+      }
     }
 
     try {

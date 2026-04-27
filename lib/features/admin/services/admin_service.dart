@@ -1,8 +1,39 @@
-import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/production_logger.dart';
 import '../models/admin_models.dart';
+
+/// Helper methods for robust API response parsing
+class _ApiParser {
+  /// Safely parse a response that could be either a Map or List
+  /// Returns a Map if possible, otherwise empty Map
+  static Map<String, dynamic> parseAsMap(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    if (data is Map) {
+      return Map<String, dynamic>.from(data);
+    }
+    return {};
+  }
+
+  /// Safely parse a response that could be either a List or Map containing a list
+  /// Returns a List if possible, otherwise empty List
+  static List<T> parseAsList<T>(dynamic data, T Function(Map<String, dynamic>) fromJson) {
+    if (data is List) {
+      return data.map((e) => fromJson(e as Map<String, dynamic>)).toList();
+    }
+    if (data is Map) {
+      // Check for common list container keys
+      for (final key in ['data', 'users', 'results', 'items']) {
+        if (data[key] is List) {
+          return (data[key] as List).map((e) => fromJson(e as Map<String, dynamic>)).toList();
+        }
+      }
+    }
+    return [];
+  }
+}
 
 /// All admin API endpoints — corrected paths (no doubled prefixes).
 ///
@@ -15,7 +46,11 @@ import '../models/admin_models.dart';
 ///   DELETE /admin/users/delete/{user_id}
 ///   PATCH  /admin/users/deactivate/{user_id}
 ///   PATCH  /admin/users/activate/{user_id}
-///   POST   /admin/users/promote-to-admin   query: { "email": "..." }
+///   POST   /admin/users/promote-to-admin       query: { "email": "..." }
+///   POST   /admin/users/promote-to-super-admin  query: { "email": "..." }
+///   POST   /admin/users/demote-to-farmer        query: { "email": "..." }
+///   PATCH  /admin/users/change-role/{user_id}   body: { "role": "..." }
+///   GET    /admin/users/roles-summary
 ///   PATCH  /admin/users/settings/notifications/{user_id}
 ///
 ///   PATCH  /notifications/notifications/admin-settings/{user_id}
@@ -43,7 +78,7 @@ class AdminService {
     try {
       final data = await _c.get(path);
       ProductionLogger.info('getDashboardStats response: $data');
-      return DashboardStats.fromJson(data as Map<String, dynamic>);
+      return DashboardStats.fromJson(_ApiParser.parseAsMap(data));
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -60,7 +95,7 @@ class AdminService {
     try {
       final data = await _c.get(path);
       ProductionLogger.info('getUsersAndSummary response: $data');
-      return UserManagementData.fromJson(data as Map<String, dynamic>);
+      return UserManagementData.fromJson(_ApiParser.parseAsMap(data));
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -74,17 +109,7 @@ class AdminService {
     try {
       final data = await _c.get('/admin/users/search', query: {'query': query});
       ProductionLogger.info('searchUsers response: $data');
-      if (data is List) {
-        return data
-            .map((e) => AdminUser.fromJson(e as Map<String, dynamic>))
-            .toList();
-      }
-      if (data is Map && data['users'] is List) {
-        return (data['users'] as List)
-            .map((e) => AdminUser.fromJson(e as Map<String, dynamic>))
-            .toList();
-      }
-      return [];
+      return _ApiParser.parseAsList<AdminUser>(data, AdminUser.fromJson);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -142,6 +167,58 @@ class AdminService {
     }
   }
 
+  Future<void> promoteToSuperAdmin(String email) async {
+    const path = '/admin/users/promote-to-super-admin';
+    ProductionLogger.info('POST $path  query: {email: $email}');
+    try {
+      await _c.post(path, query: {'email': email});
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      ProductionLogger.error('promote_to_super_admin', e);
+      throw ApiException('Failed to promote user to super admin.');
+    }
+  }
+
+  Future<void> demoteToFarmer(String email) async {
+    const path = '/admin/users/demote-to-farmer';
+    ProductionLogger.info('POST $path  query: {email: $email}');
+    try {
+      await _c.post(path, query: {'email': email});
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      ProductionLogger.error('demote_user', e);
+      throw ApiException('Failed to demote user.');
+    }
+  }
+
+  Future<void> changeUserRole(String userId, String newRole) async {
+    final path = '/admin/users/change-role/$userId';
+    ProductionLogger.info('PATCH $path  body: {role: $newRole}');
+    try {
+      await _c.patch(path, body: {'role': newRole});
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      ProductionLogger.error('change_user_role', e);
+      throw ApiException('Failed to change user role.');
+    }
+  }
+
+  Future<Map<String, dynamic>> getRolesSummary() async {
+    const path = '/admin/users/roles-summary';
+    ProductionLogger.info('GET $path');
+    try {
+      final data = await _c.get(path);
+      ProductionLogger.info('getRolesSummary response: $data');
+      return _ApiParser.parseAsMap(data);
+    } catch (e) {
+      ProductionLogger.error('get_roles_summary', e);
+      throw ApiException('Failed to get roles summary.');
+    }
+  }
+
   Future<void> updateNotificationSettings(
       String userId, Map<String, dynamic> settings) async {
     final path = '/admin/users/settings/notifications/$userId';
@@ -178,23 +255,24 @@ class AdminService {
     try {
       final data = await _c.get(path);
       ProductionLogger.info('getSystemStatus response: $data');
-      return (data as Map<String, dynamic>?) ?? {};
+      return _ApiParser.parseAsMap(data);
     } catch (e) {
       ProductionLogger.info('getSystemStatus non-critical: $e');
       return {};
     }
   }
 
-  Future<Map<String, dynamic>> getSystemSettings() async {
+  Future<List<SystemSetting>> getSystemSettings() async {
     const path = '/admin/system/admin/system/settings';
     ProductionLogger.info('GET $path');
     try {
       final data = await _c.get(path);
       ProductionLogger.info('getSystemSettings response: $data');
-      return (data as Map<String, dynamic>?) ?? {};
+      
+      return _ApiParser.parseAsList<SystemSetting>(data, SystemSetting.fromJson);
     } catch (e) {
       ProductionLogger.info('getSystemSettings non-critical: $e');
-      return {};
+      return [];
     }
   }
 
@@ -228,10 +306,7 @@ class AdminService {
     try {
       final data = await _c.get(path);
       ProductionLogger.info('getModelsTable response: $data');
-      if (data is List) return data.cast<Map<String, dynamic>>();
-      if (data is Map && data['models'] is List) {
-        return (data['models'] as List).cast<Map<String, dynamic>>();
-      }
+      return _ApiParser.parseAsList<Map<String, dynamic>>(data, (json) => json);
     } catch (e) {
       ProductionLogger.info('getModelsTable non-critical: $e');
     }
@@ -246,7 +321,7 @@ class AdminService {
     try {
       final data = await _c.get(path);
       ProductionLogger.info('getAdminReportStats response: $data');
-      return (data as Map<String, dynamic>?) ?? {};
+      return _ApiParser.parseAsMap(data);
     } catch (e) {
       ProductionLogger.info('getAdminReportStats non-critical: $e');
       return {};

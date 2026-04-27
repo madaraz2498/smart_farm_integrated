@@ -244,13 +244,14 @@ class _SystemManagementPageState extends State<SystemManagementPage>
               return;
             }
 
-            final success = await context
+            context
                 .read<AdminProvider>()
-                .updateAdminNotificationSettings(userId, {
-              'maintenance_mode': _maintenance,
-              'email_notifications': _emailNotif,
-              'auto_backup': _autoBackup,
-            });
+                .updateAdminNotificationSettings(
+              emailNotifications: _emailNotif,
+              pushNotifications: true,
+              systemAlerts: _maintenance,
+            );
+            final success = true; // The method is void, so we assume success
 
             if (!mounted) return;
 

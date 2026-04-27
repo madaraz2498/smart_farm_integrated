@@ -9,13 +9,25 @@ import 'package:smart_farm/core/utils/production_logger.dart';
 class UserListTable extends StatefulWidget {
   final List<AdminUser> users;
   final String searchQuery;
+  final AuthProvider authProvider;
   final Function(AdminUser) onEdit;
+  final Function(AdminUser)? onPromote;
+  final Function(AdminUser)? onPromoteToSuperAdmin;
+  final Function(AdminUser)? onDemoteToFarmer;
+  final Function(AdminUser)? onToggleStatus;
+  final Function(AdminUser)? onDelete;
 
   const UserListTable({
     super.key,
     required this.users,
     required this.searchQuery,
+    required this.authProvider,
     required this.onEdit,
+    this.onPromote,
+    this.onPromoteToSuperAdmin,
+    this.onDemoteToFarmer,
+    this.onToggleStatus,
+    this.onDelete,
   });
 
   @override
@@ -36,8 +48,10 @@ class _UserListTableState extends State<UserListTable> {
     final l10n = AppLocalizations.of(context)!;
     final filteredUsers = widget.users.where((u) {
       final q = widget.searchQuery.toLowerCase();
-      return u.displayName.toLowerCase().contains(q) ||
+      final isSuperAdmin = u.role.toLowerCase() == 'super_admin';
+      final matchesSearch = u.displayName.toLowerCase().contains(q) ||
           u.email.toLowerCase().contains(q);
+      return !isSuperAdmin && matchesSearch;
     }).toList();
 
     return Align(
@@ -111,8 +125,8 @@ class _UserListTableState extends State<UserListTable> {
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: nameW,
+          Expanded(
+            flex: 3,
             child: Text(
               l10n.user_name_email.toUpperCase(),
               style: TextStyle(
@@ -122,8 +136,8 @@ class _UserListTableState extends State<UserListTable> {
                   letterSpacing: 0.5),
             ),
           ),
-          SizedBox(
-            width: roleW,
+          Expanded(
+            flex: 1,
             child: Center(
               child: Text(
                 l10n.role.toUpperCase(),
@@ -135,8 +149,8 @@ class _UserListTableState extends State<UserListTable> {
               ),
             ),
           ),
-          SizedBox(
-            width: statusW,
+          Expanded(
+            flex: 1,
             child: Center(
               child: Text(
                 l10n.status.toUpperCase(),
@@ -148,8 +162,8 @@ class _UserListTableState extends State<UserListTable> {
               ),
             ),
           ),
-          SizedBox(
-            width: actionsW,
+          Expanded(
+            flex: 1,
             child: Center(
               child: Text(
                 l10n.actions.toUpperCase(),
@@ -172,8 +186,8 @@ class _UserListTableState extends State<UserListTable> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Row(
         children: [
-          SizedBox(
-            width: nameW,
+          Expanded(
+            flex: 3,
             child: Row(
               children: [
                 _buildAvatar(u),
@@ -198,16 +212,16 @@ class _UserListTableState extends State<UserListTable> {
               ],
             ),
           ),
-          SizedBox(
-            width: roleW,
+          Expanded(
+            flex: 1,
             child: Center(child: _RoleBadge(user: u)),
           ),
-          SizedBox(
-            width: statusW,
+          Expanded(
+            flex: 1,
             child: Center(child: _StatusBadge(isActive: u.isActive)),
           ),
-          SizedBox(
-            width: actionsW,
+          Expanded(
+            flex: 1,
             child: Center(
               child: TextButton(
                 onPressed: () => widget.onEdit(u),
@@ -274,39 +288,59 @@ class _RoleBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAdmin = user.isAdmin || user.role.toLowerCase() == 'admin';
-    if (!isAdmin) {
+    final roleLower = user.role.toLowerCase();
+    
+    if (roleLower == 'super_admin') {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFFF3F4F6),
+          color: const Color(0xFFFEE2E2),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
+          border: Border.all(color: const Color(0xFFFCA5A5), width: 1),
         ),
-        child: Text(
-          user.role,
+        child: const Text(
+          'Super Admin',
           style: TextStyle(
             fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey.shade600,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFDC2626),
+          ),
+        ),
+      );
+    }
+    
+    if (roleLower == 'admin' || user.isAdmin) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F3FF),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFDDD6FE), width: 1),
+        ),
+        child: const Text(
+          'Admin',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF7C3AED),
           ),
         ),
       );
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F3FF),
+        color: const Color(0xFFF3F4F6),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFDDD6FE), width: 1),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
-      child: const Text(
-        'Admin',
+      child: Text(
+        user.role,
         style: TextStyle(
           fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF7C3AED),
+          fontWeight: FontWeight.w600,
+          color: Colors.grey.shade600,
         ),
       ),
     );

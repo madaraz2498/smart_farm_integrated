@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_farm/core/utils/responsive.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../models/admin_models.dart';
 import '../providers/admin_provider.dart';
 
@@ -174,7 +175,10 @@ class UserManagementDialogs {
   }
 
   static void showUserManagementDialog(BuildContext context, AdminUser u,
-      {required Function(AdminUser) onPromote,
+      {required AuthProvider authProvider,
+      required Function(AdminUser) onPromote,
+      Function(AdminUser)? onPromoteToSuperAdmin,
+      Function(AdminUser)? onDemoteToFarmer,
       required Function(AdminUser) onToggleStatus,
       required Function(AdminUser) onDelete}) {
     final l10n = AppLocalizations.of(context)!;
@@ -216,59 +220,7 @@ class UserManagementDialogs {
               const SizedBox(height: 24),
               const Divider(),
               const SizedBox(height: 16),
-              _buildDialogAction(
-                context,
-                icon: Icons.admin_panel_settings_outlined,
-                title: l10n.promote_to_admin,
-                color: Colors.blue,
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showActionConfirmationDialog(
-                    context,
-                    title: l10n.promote_to_admin,
-                    description: l10n.confirm_promote_desc,
-                    icon: Icons.admin_panel_settings_outlined,
-                    color: Colors.blue,
-                    onConfirm: () => onPromote(u),
-                  );
-                },
-              ),
-              _buildDialogAction(
-                context,
-                icon: u.isActive ? Icons.person_off_outlined : Icons.person_outline,
-                title: u.isActive ? l10n.deactivate_user : l10n.activate_user,
-                color: u.isActive ? Colors.orange : Colors.green,
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showActionConfirmationDialog(
-                    context,
-                    title: u.isActive ? l10n.deactivate_user : l10n.activate_user,
-                    description: u.isActive
-                        ? l10n.confirm_deactivate_desc
-                        : l10n.confirm_activate_desc,
-                    icon: u.isActive ? Icons.person_off_outlined : Icons.person_outline,
-                    color: u.isActive ? Colors.orange : Colors.green,
-                    onConfirm: () => onToggleStatus(u),
-                  );
-                },
-              ),
-              _buildDialogAction(
-                context,
-                icon: Icons.delete_outline,
-                title: l10n.delete_user,
-                color: Colors.red,
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _showActionConfirmationDialog(
-                    context,
-                    title: l10n.delete_user,
-                    description: l10n.confirm_delete_desc,
-                    icon: Icons.delete_outline,
-                    color: Colors.red,
-                    onConfirm: () => onDelete(u),
-                  );
-                },
-              ),
+              ..._buildRoleBasedActions(context, authProvider, u, l10n, onPromote, onPromoteToSuperAdmin, onDemoteToFarmer, onToggleStatus, onDelete),
             ],
           ),
         ),
@@ -376,6 +328,193 @@ class UserManagementDialogs {
         ),
       ),
     );
+  }
+
+  static List<Widget> _buildRoleBasedActions(
+    BuildContext context,
+    AuthProvider authProvider,
+    AdminUser targetUser,
+    AppLocalizations l10n,
+    Function(AdminUser) onPromote,
+    Function(AdminUser)? onPromoteToSuperAdmin,
+    Function(AdminUser)? onDemoteToFarmer,
+    Function(AdminUser) onToggleStatus,
+    Function(AdminUser) onDelete,
+  ) {
+    final isSuperAdmin = authProvider.isSuperAdmin;
+    final isAdmin = authProvider.isAdmin;
+    final targetRole = targetUser.role.toLowerCase();
+    final targetIsSuperAdmin = targetRole == 'super_admin';
+    final targetIsAdmin = targetRole == 'admin';
+    final targetIsFarmer = targetRole == 'farmer';
+
+    List<Widget> actions = [];
+
+    // SUPER_ADMIN can do everything
+    if (isSuperAdmin) {
+      // Promote farmer to admin
+      if (targetIsFarmer && onPromote != null) {
+        actions.add(_buildDialogAction(
+          context,
+          icon: Icons.admin_panel_settings_outlined,
+          title: l10n.promote_to_admin,
+          color: Colors.blue,
+          onTap: () {
+            Navigator.pop(context);
+            _showActionConfirmationDialog(
+              context,
+              title: l10n.promote_to_admin,
+              description: l10n.confirm_promote_desc,
+              icon: Icons.admin_panel_settings_outlined,
+              color: Colors.blue,
+              onConfirm: () => onPromote(targetUser),
+            );
+          },
+        ));
+      }
+
+      // Promote admin to super_admin
+      if (targetIsAdmin && onPromoteToSuperAdmin != null) {
+        actions.add(_buildDialogAction(
+          context,
+          icon: Icons.supervisor_account_outlined,
+          title: 'Promote to Super Admin',
+          color: Colors.purple,
+          onTap: () {
+            Navigator.pop(context);
+            _showActionConfirmationDialog(
+              context,
+              title: 'Promote to Super Admin',
+              description: 'This user will be granted super admin privileges.',
+              icon: Icons.supervisor_account_outlined,
+              color: Colors.purple,
+              onConfirm: () => onPromoteToSuperAdmin!(targetUser),
+            );
+          },
+        ));
+      }
+
+      // Demote admin to farmer
+      if (targetIsAdmin && onDemoteToFarmer != null) {
+        actions.add(_buildDialogAction(
+          context,
+          icon: Icons.arrow_downward_outlined,
+          title: 'Demote to Farmer',
+          color: Colors.orange,
+          onTap: () {
+            Navigator.pop(context);
+            _showActionConfirmationDialog(
+              context,
+              title: 'Demote to Farmer',
+              description: 'This user will lose admin privileges.',
+              icon: Icons.arrow_downward_outlined,
+              color: Colors.orange,
+              onConfirm: () => onDemoteToFarmer!(targetUser),
+            );
+          },
+        ));
+      }
+
+      // Delete farmer or admin (but not super_admin)
+      if (!targetIsSuperAdmin) {
+        actions.add(_buildDialogAction(
+          context,
+          icon: Icons.delete_outline,
+          title: l10n.delete_user,
+          color: Colors.red,
+          onTap: () {
+            Navigator.pop(context);
+            _showActionConfirmationDialog(
+              context,
+              title: l10n.delete_user,
+              description: l10n.confirm_delete_desc,
+              icon: Icons.delete_outline,
+              color: Colors.red,
+              onConfirm: () => onDelete(targetUser),
+            );
+          },
+        ));
+      }
+
+      // Toggle status for all users
+      actions.add(_buildDialogAction(
+        context,
+        icon: targetUser.isActive ? Icons.person_off_outlined : Icons.person_outline,
+        title: targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
+        color: targetUser.isActive ? Colors.orange : Colors.green,
+        onTap: () {
+          Navigator.pop(context);
+          _showActionConfirmationDialog(
+            context,
+            title: targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
+            description: targetUser.isActive
+                ? l10n.confirm_deactivate_desc
+                : l10n.confirm_activate_desc,
+            icon: targetUser.isActive ? Icons.person_off_outlined : Icons.person_outline,
+            color: targetUser.isActive ? Colors.orange : Colors.green,
+            onConfirm: () => onToggleStatus(targetUser),
+          );
+        },
+      ));
+    }
+    // NORMAL ADMIN - limited permissions
+    else if (isAdmin) {
+      // Can only delete farmers
+      if (targetIsFarmer) {
+        actions.add(_buildDialogAction(
+          context,
+          icon: Icons.delete_outline,
+          title: l10n.delete_user,
+          color: Colors.red,
+          onTap: () {
+            Navigator.pop(context);
+            _showActionConfirmationDialog(
+              context,
+              title: l10n.delete_user,
+              description: l10n.confirm_delete_desc,
+              icon: Icons.delete_outline,
+              color: Colors.red,
+              onConfirm: () => onDelete(targetUser),
+            );
+          },
+        ));
+
+        // Can toggle status for farmers
+        actions.add(_buildDialogAction(
+          context,
+          icon: targetUser.isActive ? Icons.person_off_outlined : Icons.person_outline,
+          title: targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
+          color: targetUser.isActive ? Colors.orange : Colors.green,
+          onTap: () {
+            Navigator.pop(context);
+            _showActionConfirmationDialog(
+              context,
+              title: targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
+              description: targetUser.isActive
+                  ? l10n.confirm_deactivate_desc
+                  : l10n.confirm_activate_desc,
+              icon: targetUser.isActive ? Icons.person_off_outlined : Icons.person_outline,
+              color: targetUser.isActive ? Colors.orange : Colors.green,
+              onConfirm: () => onToggleStatus(targetUser),
+            );
+          },
+        ));
+      }
+      // For admin users, only show view-only actions
+      else if (targetIsAdmin || targetIsSuperAdmin) {
+        actions.add(_buildDialogAction(
+          context,
+          icon: Icons.visibility_outlined,
+          title: 'View Only',
+          color: Colors.grey,
+          onTap: () {
+            Navigator.pop(context);
+          },
+        ));
+      }
+    }
+
+    return actions;
   }
 
   static Widget _buildAvatar(AdminUser u) {

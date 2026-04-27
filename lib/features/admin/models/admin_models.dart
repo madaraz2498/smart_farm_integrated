@@ -1,6 +1,7 @@
 // Admin dashboard + user management models
 // GET /admin/dashboard/stats
 // GET /admin/users/summary-and-list
+// GET /admin/system/admin/system/settings
 
 class DashboardStats {
   const DashboardStats({
@@ -113,7 +114,13 @@ class AdminUser {
 
   String get displayName =>
       username.isNotEmpty ? username : email.split('@').first;
-  String get displayRole => isAdmin ? 'Admin' : role;
+  String get displayRole {
+    final roleLower = role.toLowerCase();
+    if (roleLower == 'super_admin') return 'Super Admin';
+    if (isAdmin) return 'Admin';
+    return role;
+  }
+  bool get isSuperAdmin => role.toLowerCase() == 'super_admin';
   String get statusLabel => isActive ? 'Active' : 'Inactive';
 
   AdminUser copyWith({bool? isActive}) => AdminUser(
@@ -134,6 +141,32 @@ class AdminNavItem {
   final Object icon; // IconData
   final String label;
   final bool isAdminOnly;
+}
+
+class SystemSetting {
+  const SystemSetting({
+    required this.key,
+    required this.name,
+    required this.status,
+  });
+
+  factory SystemSetting.fromJson(Map<String, dynamic> json) {
+    return SystemSetting(
+      key: json['key'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      status: json['status'] as String? ?? 'offline',
+    );
+  }
+
+  final String key;
+  final String name;
+  final String status;
+
+  bool get isOnline => status.toLowerCase() == 'online';
+
+  Map<String, bool> toSettingsMap() {
+    return {key: isOnline};
+  }
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
