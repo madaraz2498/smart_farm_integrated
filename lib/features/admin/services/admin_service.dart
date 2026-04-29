@@ -1,7 +1,17 @@
+import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/production_logger.dart';
 import '../models/admin_models.dart';
+
+// Top-level parsers for compute() — keep heavy JSON off the main thread.
+DashboardStats _parseDashboardStats(dynamic raw) {
+  return DashboardStats.fromJson(_ApiParser.parseAsMap(raw));
+}
+
+UserManagementData _parseUserManagementData(dynamic raw) {
+  return UserManagementData.fromJson(_ApiParser.parseAsMap(raw));
+}
 
 /// Helper methods for robust API response parsing
 class _ApiParser {
@@ -78,7 +88,7 @@ class AdminService {
     try {
       final data = await _c.get(path);
       ProductionLogger.info('getDashboardStats response: $data');
-      return DashboardStats.fromJson(_ApiParser.parseAsMap(data));
+      return await compute(_parseDashboardStats, data);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -95,7 +105,7 @@ class AdminService {
     try {
       final data = await _c.get(path);
       ProductionLogger.info('getUsersAndSummary response: $data');
-      return UserManagementData.fromJson(_ApiParser.parseAsMap(data));
+      return await compute(_parseUserManagementData, data);
     } on ApiException {
       rethrow;
     } catch (e) {

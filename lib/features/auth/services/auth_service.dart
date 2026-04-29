@@ -1,3 +1,5 @@
+import 'package:smart_farm/core/network/request_cache.dart';
+
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/production_logger.dart';
 import '../../../core/network/api_exception.dart';
@@ -264,7 +266,10 @@ class AuthService {
       // If admin or super_admin, fetch from admin users list.
       if (current.role == UserRole.admin || current.role == UserRole.super_admin) {
         final adminSvc = AdminService.instance;
-        final data = await adminSvc.getUsersAndSummary();
+        final data = await RequestCache.instance.execute(
+          key: 'users_summary',
+          fetcher: () => adminSvc.getUsersAndSummary(),
+        );
         final found = data.users.firstWhere((u) => u.id == current.id);
 
         final updated = current.copyWith(

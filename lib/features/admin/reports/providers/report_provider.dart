@@ -29,6 +29,9 @@ class AdminReportProvider extends ChangeNotifier {
 
   bool _hasFetchedOnce = false;
 
+  // ── In-flight singleton ───────────────────────────────────────────────────
+  Future<void>? _fetchFuture;
+
   void setRange(String range) {
     _selectedRange = range;
     // Range changed — always re-fetch.
@@ -36,12 +39,20 @@ class AdminReportProvider extends ChangeNotifier {
     fetchAllReports();
   }
 
-  Future<void> fetchAllReports({bool force = false}) async {
-    // Skip if already in-flight.
-    if (_isLoading) return;
-    // Skip if already loaded and no force signal.
-    if (_hasFetchedOnce && !force) return;
+  Future<void> fetchAllReports({bool force = false}) {
+    // Return in-flight future — prevents parallel duplicate calls.
+    if (_fetchFuture != null) return _fetchFuture!;
+    if (_hasFetchedOnce && !force) return Future.value();
 
+    _fetchFuture = _doFetchReports(force: force)
+        .whenComplete(() => _fetchFuture = null);
+    return _fetchFuture!;
+  }
+
+  Future<void> _doFetchReports({bool force = false}) async {
+    if (_isLoading) return;
+
+    // Silent refresh: don't trigger loading spinner if data already present.
     final isSilent = _stats != null;
 
     if (!isSilent) {

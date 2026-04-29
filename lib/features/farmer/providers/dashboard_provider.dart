@@ -4,6 +4,7 @@ import '../models/dashboard_models.dart';
 import '../services/dashboard_service.dart';
 import '../../../core/utils/production_logger.dart';
 import '../../../core/utils/cache_manager.dart';
+import '../../../core/utils/app_lifecycle_manager.dart'; // AppBootstrapController, PageLifecycleManager, RequestDeduplicator
 
 /// Dashboard data provider.
 ///
@@ -28,7 +29,33 @@ class DashboardProvider extends ChangeNotifier {
   String _lang = 'ar';
 
   Timer? _debounceTimer;
+  // Set to true by FarmerWelcomePage.initState and false on dispose so that
+  // location updates arriving before the page opens don't trigger API calls.
+  bool _pageIsActive = false;
   bool _hasLoadedOnce = false;
+
+  /// Call from FarmerWelcomePage.initState (via addPostFrameCallback).
+  void markPageActive() {
+    _pageIsActive = true;
+
+    // Register page with lifecycle manager.
+    PageLifecycleManager.instance.onPageEnter(PageLifecycleManager.kFarmerDashboard);
+
+    // Unlock the dashboard module so data loading is permitted.
+    AppBootstrapController.instance.unlockDashboard();
+
+    // If coordinates already arrived, kick off the load now.
+    if (!_hasLoadedOnce && _lat != null && _lon != null &&
+        _userId != '0' && _userId.isNotEmpty) {
+      _scheduleLoad();
+    }
+  }
+
+  /// Call from FarmerWelcomePage.dispose.
+  void markPageInactive() {
+    _pageIsActive = false;
+    PageLifecycleManager.instance.onPageExit(PageLifecycleManager.kFarmerDashboard);
+  }
   bool _isWaitingForLocation = false;
   bool _isRefreshing = false;
   bool _isFetchingData = false;
@@ -58,10 +85,10 @@ class DashboardProvider extends ChangeNotifier {
       _hasLoadedOnce = false;
       _lastSuccessfulLoad = null;
       notifyListeners();
-
-      if (id != '0' && id.isNotEmpty) {
-        _scheduleLoad();
-      }
+      // Do NOT auto-schedule a load here. The dashboard page (FarmerWelcomePage)
+      // drives the first load via updateLocation once GPS coordinates arrive.
+      // Auto-fetching from updateUserId causes an API storm at app startup when
+      // ProxyProvider fires multiple rapid updates (userId, location, locale).
     }
   }
 
@@ -71,8 +98,10 @@ class DashboardProvider extends ChangeNotifier {
       _lon = lon;
       ProductionLogger.dashboard('location updated: lat=$lat, lon=$lon');
 
-      // Only trigger a load if data hasn't been loaded yet.
-      if (!_hasLoadedOnce && lat != null && lon != null &&
+      // Only trigger a load when the dashboard page is actually open AND
+      // data hasn't been loaded yet. This prevents startup API spam from
+      // background GPS updates before the user sees the dashboard.
+      if (_pageIsActive && !_hasLoadedOnce && lat != null && lon != null &&
           _userId != '0' && _userId.isNotEmpty) {
         if (_isWaitingForLocation) {
           _isWaitingForLocation = false;
@@ -88,9 +117,10 @@ class DashboardProvider extends ChangeNotifier {
   void updateLocale(String lang) {
     if (_lang != lang) {
       _lang = lang;
-      // Only schedule a fresh load if we haven't loaded yet.
-      // After first load, locale changes are picked up on next explicit refresh.
-      if (!_hasLoadedOnce && _userId != '0' && _userId.isNotEmpty) {
+      // Only schedule a fresh load if the page is active and not yet loaded.
+      // The _pageIsActive guard ensures no API call fires before the dashboard
+      // screen is visible. After first load, locale changes apply on next refresh.
+      if (_pageIsActive && !_hasLoadedOnce && _userId != '0' && _userId.isNotEmpty) {
         _scheduleLoad();
       }
     }
@@ -175,12 +205,23 @@ class DashboardProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // ── Bootstrap gate check ────────────────────────────────────────────
+      if (!AppBootstrapController.instance
+          .isModuleUnlocked(AppBootstrapController.kDashboard)) {
+        ProductionLogger.dashboard('Dashboard module not yet unlocked — aborting fetch');
+        _isFetchingData = false;
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
       ProductionLogger.dashboard('API loading started');
-      _dashboardData = await _svc.getDashboardData(
-        userId,
-        lat: lat,
-        lon: lon,
-        lang: _lang,
+
+      // ── RequestDeduplicator: merges concurrent calls into ONE request ───
+      final cacheKey = 'dashboard_\${userId}_\${lat}_\${lon}_\$_lang';
+      _dashboardData = await RequestDeduplicator.instance.execute(
+        key: cacheKey,
+        fetcher: () => _svc.getDashboardData(userId, lat: lat, lon: lon, lang: _lang),
       );
 
       _hasLoadedOnce = true;
@@ -211,8 +252,11 @@ class DashboardProvider extends ChangeNotifier {
       return;
     }
 
-    // Reset the "loaded once" guard so _fetchFreshData actually runs.
+    // Reset the "loaded once" guard and deduplicator cache so _fetchFreshData
+    // actually performs a fresh network request.
     _hasLoadedOnce = false;
+    RequestDeduplicator.instance.invalidate(
+        'dashboard_\${userId}_\${_lat}_\${_lon}_\$_lang');
     _isRefreshing = true;
     _error = null;
     notifyListeners();

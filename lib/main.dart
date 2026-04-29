@@ -24,6 +24,8 @@ import 'package:smart_farm/features/farmer/providers/message_provider.dart';
 import 'package:smart_farm/features/farmer/providers/dashboard_provider.dart';
 import 'package:smart_farm/providers/location_provider.dart';
 import 'package:smart_farm/core/utils/app_lifecycle_manager.dart';
+// AppBootstrapController, PageLifecycleManager, RequestDeduplicator live
+// inside app_lifecycle_manager.dart — no new files needed.
 import 'package:smart_farm/core/network/token_storage.dart';
 import 'package:smart_farm/core/utils/production_logger.dart';
 
@@ -35,6 +37,11 @@ void main() async {
 
   // Initialize app lifecycle manager
   AppLifecycleManager.instance.initialize();
+
+  // ── Bootstrap gate ─────────────────────────────────────────────────────────
+  // Lock ALL data modules except auth. Each screen unlocks its own module
+  // inside initState — this is the single source of truth for startup control.
+  AppBootstrapController.instance.initForStartup();
 
   runApp(
     MultiProvider(
@@ -152,6 +159,9 @@ void main() async {
   );
 }
 
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
+
 class SmartFarmApp extends StatelessWidget {
   const SmartFarmApp({super.key});
 
@@ -177,6 +187,7 @@ class SmartFarmApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      navigatorObservers: [routeObserver],
       home: const AuthWrapper(),
     );
   }

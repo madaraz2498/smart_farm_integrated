@@ -16,14 +16,6 @@ class AdminStatsGrid extends StatefulWidget {
 
 class _AdminStatsGridState extends State<AdminStatsGrid> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AdminProvider>().loadStats();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 

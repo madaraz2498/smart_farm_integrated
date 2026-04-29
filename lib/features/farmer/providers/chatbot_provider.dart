@@ -35,6 +35,7 @@ class ChatbotProvider extends ChangeNotifier {
       _messages.clear();
       _sessions.clear();
       _currentSessionId = null;
+      _sessionsLoadedOnce = false; // new user → force reload on next visit
       notifyListeners();
     }
   }
@@ -51,6 +52,11 @@ class ChatbotProvider extends ChangeNotifier {
   ChatStatus _status = ChatStatus.idle;
   String? _error;
   String _chatLanguage = 'English';
+
+  // ── Lazy-load guard ───────────────────────────────────────────────────────
+  // Prevents duplicate session-list fetches when the chatbot page is visited
+  // multiple times or when the IndexedStack rebuilds.
+  bool _sessionsLoadedOnce = false;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   List<ChatSession> get sessions => List.unmodifiable(_sessions);
@@ -87,9 +93,9 @@ class ChatbotProvider extends ChangeNotifier {
         language: requestLanguage,
         sessionId: _currentSessionId,
       );
-      
+
       _messages.add(ChatMessage(text: response.response, isUser: false));
-      
+
       // Avoid extra API roundtrip for faster UX after first message.
       if (previousSessionId == null && response.sessionId != null) {
         _currentSessionId = response.sessionId;
@@ -101,7 +107,7 @@ class ChatbotProvider extends ChangeNotifier {
           ),
         );
       }
-      
+
       _status = ChatStatus.idle;
 
       _notifProvider?.addNotification(
@@ -123,13 +129,17 @@ class ChatbotProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loadSessions() async {
+  Future<void> loadSessions({bool force = false}) async {
+    // Guard: skip if already loaded and not forced (e.g. pull-to-refresh).
+    if (_sessionsLoadedOnce && !force) return;
+
     _status = ChatStatus.loading;
     notifyListeners();
     try {
       final fetchedSessions = await _svc.getUserSessions(userId);
       _sessions.clear();
       _sessions.addAll(fetchedSessions);
+      _sessionsLoadedOnce = true;
       _status = ChatStatus.idle;
     } catch (e) {
       _status = ChatStatus.error;

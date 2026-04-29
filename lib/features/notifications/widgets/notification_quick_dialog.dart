@@ -26,7 +26,7 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
       if (userId != null) {
         context.read<NotificationProvider>().fetchNotifications(
           userId: userId,
-          showLoading: false,
+          showLoading: true,
           force: true,
         );
       }
@@ -37,7 +37,7 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
   Widget build(BuildContext context) {
     final provider = context.watch<NotificationProvider>();
     final l10n = AppLocalizations.of(context)!;
-    final notifications = provider.notifications.take(3).toList();
+    final notifications = provider.notifications.take(5).toList();
 
     final screenW = MediaQuery.sizeOf(context).width;
     final screenH = MediaQuery.sizeOf(context).height;
@@ -136,7 +136,12 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                       const Divider(height: 1, color: AppColors.divider),
                       itemBuilder: (context, index) {
                         final item = notifications[index];
-                        return _NotificationItem(item: item);
+                        return _NotificationItem(
+                          item: item,
+                          onTap: item.isRead
+                              ? null
+                              : () => context.read<NotificationProvider>().markAsRead(item.id),
+                        );
                       },
                     ),
                   ),
@@ -178,7 +183,8 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
 
 class _NotificationItem extends StatelessWidget {
   final AppNotification item;
-  const _NotificationItem({required this.item});
+  final VoidCallback? onTap;
+  const _NotificationItem({required this.item, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -187,73 +193,80 @@ class _NotificationItem extends StatelessWidget {
     final displayTitle = item.title.trim().isEmpty ? l10n.notifications : item.title.trim();
     final displayBody = item.body.trim();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildIcon(),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayTitle,
-                  style: AppTextStyles.cardTitle.copyWith(
-                    fontSize: 14,
-                  ),
-                ),
-                if (displayBody.isNotEmpty) ...[
-                  const SizedBox(height: 2),
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: item.isRead ? null : AppColors.primary.withValues(alpha: 0.04),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildIcon(),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    displayBody,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.label.copyWith(
-                      fontSize: 12,
-                      color: AppColors.textSubtle,
-                      height: 1.3,
+                    displayTitle,
+                    style: AppTextStyles.cardTitle.copyWith(
+                      fontSize: 14,
+                      color: item.isRead ? AppColors.textSubtle : AppColors.textDark,
+                    ),
+                  ),
+                  if (displayBody.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      displayBody,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.label.copyWith(
+                        fontSize: 12,
+                        color: AppColors.textSubtle,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatTime(item.createdAt, l10n: l10n, backendText: item.backendTimeText),
+                    style: AppTextStyles.caption.copyWith(
+                      fontSize: 11,
                     ),
                   ),
                 ],
-                const SizedBox(height: 4),
-                Text(
-                  _formatTime(item.createdAt, l10n: l10n, backendText: item.backendTimeText),
-                  style: AppTextStyles.caption.copyWith(
-                    fontSize: 11,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Column(
+              children: [
+                IconButton(
+                  onPressed: () => provider.deleteNotification(item.id),
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.notifRed,
+                    size: 18,
                   ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  visualDensity: VisualDensity.compact,
                 ),
+                if (!item.isRead)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(top: 6),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
               ],
             ),
-          ),
-          const SizedBox(width: 6),
-          Column(
-            children: [
-              IconButton(
-                onPressed: () => provider.deleteNotification(item.id),
-                icon: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: AppColors.notifRed,
-                  size: 18,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                visualDensity: VisualDensity.compact,
-              ),
-              if (!item.isRead)
-                Container(
-                  width: 6,
-                  height: 6,
-                  margin: const EdgeInsets.only(top: 6),
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

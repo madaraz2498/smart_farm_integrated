@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
@@ -37,10 +36,9 @@ class NotificationProvider extends ChangeNotifier {
   String get language => _language;
 
   bool _isLoading = false;
+  bool _isActionLoading = false;
   bool _isSettingsLoading = false;
   String? _error;
-
-  Timer? _refreshTimer;
 
   // ── SAFE FETCH CONTROL ─────────────────────────────
   Future<void>? _inFlightFetch;
@@ -48,15 +46,13 @@ class NotificationProvider extends ChangeNotifier {
 
   static const _kMinFetchInterval = Duration(seconds: 5);
 
-  // ── TIMER GUARD ────────────────────────────────────
-  bool _timerBusy = false;
-
   // ── GETTERS ────────────────────────────────────────
   List<AppNotification> get notifications => _notifications;
   FarmerNotificationSettings get farmerSettings => _farmerSettings;
   AdminNotificationSettings get adminSettings => _adminSettings;
 
   bool get isLoading => _isLoading;
+  bool get isActionLoading => _isActionLoading;
   bool get isSettingsLoading => _isSettingsLoading;
   String? get error => _error;
 
@@ -134,17 +130,17 @@ class NotificationProvider extends ChangeNotifier {
     final index = _notifications.indexWhere((n) => n.id == notifId);
     if (index == -1 || _notifications[index].isRead) return;
 
-    _notifications[index] =
-        _notifications[index].copyWith(isRead: true);
+    _isActionLoading = true;
+    _notifications[index] = _notifications[index].copyWith(isRead: true);
     notifyListeners();
 
     final ok = await _service.markAsRead(notifId);
 
+    _isActionLoading = false;
     if (!ok) {
-      _notifications[index] =
-          _notifications[index].copyWith(isRead: false);
-      notifyListeners();
+      _notifications[index] = _notifications[index].copyWith(isRead: false);
     }
+    notifyListeners();
   }
 
   Future<void> markAllAsRead({required String userId}) async {
@@ -152,17 +148,17 @@ class NotificationProvider extends ChangeNotifier {
 
     final previous = List<AppNotification>.from(_notifications);
 
-    _notifications =
-        _notifications.map((n) => n.copyWith(isRead: true)).toList();
-
+    _isActionLoading = true;
+    _notifications = _notifications.map((n) => n.copyWith(isRead: true)).toList();
     notifyListeners();
 
     final ok = await _service.markAllAsRead(userId);
 
+    _isActionLoading = false;
     if (!ok) {
       _notifications = previous;
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   // ───────────────────────────────────────────────────
@@ -174,14 +170,16 @@ class NotificationProvider extends ChangeNotifier {
     if (index == -1) return;
 
     final removed = _notifications.removeAt(index);
+    _isActionLoading = true;
     notifyListeners();
 
     final ok = await _service.deleteNotification(notifId);
 
+    _isActionLoading = false;
     if (!ok) {
       _notifications.insert(index, removed);
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   Future<void> deleteAllNotifications({required String userId}) async {
@@ -189,15 +187,17 @@ class NotificationProvider extends ChangeNotifier {
 
     final previous = List<AppNotification>.from(_notifications);
 
+    _isActionLoading = true;
     _notifications = [];
     notifyListeners();
 
     final ok = await _service.deleteAllNotifications(userId);
 
+    _isActionLoading = false;
     if (!ok) {
       _notifications = previous;
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   // ───────────────────────────────────────────────────
@@ -271,33 +271,6 @@ class NotificationProvider extends ChangeNotifier {
     }
 
     return ok;
-  }
-
-  // ───────────────────────────────────────────────────
-  // TIMER (ANTI OVERLAP FIX)
-  // ───────────────────────────────────────────────────
-
-  void startRefreshTimer(String userId) {
-    _refreshTimer?.cancel();
-
-    _refreshTimer =
-        Timer.periodic(const Duration(seconds: 30), (_) async {
-          if (_timerBusy) return;
-
-          _timerBusy = true;
-
-          await fetchNotifications(
-            userId: userId,
-            showLoading: false,
-          );
-
-          _timerBusy = false;
-        });
-  }
-
-  void stopRefreshTimer() {
-    _refreshTimer?.cancel();
-    _refreshTimer = null;
   }
 
   // ───────────────────────────────────────────────────
@@ -436,7 +409,6 @@ class NotificationProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
     _inFlightFetch = null;
     super.dispose();
   }

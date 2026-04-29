@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/request_cache.dart';
 import '../../../core/utils/production_logger.dart';
+import '../../../core/utils/app_lifecycle_manager.dart'; // AppBootstrapController, PageLifecycleManager, RequestDeduplicator
 import '../../notifications/providers/notification_provider.dart';
 import '../models/admin_models.dart';
 import '../services/admin_service.dart';
@@ -18,11 +19,11 @@ class AdminProvider extends ChangeNotifier {
   NotificationProvider? _notif;
   String _userId = '0';
   String _locale = 'en';
-  
+
   // Thread-safe initialization state
   bool _isInitialized = false;
   bool _isInitializing = false;
-  
+
   // Thread-safe notification refresh with simple throttling
   bool _isRefreshing = false;
   DateTime? _lastRefreshTime;
@@ -56,43 +57,68 @@ class AdminProvider extends ChangeNotifier {
   Map<String, bool> get systemSettings => Map.unmodifiable(_systemSettings);
   bool get systemLoading => _systemLoading;
 
-  /// Update dependencies (called from ProxyProvider)
+  /// Update dependencies (called from ProxyProvider).
+  /// Data loading is intentionally deferred — screens call [initializeIfNeeded]
+  /// or individual load methods in their own initState so that the app startup
+  /// never triggers a cascade of API calls before any page is even visible.
   void updateUserId(String id) {
     if (_userId == id) return;
 
     ProductionLogger.info('[AdminProvider] updateUserId: $_userId -> $id');
-    final oldUserId = _userId;
     _userId = id;
 
-    // Only reinitialize when user actually changes
-    if (oldUserId != id && id.isNotEmpty && id != '0') {
+    // Reset initialized flag so the next explicit screen-level call re-fetches
+    // for the new user, but do NOT auto-fetch here (lazy loading).
+    if (id.isNotEmpty && id != '0') {
       _isInitialized = false;
-      initializeIfNeeded();
     }
   }
 
   void updateNotif(NotificationProvider? n) {
     if (_notif == n) return;
-    
+
     ProductionLogger.info('[AdminProvider] updateNotif called');
     _notif = n;
   }
 
   void updateLocale(String languageCode) {
     if (_locale == languageCode) return;
-    
+
     ProductionLogger.info('[AdminProvider] updateLocale: $_locale -> $languageCode');
     _locale = languageCode;
+  }
+
+  // ── Public API: Page-driven loading ──────────────────────────────────────────
+
+  /// Load stats only if admin module is unlocked and not yet loaded.
+  Future<void> loadStatsIfNeeded() {
+    if (!AppBootstrapController.instance
+        .isModuleUnlocked(AppBootstrapController.kAdmin)) return Future.value();
+    return loadStats(force: false);
+  }
+
+  /// Load users only if admin module is unlocked and not yet loaded.
+  Future<void> loadUsersIfNeeded() {
+    if (!AppBootstrapController.instance
+        .isModuleUnlocked(AppBootstrapController.kAdmin)) return Future.value();
+    return loadUsers(force: false);
+  }
+
+  /// Load system status only if system module is unlocked and not yet loaded.
+  Future<void> loadSystemIfNeeded() {
+    if (!AppBootstrapController.instance
+        .isModuleUnlocked(AppBootstrapController.kSystem)) return Future.value();
+    return loadSystemStatus(forceRefresh: false);
   }
 
   // ── Fixed Initialization - Single Source of Truth ─────────────────────────────
   Future<void> initializeIfNeeded() async {
     // Prevent duplicate initialization - FIXED
     if (_isInitialized || _isInitializing || _userId.isEmpty || _userId == '0') return;
-    
+
     _isInitializing = true;
     ProductionLogger.info('[AdminProvider] Initializing data for user: $_userId');
-    
+
     try {
       // Load all data in parallel - FIXED: prevents duplicate API calls
       await Future.wait([
@@ -100,7 +126,7 @@ class AdminProvider extends ChangeNotifier {
         loadUsers(force: false),
         loadSystemStatus(forceRefresh: false),
       ]);
-      
+
       _isInitialized = true;
       ProductionLogger.info('[AdminProvider] Initialization completed');
     } catch (e) {
@@ -113,23 +139,32 @@ class AdminProvider extends ChangeNotifier {
 
   // ── Fixed Data Loading Methods ───────────────────────────────────────────────
   Future<void> loadStats({bool force = false}) async {
-    // Prevent concurrent duplicate calls - FIXED
+    // ── Bootstrap gate ───────────────────────────────────────────────────────
+    if (!force && !AppBootstrapController.instance
+        .isModuleUnlocked(AppBootstrapController.kAdmin)) {
+      ProductionLogger.info('[AdminProvider] Admin module locked — skipping loadStats');
+      return;
+    }
+
+    // Prevent concurrent duplicate calls.
     if (_statsLoading) return;
     if (_stats != null && !force) return;
 
-    final wasSilent = _stats != null;
-    
-    if (!wasSilent) {
+    // Silent refresh: if we already have data, skip loading spinner rebuild.
+    final isSilentRefresh = _stats != null;
+
+    if (!isSilentRefresh) {
       _statsLoading = true;
       _statsError = null;
-      notifyListeners(); // FIXED: ensure UI updates
+      notifyListeners();
     }
 
     try {
-      _stats = await _cache.execute(
-        key: 'dashboard_stats',
+      // Use RequestDeduplicator to merge concurrent calls.
+      _stats = await RequestDeduplicator.instance.execute(
+        key: 'admin_stats',
         fetcher: () => _svc.getDashboardStats(),
-        forceRefresh: force,
+        force: force,
       );
       _statsError = null;
     } on ApiException catch (e) {
@@ -139,28 +174,37 @@ class AdminProvider extends ChangeNotifier {
       _statsError = 'Failed to load statistics.';
     } finally {
       _statsLoading = false;
-      notifyListeners(); // FIXED: ensure UI updates
+      notifyListeners(); // single notify at the end — batches all state changes
     }
   }
 
   Future<void> loadUsers({bool force = false}) async {
-    // Prevent concurrent duplicate calls - FIXED
+    // ── Bootstrap gate ───────────────────────────────────────────────────────
+    if (!force && !AppBootstrapController.instance
+        .isModuleUnlocked(AppBootstrapController.kAdmin)) {
+      ProductionLogger.info('[AdminProvider] Admin module locked — skipping loadUsers');
+      return;
+    }
+
+    // Prevent concurrent duplicate calls.
     if (_usersLoading) return;
     if (_users.isNotEmpty && !force) return;
 
-    final wasSilent = _users.isNotEmpty;
-    
-    if (!wasSilent) {
+    // Silent refresh: if we already have data, skip loading spinner rebuild.
+    final isSilentRefresh = _users.isNotEmpty;
+
+    if (!isSilentRefresh) {
       _usersLoading = true;
       _usersError = null;
-      notifyListeners(); // FIXED: ensure UI updates
+      notifyListeners();
     }
 
     try {
-      final data = await _cache.execute(
-        key: 'users_summary',
+      // Use RequestDeduplicator to merge concurrent calls.
+      final data = await RequestDeduplicator.instance.execute(
+        key: 'admin_users',
         fetcher: () => _svc.getUsersAndSummary(),
-        forceRefresh: force,
+        force: force,
       );
       _users = data.users;
       _usersError = null;
@@ -171,12 +215,19 @@ class AdminProvider extends ChangeNotifier {
       _usersError = 'Failed to load users.';
     } finally {
       _usersLoading = false;
-      notifyListeners(); // FIXED: ensure UI updates
+      notifyListeners(); // single notify at the end
     }
   }
 
   Future<void> loadSystemStatus({bool forceRefresh = false}) async {
-    // Prevent concurrent duplicate calls - FIXED
+    // ── Bootstrap gate ───────────────────────────────────────────────────────
+    if (!forceRefresh && !AppBootstrapController.instance
+        .isModuleUnlocked(AppBootstrapController.kSystem)) {
+      ProductionLogger.info('[AdminProvider] System module locked — skipping loadSystemStatus');
+      return;
+    }
+
+    // Prevent concurrent duplicate calls.
     if (_systemLoading) return;
 
     _systemLoading = true;
@@ -220,9 +271,9 @@ class AdminProvider extends ChangeNotifier {
   void _refreshNotificationsSafely() {
     // Simple throttling - FIXED: prevents notification spam
     final now = DateTime.now();
-    if (_isRefreshing || 
-        (_lastRefreshTime != null && 
-         now.difference(_lastRefreshTime!) < _throttleDuration)) {
+    if (_isRefreshing ||
+        (_lastRefreshTime != null &&
+            now.difference(_lastRefreshTime!) < _throttleDuration)) {
       return;
     }
 
@@ -376,7 +427,7 @@ class AdminProvider extends ChangeNotifier {
       notifyListeners(); // FIXED: ensure UI updates
 
       invalidateSystemCache();
-      
+
       _addSystemNotification(
         title: 'Service Alert 🚜',
         body: isOnline
@@ -385,12 +436,12 @@ class AdminProvider extends ChangeNotifier {
       );
 
       _refreshNotificationsSafely();
-      
+
     } catch (e) {
       // Revert state on error
       _servicesStatus[moduleName] = _servicesStatus[moduleName] ?? false;
       notifyListeners(); // FIXED: ensure UI updates
-      
+
       ProductionLogger.error('[AdminProvider] toggleService failed', e);
       rethrow;
     }
@@ -413,13 +464,13 @@ class AdminProvider extends ChangeNotifier {
       );
 
       _refreshNotificationsSafely();
-      
+
     } catch (e) {
       // Revert state on error
       final currentValue = _systemSettings[settingName] ?? false;
       _systemSettings[settingName] = currentValue;
       notifyListeners(); // FIXED: ensure UI updates
-      
+
       ProductionLogger.error('[AdminProvider] toggleSystemSetting failed', e);
       rethrow;
     }
@@ -526,22 +577,25 @@ class AdminProvider extends ChangeNotifier {
     _userId = '0';
     _isInitialized = false;
     _isInitializing = false;
-    
+    // Clear any cached deduplicator entries so next login gets fresh data.
+    RequestDeduplicator.instance.invalidate('admin_stats');
+    RequestDeduplicator.instance.invalidate('admin_users');
+
     _stats = null;
     _statsLoading = false;
     _statsError = null;
-    
+
     _users = [];
     _usersLoading = false;
     _usersError = null;
-    
+
     _servicesStatus = {};
     _systemSettings = {};
     _systemLoading = false;
-    
+
     _isRefreshing = false;
     _lastRefreshTime = null;
-    
+
     notifyListeners();
   }
 
@@ -569,12 +623,12 @@ class AdminProvider extends ChangeNotifier {
       await _svc.activateUser(userId);
       invalidateUserCache();
       await loadUsers(force: true);
-      
+
       _addSystemNotification(
         title: 'User Activated',
         body: 'User account ($userId) has been activated.',
       );
-      
+
       notifyListeners();
       return true;
     } catch (e) {

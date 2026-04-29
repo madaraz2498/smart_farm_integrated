@@ -63,17 +63,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               icon: const Icon(Icons.notifications_outlined,
                   color: AppColors.textDark, size: 22),
               onPressed: () {
-                // Kick off a background refresh immediately on tap
-                final userId = context.read<AuthProvider>().currentUser?.id;
-                if (userId != null) {
-                  context.read<NotificationProvider>().fetchNotifications(
-                    userId: userId,
-                    showLoading: false,
-                    force: true,
-                  );
-                }
                 showDialog(
                   context: context,
+                  barrierDismissible: true,
                   barrierColor: Colors.black.withValues(alpha: 0.2),
                   builder: (ctx) => const Center(
                     child: Material(

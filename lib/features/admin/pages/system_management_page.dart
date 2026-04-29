@@ -31,19 +31,27 @@ class _SystemManagementPageState extends State<SystemManagementPage>
   // General settings
   bool _maintenance = false, _emailNotif = true, _autoBackup = true;
 
+  // Guard: prevent duplicate API calls on page revisit via IndexedStack.
+  bool _dataLoadedOnce = false;
+
   @override
   void initState() {
     super.initState();
     _tab = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _loadData();
     });
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadData({bool force = false}) async {
+    // Skip if already loaded and not an explicit pull-to-refresh.
+    if (_dataLoadedOnce && !force) return;
+
     final provider = context.read<AdminProvider>();
     await provider.loadSystemStatus();
 
+    if (!mounted) return;
     setState(() {
       if (provider.servicesStatus.isNotEmpty) {
         _services = Map<String, bool>.from(provider.servicesStatus);
@@ -59,6 +67,8 @@ class _SystemManagementPageState extends State<SystemManagementPage>
       if (settings.containsKey('auto_backup')) {
         _autoBackup = settings['auto_backup']!;
       }
+
+      _dataLoadedOnce = true;
     });
   }
 
@@ -96,56 +106,56 @@ class _SystemManagementPageState extends State<SystemManagementPage>
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
           child: RefreshIndicator(
-            onRefresh: _loadData,
+            onRefresh: () => _loadData(force: true),
             color: AppColors.primary,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.all(pagePadding),
               child:
-                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l10n.system_management_title, style: AppTextStyles.pageTitle),
-          const SizedBox(height: 4),
-          Text(l10n.system_management_subtitle,
-              style: AppTextStyles.pageSubtitle),
-          const SizedBox(height: 24),
-          Container(
-            decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-                border:
-                    Border.all(color: Colors.black.withValues(alpha: 0.06))),
-            child: TabBar(
-              controller: _tab,
-              indicator: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: Colors.white,
-              unselectedLabelColor: AppColors.textSubtle,
-              padding: const EdgeInsets.all(4),
-              tabs: [
-                Tab(text: l10n.ai_models),
-                Tab(text: l10n.general_settings)
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          AnimatedBuilder(
-              animation: _tab,
-              builder: (_, __) {
-                final loading = context.watch<AdminProvider>().systemLoading;
-                if (loading && _services.isEmpty) {
-                  return const Center(
-                      child: Padding(
-                    padding: EdgeInsets.all(40.0),
-                    child: CircularProgressIndicator(),
-                  ));
-                }
-                return _tab.index == 0
-                    ? _buildAITab(l10n)
-                    : _buildGeneralTab(l10n);
-              }),
-          ]),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l10n.system_management_title, style: AppTextStyles.pageTitle),
+                const SizedBox(height: 4),
+                Text(l10n.system_management_subtitle,
+                    style: AppTextStyles.pageSubtitle),
+                const SizedBox(height: 24),
+                Container(
+                  decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+                      border:
+                      Border.all(color: Colors.black.withValues(alpha: 0.06))),
+                  child: TabBar(
+                    controller: _tab,
+                    indicator: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: AppColors.textSubtle,
+                    padding: const EdgeInsets.all(4),
+                    tabs: [
+                      Tab(text: l10n.ai_models),
+                      Tab(text: l10n.general_settings)
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                AnimatedBuilder(
+                    animation: _tab,
+                    builder: (_, __) {
+                      final loading = context.watch<AdminProvider>().systemLoading;
+                      if (loading && _services.isEmpty) {
+                        return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(40.0),
+                              child: CircularProgressIndicator(),
+                            ));
+                      }
+                      return _tab.index == 0
+                          ? _buildAITab(l10n)
+                          : _buildGeneralTab(l10n);
+                    }),
+              ]),
             ),
           ),
         ),
@@ -163,37 +173,37 @@ class _SystemManagementPageState extends State<SystemManagementPage>
     ];
     return Column(children: [
       ...models.map((m) => Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-                border:
-                    Border.all(color: Colors.black.withValues(alpha: 0.06))),
-            child: Row(children: [
-              Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                      color: (_services[m.$1] ?? false)
-                          ? AppColors.primarySurface
-                          : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Icon(m.$3,
-                      color: (_services[m.$1] ?? false)
-                          ? AppColors.primary
-                          : Colors.grey,
-                      size: 22)),
-              const SizedBox(width: 14),
-              Expanded(
-                  child: Text(m.$2,
-                      style: AppTextStyles.label,
-                      overflow: TextOverflow.ellipsis)),
-              Switch(
-                  value: _services[m.$1] ?? false,
-                  onChanged: (v) => _toggleService(m.$1, v),
-                  activeThumbColor: AppColors.primary),
-            ]),
-          )),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppSizes.radiusCard),
+            border:
+            Border.all(color: Colors.black.withValues(alpha: 0.06))),
+        child: Row(children: [
+          Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                  color: (_services[m.$1] ?? false)
+                      ? AppColors.primarySurface
+                      : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10)),
+              child: Icon(m.$3,
+                  color: (_services[m.$1] ?? false)
+                      ? AppColors.primary
+                      : Colors.grey,
+                  size: 22)),
+          const SizedBox(width: 14),
+          Expanded(
+              child: Text(m.$2,
+                  style: AppTextStyles.label,
+                  overflow: TextOverflow.ellipsis)),
+          Switch(
+              value: _services[m.$1] ?? false,
+              onChanged: (v) => _toggleService(m.$1, v),
+              activeThumbColor: AppColors.primary),
+        ]),
+      )),
       SfPrimaryButton(
           label: l10n.save_ai_config,
           onPressed: () {
@@ -212,7 +222,7 @@ class _SystemManagementPageState extends State<SystemManagementPage>
               borderRadius: BorderRadius.circular(AppSizes.radiusCard),
               border: Border.all(color: Colors.black.withValues(alpha: 0.06))),
           child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(l10n.platform_settings, style: AppTextStyles.cardTitle),
             const SizedBox(height: 16),
             _ToggleRow(
@@ -220,19 +230,19 @@ class _SystemManagementPageState extends State<SystemManagementPage>
                 l10n.maintenance_mode_desc,
                 _maintenance,
                 AppColors.error,
-                (v) => _toggleSetting('maintenance_mode', v)),
+                    (v) => _toggleSetting('maintenance_mode', v)),
             _ToggleRow(
                 l10n.email_notifications,
                 l10n.email_alerts,
                 _emailNotif,
                 AppColors.info,
-                (v) => _toggleSetting('email_notifications', v)),
+                    (v) => _toggleSetting('email_notifications', v)),
             _ToggleRow(
                 l10n.auto_backup,
                 l10n.auto_backup_desc,
                 _autoBackup,
                 const Color(0xFF9C27B0),
-                (v) => _toggleSetting('auto_backup', v)),
+                    (v) => _toggleSetting('auto_backup', v)),
           ])),
       const SizedBox(height: 16),
       SfPrimaryButton(
@@ -276,21 +286,21 @@ class _ToggleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Row(children: [
-          Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Row(children: [
+      Expanded(
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(label, style: AppTextStyles.label),
                 Text(desc,
                     style: AppTextStyles.caption
                         .copyWith(color: AppColors.textSubtle)),
               ])),
-          Switch(
-              value: value,
-              onChanged: onChanged,
-              activeThumbColor: AppColors.primary),
-        ]),
-      );
+      Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: AppColors.primary),
+    ]),
+  );
 }

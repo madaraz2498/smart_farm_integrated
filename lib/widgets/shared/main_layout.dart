@@ -99,13 +99,75 @@ class _Shell extends StatelessWidget {
       drawer: isWide ? null : AppSidebar.asDrawer(),
       body: SafeArea(
           child: Column(children: [
-        AppTopBar(showBurger: !isWide),
-        Expanded(
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (isWide) const AppSidebar(),
-          Expanded(child: IndexedStack(index: pageIndex, children: pages)),
-        ])),
-      ])),
+            AppTopBar(showBurger: !isWide),
+            Expanded(
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  if (isWide) const AppSidebar(),
+                  // ── Lazy page stack ────────────────────────────────────────────────
+                  // Offstage keeps a page's widget tree alive once first shown, so
+                  // state is preserved when navigating away, but initState only fires
+                  // the FIRST TIME the page becomes visible — not at shell mount time.
+                  // TickerMode disables animations on hidden pages to save CPU.
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        for (int i = 0; i < pages.length; i++)
+                          _LazyPage(
+                            isActive: i == pageIndex,
+                            child: pages[i],
+                          ),
+                      ],
+                    ),
+                  ),
+                ])),
+          ])),
+    );
+  }
+}
+
+/// Renders [child] only after the first time [isActive] becomes true.
+/// Subsequent visibility changes use [Offstage] so the widget tree persists.
+class _LazyPage extends StatefulWidget {
+  const _LazyPage({required this.isActive, required this.child});
+  final bool isActive;
+  final Widget child;
+
+  @override
+  State<_LazyPage> createState() => _LazyPageState();
+}
+
+class _LazyPageState extends State<_LazyPage> {
+  // True once the page has been shown for the first time. After that the
+  // widget tree persists inside Offstage so scroll state / provider values
+  // are preserved when the user navigates away and comes back.
+  bool _hasBeenActivated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // If the page is the initially-selected tab, activate it immediately.
+    if (widget.isActive) _hasBeenActivated = true;
+  }
+
+  @override
+  void didUpdateWidget(_LazyPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Activate lazily on first navigation to this page.
+    if (widget.isActive && !_hasBeenActivated) {
+      setState(() => _hasBeenActivated = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Never-activated pages render nothing — no widget tree, no initState.
+    if (!_hasBeenActivated) return const SizedBox.shrink();
+    return Offstage(
+      offstage: !widget.isActive,
+      child: TickerMode(
+        enabled: widget.isActive,
+        child: widget.child,
+      ),
     );
   }
 }
