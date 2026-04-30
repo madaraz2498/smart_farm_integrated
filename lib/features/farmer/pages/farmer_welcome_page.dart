@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:smart_farm/core/constants/app_assets.dart';
 import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/features/farmer/providers/message_provider.dart';
@@ -32,10 +33,19 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
     });
   }
 
+  @override
+  void dispose() {
+    context.read<DashboardProvider>().markPageInactive();
+    super.dispose();
+  }
+
   Future<void> _loadInitialData() async {
     if (!mounted) return;
     final userId = context.read<AuthProvider>().currentUser?.id;
     if (userId == null) return;
+
+    // Mark page as active so dashboard provider can start loading
+    context.read<DashboardProvider>().markPageActive();
 
     // LocationProvider._init() already runs on construction and fetches GPS
     // in the background. DashboardProvider auto-loads once coordinates arrive
@@ -163,13 +173,13 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
     List<dynamic> features,
   ) {
     final locationProvider = context.watch<LocationProvider>();
-    
+
     // Show location loading state while GPS is still being acquired and
     // the dashboard has no coordinates yet to work with.
     if (locationProvider.isLoading && dashboardProv.isWaitingForLocation) {
       return const LocationLoadingState();
     }
-    
+
     // Show loading state
     if (dashboardProv.isLoading && dashboardProv.dashboardData == null) {
       return const LoadingState(message: 'Loading dashboard...');
@@ -186,14 +196,8 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
       );
     }
 
-    // Show empty state if no data
-    if (dashboardProv.dashboardData == null) {
-      return const NoDataEmptyState(
-        title: 'No Dashboard Data',
-        description: 'Unable to load dashboard information. Please check your connection and try again.',
-        icon: Icons.dashboard_outlined,
-      );
-    }
+    // If no data yet, show simplified loading state (not full screen)
+    // The grid will show with empty/default values until data loads
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -263,30 +267,27 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
             final statsWidgets = [
               _StatCard(
                 icon: Icons.bar_chart_rounded,
-                iconColor: const Color(0xFF10B981), // Emerald
+                iconColor: AppColors.success, // Emerald
                 label: l10n.total_analyses,
                 value: '${dashboard?.totalAnalyses ?? 0}',
               ),
               _StatCard(
                 icon: Icons.show_chart_rounded,
-                iconColor: const Color(0xFF10B981), // Emerald
+                iconColor: AppColors.success, // Emerald
                 label: l10n.today,
                 value: '${dashboard?.todayAnalyses ?? 0}',
               ),
               _StatCard(
                 icon: Icons.trending_up_rounded,
-                iconColor: const Color(0xFFF59E0B), // Amber
+                iconColor: AppColors.warning, // Amber
                 label: l10n.most_used,
                 value: translateService(dashboard?.mostUsedService ?? 'N/A', l10n),
               ),
-              _WeatherCard(
-                title: l10n.weather,
+              _WeatherCardCompact(
                 temp: dashboard?.weatherTemp,
                 humidity: dashboard?.weatherHumidity,
                 wind: dashboard?.weatherWind,
-                description: dashboard?.weatherDescription ??
-                    (dashboard?.weather ??
-                        (l10n.localeName == 'ar' ? 'جاري التحميل...' : 'Loading...')),
+                locationName: dashboard?.locationName,
               ),
             ];
 
@@ -359,191 +360,193 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
   }
 }
 
-class _WeatherCard extends StatelessWidget {
-  const _WeatherCard({
-    required this.title,
-    required this.temp,
-    required this.humidity,
-    required this.wind,
-    required this.description,
+class _WeatherCardCompact extends StatelessWidget {
+  const _WeatherCardCompact({
+    this.temp,
+    this.humidity,
+    this.wind,
+    this.locationName,
   });
 
-  final String title;
   final String? temp;
   final String? humidity;
   final String? wind;
-  final String description;
+  final String? locationName;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
     final cleanHumidity = _formatPercent(humidity);
     final cleanWind = _formatWind(wind, l10n);
     final displayTemp = (temp == null || temp!.isEmpty) ? '--°C' : temp!;
-    final compact = Responsive.isMobile(context);
+
+    final now = DateTime.now();
+    final timeStr = DateFormat('hh:mm a').format(now);
+    final dateStr = DateFormat('dd/MM/yyyy').format(now);
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFAFA),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF4B8B8)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14, vertical: 12),
-      child: compact ? _buildCompact(
-          l10n, title,
-          displayTemp, cleanHumidity, cleanWind, description)
-          : _buildWide(l10n, title, displayTemp, cleanHumidity, cleanWind, description),
-    );
-  }
-
-  Widget _buildWide(
-    AppLocalizations l10n,
-    String title,
-    String displayTemp,
-    String cleanHumidity,
-    String cleanWind,
-    String description,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFE8E8),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.wb_sunny_outlined, color: Color(0xFFEF4444), size: 20),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontSize: 11, color: AppColors.textSubtle, fontWeight: FontWeight.w600)),
-                  Text(displayTemp, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Color(0xFF111827), height: 1.0)),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// 🔹 المحتوى الأساسي (ياخد المساحة كلها)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                /// الصف الأول
                 Row(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.water_drop_outlined, size: 14, color: Color(0xFF1D9BF0)),
-                    const SizedBox(width: 4),
-                    Text(cleanHumidity, style: const TextStyle(fontSize: 12, color: Color(0xFF1D4ED8))),
+                    /// أيقونة + مكان + درجة الحرارة
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySurface,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.wb_sunny_outlined,
+                              color: AppColors.primary,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  locationName ?? l10n.weather,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textSubtle,
+                                  ),
+                                ),
+                                Text(
+                                  displayTemp,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    /// humidity + wind
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.water_drop_outlined,
+                                size: 12, color: AppColors.primary),
+                            const SizedBox(width: 2),
+                            Text(
+                              cleanHumidity,
+                              style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.textSubtle),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            const Icon(Icons.air_rounded,
+                                size: 12, color: AppColors.primary),
+                            const SizedBox(width: 2),
+                            Text(
+                              cleanWind,
+                              style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.textSubtle),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-                const SizedBox(height: 5),
+
+                const SizedBox(height: 8),
+
+                /// رسالة الطقس
                 Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.air_rounded, size: 14, color: Color(0xFF14B8A6)),
+                    Text(
+                      l10n.localeName == 'ar'
+                          ? 'الجو مناسب للزراعة'
+                          : 'Weather is suitable ',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.success,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(width: 4),
-                    Text(cleanWind, style: const TextStyle(fontSize: 12, color: Color(0xFF0891B2))),
+                    const Icon(Icons.check_circle,
+                        size: 12, color: AppColors.success),
                   ],
                 ),
+
+                /// 🔥 أهم حاجة: يزق التاريخ لتحت
+                const Spacer(),
               ],
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.warning_amber_rounded, size: 14, color: Color(0xFFF59E0B)),
-            const SizedBox(width: 4),
-            Text(
-              l10n.weather_mild_alert,
-              style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12, fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          description,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSubtle),
-        ),
-      ],
-    );
-  }
+          ),
 
-  Widget _buildCompact(
-    AppLocalizations l10n,
-    String title,
-    String displayTemp,
-    String cleanHumidity,
-    String cleanWind,
-    String description,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontSize: 10, color: AppColors.textSubtle, fontWeight: FontWeight.w600)),
-                  Text(displayTemp, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Color(0xFF111827), height: 1.0)),
-                ],
+          /// 🔻 التاريخ والوقت في الآخر
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                timeStr,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
               ),
-            ),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFE8E8),
-                borderRadius: BorderRadius.circular(10),
+              Text(
+                dateStr,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: AppColors.textSubtle,
+                ),
               ),
-              child: const Icon(Icons.wb_sunny_outlined, color: Color(0xFFEF4444), size: 18),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            const Icon(Icons.water_drop_outlined, size: 14, color: Color(0xFF1D9BF0)),
-            const SizedBox(width: 4),
-            Text(cleanHumidity, style: const TextStyle(fontSize: 12, color: Color(0xFF1D4ED8))),
-            const Spacer(),
-            const Icon(Icons.air_rounded, size: 14, color: Color(0xFF14B8A6)),
-            const SizedBox(width: 4),
-            Text(cleanWind, style: const TextStyle(fontSize: 12, color: Color(0xFF0891B2))),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            const Icon(Icons.warning_amber_rounded, size: 14, color: Color(0xFFF59E0B)),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                l10n.weather_mild_alert,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12, fontWeight: FontWeight.w700),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 3),
-        Text(
-          description,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSubtle),
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -554,14 +557,15 @@ class _WeatherCard extends StatelessWidget {
   }
 
   String _formatWind(String? value, AppLocalizations l10n) {
-    if (value == null || value.trim().isEmpty) return '-- ${l10n.weather_wind_unit}';
+    if (value == null || value.trim().isEmpty) {
+      return '-- ${l10n.weather_wind_unit}';
+    }
     final v = value.trim();
     final hasUnit = v.contains('km') || v.contains('كم');
     if (hasUnit) return v;
     return '$v ${l10n.weather_wind_unit}';
   }
 }
-
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.icon,

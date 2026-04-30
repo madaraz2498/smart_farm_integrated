@@ -2,8 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:smart_farm/core/theme/app_theme.dart';
-import 'package:smart_farm/core/theme/theme_provider.dart';
+import 'package:smart_farm/core/theme/light_theme.dart';
+import 'package:smart_farm/core/theme/dark_theme.dart';
+import 'package:smart_farm/core/theme/theme_controller.dart';
 import 'package:smart_farm/features/auth/providers/auth_provider.dart';
 import 'package:smart_farm/features/auth/screens/auth_wrapper.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
@@ -38,6 +39,9 @@ void main() async {
   // Initialize app lifecycle manager
   AppLifecycleManager.instance.initialize();
 
+  // Initialize theme controller (loads saved theme)
+  await ThemeController.init();
+
   // ── Bootstrap gate ─────────────────────────────────────────────────────────
   // Lock ALL data modules except auth. Each screen unlocks its own module
   // inside initState — this is the single source of truth for startup control.
@@ -47,7 +51,7 @@ void main() async {
     MultiProvider(
       providers: [
         // Critical providers - loaded immediately
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        // Theme now managed by ThemeController (not a provider)
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => LocationProvider()),
@@ -168,27 +172,31 @@ class SmartFarmApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localeProvider = Provider.of<LocaleProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
 
-    return MaterialApp(
-      title: 'Smart Farm AI',
-      debugShowCheckedModeBanner: false,
-      locale: localeProvider.locale,
-      themeMode: themeProvider.themeMode,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      supportedLocales: const [
-        Locale('en'),
-        Locale('ar'),
-      ],
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      navigatorObservers: [routeObserver],
-      home: const AuthWrapper(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.themeNotifier,
+      builder: (_, themeMode, __) {
+        return MaterialApp(
+          title: 'Smart Farm AI',
+          debugShowCheckedModeBanner: false,
+          locale: localeProvider.locale,
+          themeMode: themeMode,
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ar'),
+          ],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          navigatorObservers: [routeObserver],
+          home: const AuthWrapper(),
+        );
+      },
     );
   }
 }

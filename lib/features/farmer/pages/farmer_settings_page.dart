@@ -9,6 +9,7 @@ import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
 import '../../../providers/locale_provider.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../core/theme/theme_controller.dart';
 
 class FarmerSettingsPage extends StatefulWidget {
   const FarmerSettingsPage({super.key});
@@ -17,8 +18,6 @@ class FarmerSettingsPage extends StatefulWidget {
 }
 
 class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
-  String _themeMode = 'light';
-
   // Notification toggles — mirror the 3 fields from the API
   bool _emailNotificationsFarmer = false;
   bool _analysisCompletionAlerts = true;
@@ -123,25 +122,39 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
                 const SizedBox(height: 24),
 
                 // ── Theme ─────────────────────────────────────────────────────
-                _SectionCard(children: [
-                  _SectionHeader(
-                      icon: Icons.palette_outlined,
-                      title: l10n.theme_preference),
-                  const SizedBox(height: 20),
-                  _ThemeOption(
-                    label: l10n.light_mode,
-                    value: 'light',
-                    groupValue: _themeMode,
-                    onChanged: (v) => setState(() => _themeMode = v!),
-                  ),
-                  const SizedBox(height: 12),
-                  _ThemeOption(
-                    label: l10n.dark_mode,
-                    value: 'dark',
-                    groupValue: _themeMode,
-                    onChanged: (v) => setState(() => _themeMode = v!),
-                  ),
-                ]),
+                ValueListenableBuilder<ThemeMode>(
+                  valueListenable: ThemeController.themeNotifier,
+                  builder: (context, themeMode, _) {
+                    final isDark = themeMode == ThemeMode.dark;
+                    return _SectionCard(children: [
+                      _SectionHeader(
+                          icon: Icons.palette_outlined,
+                          title: l10n.theme_preference),
+                      const SizedBox(height: 20),
+                      _ThemeOption(
+                        label: l10n.light_mode,
+                        value: 'light',
+                        groupValue: isDark ? 'dark' : 'light',
+                        onChanged: (v) {
+                          if (v == 'light' && isDark) {
+                            ThemeController.toggleTheme();
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _ThemeOption(
+                        label: l10n.dark_mode,
+                        value: 'dark',
+                        groupValue: isDark ? 'dark' : 'light',
+                        onChanged: (v) {
+                          if (v == 'dark' && !isDark) {
+                            ThemeController.toggleTheme();
+                          }
+                        },
+                      ),
+                    ]);
+                  }
+                ),
                 const SizedBox(height: 20),
 
                 // ── Language ──────────────────────────────────────────────────

@@ -8,7 +8,7 @@ import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../providers/navigation_provider.dart';
 import '../../../providers/locale_provider.dart';
-import '../../../core/theme/theme_provider.dart';
+import '../../../core/theme/theme_controller.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/sf_button.dart';
 
@@ -43,10 +43,21 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
     final localeProvider = context.watch<LocaleProvider>();
     final l10n = AppLocalizations.of(context)!;
     final pagePadding = Responsive.responsivePadding(context);
+
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.themeNotifier,
+      builder: (context, themeMode, _) {
+        final isDark = themeMode == ThemeMode.dark;
+        return _buildContent(context, localeProvider, l10n, pagePadding, isDark);
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context, LocaleProvider localeProvider,
+      AppLocalizations l10n, double pagePadding, bool isDark) {
 
     return Scaffold(
         backgroundColor: AppColors.background,
@@ -99,19 +110,27 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
                             _buildRadioTile(
                               title: l10n.light_mode,
                               value: false,
-                              groupValue: themeProvider.isDark,
-                              onChanged: (v) => themeProvider.isDark
-                                  ? themeProvider.toggleTheme()
-                                  : null,
+                              groupValue: isDark,
+                              onTap: () {
+                                debugPrint('Light Mode tapped, isDark=$isDark');
+                                if (isDark) {
+                                  debugPrint('Toggling to light');
+                                  ThemeController.toggleTheme();
+                                }
+                              },
                             ),
                             const SizedBox(height: 12),
                             _buildRadioTile(
                               title: l10n.dark_mode,
                               value: true,
-                              groupValue: themeProvider.isDark,
-                              onChanged: (v) => !themeProvider.isDark
-                                  ? themeProvider.toggleTheme()
-                                  : null,
+                              groupValue: isDark,
+                              onTap: () {
+                                debugPrint('Dark Mode tapped, isDark=$isDark');
+                                if (!isDark) {
+                                  debugPrint('Toggling to dark');
+                                  ThemeController.toggleTheme();
+                                }
+                              },
                             ),
                           ],
                         ),
@@ -219,7 +238,9 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
               ),
             ),
           ),
-        ));
+        ),
+      );
+    }
   }
 
   Widget _buildSection({
@@ -269,11 +290,11 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
     required String title,
     required bool value,
     required bool groupValue,
-    required ValueChanged<bool?> onChanged,
+    VoidCallback? onTap,
   }) {
     final isSelected = value == groupValue;
     return InkWell(
-      onTap: () => onChanged(value),
+      onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -334,4 +355,3 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
       ),
     );
   }
-}
