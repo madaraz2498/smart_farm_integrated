@@ -5,7 +5,7 @@ import 'package:smart_farm/features/farmer/models/scan_status.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../models/soil_models.dart';
 import '../providers/soil_provider.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:smart_farm/core/theme/app_dimensions.dart';
 import '../../../shared/widgets/sf_button.dart';
 import '../../../shared/widgets/sf_text_field.dart';
 import '../../../shared/widgets/sf_image_picker_card.dart';
@@ -26,7 +26,9 @@ class _SoilAnalysisPageState extends State<SoilAnalysisPage> {
 
   @override
   void dispose() {
-    for (final c in [_phCtrl, _moistCtrl, _nCtrl, _pCtrl, _kCtrl]) c.dispose();
+    for (final c in [_phCtrl, _moistCtrl, _nCtrl, _pCtrl, _kCtrl]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -36,18 +38,21 @@ class _SoilAnalysisPageState extends State<SoilAnalysisPage> {
       return;
     }
     setState(() => _validErr = null);
-    prov.analyze(SoilAnalysisRequest(
-      ph: double.tryParse(_phCtrl.text) ?? 7.0,
-      moisture: double.tryParse(_moistCtrl.text),
-      nitrogen: double.tryParse(_nCtrl.text),
-      phosphorus: double.tryParse(_pCtrl.text),
-      potassium: double.tryParse(_kCtrl.text),
-    ), lang: Localizations.localeOf(context).languageCode);
+    prov.analyze(
+        SoilAnalysisRequest(
+          ph: double.tryParse(_phCtrl.text) ?? 7.0,
+          moisture: double.tryParse(_moistCtrl.text),
+          nitrogen: double.tryParse(_nCtrl.text),
+          phosphorus: double.tryParse(_pCtrl.text),
+          potassium: double.tryParse(_kCtrl.text),
+        ),
+        lang: Localizations.localeOf(context).languageCode);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Consumer<SoilProvider>(builder: (context, prov, _) {
       final hPadding = Responsive.responsivePadding(context);
       return SafeArea(
@@ -59,7 +64,7 @@ class _SoilAnalysisPageState extends State<SoilAnalysisPage> {
             setState(() => _validErr = null);
             prov.reset();
           },
-          color: AppColors.primary,
+          color: colorScheme.primary,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(hPadding, 16, hPadding, 32),
@@ -69,153 +74,175 @@ class _SoilAnalysisPageState extends State<SoilAnalysisPage> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-              Text(l10n.nav_soil_analysis, style: AppTextStyles.pageTitle),
-              const SizedBox(height: 4),
-              Text(l10n.soil_analyze_button, style: AppTextStyles.pageSubtitle),
-              const SizedBox(height: 20),
+                    Text(l10n.nav_soil_analysis,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface)),
+                    const SizedBox(height: 4),
+                    Text(l10n.soil_analyze_button,
+                        style: TextStyle(
+                            fontSize: 14, color: colorScheme.onSurfaceVariant)),
+                    const SizedBox(height: 20),
 
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-                  border: Border.all(color: AppColors.cardBorder),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 6)
-                  ],
-                ),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.radiusCard),
+                        border: Border.all(color: colorScheme.outline),
+                        boxShadow: [
+                          BoxShadow(
+                              color: colorScheme.shadow.withValues(alpha: 0.05),
+                              blurRadius: 6)
+                        ],
+                      ),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(children: [
+                              Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                      color: colorScheme.primaryContainer,
+                                      borderRadius: BorderRadius.circular(
+                                          AppDimensions.radiusMid)),
+                                  child: Icon(Icons.layers_outlined,
+                                      color: colorScheme.primary, size: 20)),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  l10n.soil_npk_levels,
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurface),
+                                ),
+                              ),
+                            ]),
+                            const SizedBox(height: 20),
+                            SfTextField(
+                                controller: _phCtrl,
+                                hint: '6.5',
+                                label: l10n.soil_ph,
+                                keyboardType: TextInputType.number),
+                            const SizedBox(height: 14),
+                            SfTextField(
+                                controller: _moistCtrl,
+                                hint: '48',
+                                label: l10n.soil_moisture,
+                                keyboardType: TextInputType.number),
+                            const SizedBox(height: 14),
+                            Row(children: [
+                              Expanded(
+                                  child: SfTextField(
+                                      controller: _nCtrl,
+                                      hint: '20',
+                                      label: l10n.soil_nitrogen,
+                                      keyboardType: TextInputType.number)),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                  child: SfTextField(
+                                      controller: _pCtrl,
+                                      hint: '30',
+                                      label: l10n.soil_phosphorus,
+                                      keyboardType: TextInputType.number)),
+                            ]),
+                            const SizedBox(height: 14),
+                            SfTextField(
+                                controller: _kCtrl,
+                                hint: '25',
+                                label: l10n.soil_potassium,
+                                keyboardType: TextInputType.number),
+                            const SizedBox(height: 20),
+                            if (_validErr != null) ...[
+                              SfErrorBanner(_validErr!),
+                              const SizedBox(height: 16)
+                            ],
+                            SfPrimaryButton(
+                                label: l10n.soil_analyze_button,
+                                isLoading: prov.isLoading,
+                                onPressed: () => _submit(prov, l10n)),
+                          ]),
+                    ),
+                    // ... rest of the build ...
+
+                    if (prov.status == ScanStatus.result &&
+                        prov.result != null) ...[
+                      const SizedBox(height: 20),
                       Row(children: [
-                        Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                                color: AppColors.primarySurface,
-                                borderRadius:
-                                    BorderRadius.circular(AppSizes.radiusMid)),
-                            child: const Icon(Icons.layers_outlined,
-                                color: AppColors.primary, size: 20)),
+                        Expanded(
+                            child: _ResultTile(
+                                label: l10n.soil_type,
+                                value: _localizedSoilType(
+                                    prov.result!.soilType, l10n),
+                                color: colorScheme.primary)),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            l10n.soil_npk_levels,
-                            style: AppTextStyles.cardTitle,
-                          ),
-                        ),
+                            child: _ResultTile(
+                                label: l10n.soil_fertility,
+                                value: _localizedFertility(
+                                    prov.result!.fertilityLevel, l10n),
+                                color: _fertilityColor(
+                                    prov.result!.fertilityLevel, colorScheme))),
                       ]),
-                      const SizedBox(height: 20),
-                      SfTextField(
-                          controller: _phCtrl,
-                          hint: '6.5',
-                          label: l10n.soil_ph,
-                          keyboardType: TextInputType.number),
-                      const SizedBox(height: 14),
-                      SfTextField(
-                          controller: _moistCtrl,
-                          hint: '48',
-                          label: l10n.soil_moisture,
-                          keyboardType: TextInputType.number),
-                      const SizedBox(height: 14),
-                      Row(children: [
-                        Expanded(
-                            child: SfTextField(
-                                controller: _nCtrl,
-                                hint: '20',
-                                label: l10n.soil_nitrogen,
-                                keyboardType: TextInputType.number)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                            child: SfTextField(
-                                controller: _pCtrl,
-                                hint: '30',
-                                label: l10n.soil_phosphorus,
-                                keyboardType: TextInputType.number)),
-                      ]),
-                      const SizedBox(height: 14),
-                      SfTextField(
-                          controller: _kCtrl,
-                          hint: '25',
-                          label: l10n.soil_potassium,
-                          keyboardType: TextInputType.number),
-                      const SizedBox(height: 20),
-                      if (_validErr != null) ...[
-                        SfErrorBanner(_validErr!),
-                        const SizedBox(height: 16)
+                      if (prov.result!.recommendations.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        SfResultCard(
+                            title: l10n.soil_recommendations,
+                            children: [
+                              ...prov.result!.recommendations
+                                  .map((r) => Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8),
+                                        child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Icon(Icons.check_circle_outline,
+                                                  size: 16,
+                                                  color: colorScheme.primary),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                  child: Text(r,
+                                                      style: TextStyle(
+                                                          fontSize: 14,
+                                                          color: colorScheme
+                                                              .onSurface))),
+                                            ]),
+                                      )),
+                            ]),
                       ],
-                      SfPrimaryButton(
-                          label: l10n.soil_analyze_button,
-                          isLoading: prov.isLoading,
-                          onPressed: () => _submit(prov, l10n)),
-                    ]),
-              ),
-              // ... rest of the build ...
-
-              if (prov.status == ScanStatus.result && prov.result != null) ...[
-                const SizedBox(height: 20),
-                Row(children: [
-                  Expanded(
-                      child: _ResultTile(
-                          label: l10n.soil_type,
-                          value: _localizedSoilType(prov.result!.soilType, l10n),
-                          color: AppColors.primary)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                      child: _ResultTile(
-                          label: l10n.soil_fertility,
-                          value: _localizedFertility(prov.result!.fertilityLevel, l10n),
-                          color: _fertilityColor(prov.result!.fertilityLevel))),
-                ]),
-                if (prov.result!.recommendations.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  SfResultCard(title: l10n.soil_recommendations, children: [
-                    ...prov.result!.recommendations.map((r) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.check_circle_outline,
-                                    size: 16, color: AppColors.primary),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                    child: Text(r,
-                                        style: const TextStyle(
-                                            fontSize: 14,
-                                            color: AppColors.textDark))),
-                              ]),
-                        )),
+                    ],
+                    if (prov.status == ScanStatus.error &&
+                        prov.error != null) ...[
+                      const SizedBox(height: 20),
+                      SfErrorBanner(prov.error!),
+                    ],
                   ]),
-                ],
-              ],
-              if (prov.status == ScanStatus.error && prov.error != null) ...[
-                const SizedBox(height: 20),
-                SfErrorBanner(prov.error!),
-              ],
-            ]),
-              )),
-            ),
+            )),
           ),
+        ),
       );
     });
   }
 }
 
-Color _fertilityColor(String f) {
+Color _fertilityColor(String f, ColorScheme colorScheme) {
   final val = f.trim().toLowerCase();
   switch (val) {
     case 'high':
     case 'عالية':
-      return AppColors.primary;
+      return colorScheme.primary;
     case 'medium':
     case 'moderate':
     case 'متوسطة':
-      return AppColors.warning;
+      return colorScheme.tertiary;
     default:
-      return AppColors.error;
+      return colorScheme.error;
   }
 }
 
@@ -241,9 +268,15 @@ String _localizedSoilType(String value, AppLocalizations l10n) {
 
 String _localizedFertility(String value, AppLocalizations l10n) {
   final v = value.trim().toLowerCase();
-  if (v == 'high' || v == 'عالية') return l10n.soil_fertility_high;
-  if (v == 'medium' || v == 'moderate' || v == 'متوسطة') return l10n.soil_fertility_medium;
-  if (v == 'low' || v == 'منخفضة') return l10n.soil_fertility_low;
+  if (v == 'high' || v == 'عالية') {
+    return l10n.soil_fertility_high;
+  }
+  if (v == 'medium' || v == 'moderate' || v == 'متوسطة') {
+    return l10n.soil_fertility_medium;
+  }
+  if (v == 'low' || v == 'منخفضة') {
+    return l10n.soil_fertility_low;
+  }
   return value;
 }
 
@@ -255,26 +288,28 @@ class _ResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: AppColors.cardBorder),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
+        border: Border.all(color: colorScheme.outline),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)
+          BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.05), blurRadius: 6)
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label,
-            style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
+            style: TextStyle(fontSize: 13, color: colorScheme.onSurface)),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMid),
             border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Center(

@@ -55,10 +55,9 @@ class TokenStorage {
       await prefs.remove(_kUserRole);
       await prefs.remove(_kUserProfileImg);
       await prefs.remove(_kLocalImageB64);
-    } catch (e) {
+    } catch (_) {
       // Non-critical: migration failure is not fatal; the user will simply
       // be asked to log in again.
-      assert(() { print('[TokenStorage] migration warning: $e'); return true; }());
     }
   }
 

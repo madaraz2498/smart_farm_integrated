@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../shared/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
@@ -25,10 +24,10 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
       final userId = context.read<AuthProvider>().currentUser?.id;
       if (userId != null) {
         context.read<NotificationProvider>().fetchNotifications(
-          userId: userId,
-          showLoading: true,
-          force: true,
-        );
+              userId: userId,
+              showLoading: true,
+              force: true,
+            );
       }
     });
   }
@@ -38,6 +37,8 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
     final provider = context.watch<NotificationProvider>();
     final l10n = AppLocalizations.of(context)!;
     final notifications = provider.notifications.take(5).toList();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     final screenW = MediaQuery.sizeOf(context).width;
     final screenH = MediaQuery.sizeOf(context).height;
@@ -53,11 +54,11 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
           width: dialogW,
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: colorScheme.shadow.withValues(alpha: 0.08),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -75,15 +76,16 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                     children: [
                       Text(
                         l10n.notifications,
-                        style: AppTextStyles.cardTitle.copyWith(
-                          fontSize: 16,
-                        ),
+                        style: textTheme.titleMedium,
                       ),
                       if (provider.unreadCount > 0)
                         TextButton(
                           onPressed: () {
-                            final userId = context.read<AuthProvider>().currentUser?.id;
-                            if (userId != null) provider.markAllAsRead(userId: userId);
+                            final userId =
+                                context.read<AuthProvider>().currentUser?.id;
+                            if (userId != null) {
+                              provider.markAllAsRead(userId: userId);
+                            }
                           },
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -92,9 +94,9 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                           ),
                           child: Text(
                             l10n.mark_all_as_read,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.primary,
+                              color: colorScheme.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -102,7 +104,7 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                     ],
                   ),
                 ),
-                const Divider(height: 1, color: AppColors.divider),
+                Divider(height: 1, color: colorScheme.outlineVariant),
 
                 // List
                 if (provider.isLoading)
@@ -118,10 +120,11 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                         children: [
                           Icon(Icons.notifications_none_rounded,
                               size: 40,
-                              color: AppColors.textDisabled.withValues(alpha: 0.5)),
+                              color: colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.5)),
                           const SizedBox(height: 10),
                           Text(l10n.no_notifications,
-                              style: AppTextStyles.caption.copyWith(fontSize: 12)),
+                              style: textTheme.bodySmall),
                         ],
                       ),
                     ),
@@ -133,21 +136,23 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                       padding: EdgeInsets.zero,
                       itemCount: notifications.length,
                       separatorBuilder: (_, __) =>
-                      const Divider(height: 1, color: AppColors.divider),
+                          Divider(height: 1, color: colorScheme.outlineVariant),
                       itemBuilder: (context, index) {
                         final item = notifications[index];
                         return _NotificationItem(
                           item: item,
                           onTap: item.isRead
                               ? null
-                              : () => context.read<NotificationProvider>().markAsRead(item.id),
+                              : () => context
+                                  .read<NotificationProvider>()
+                                  .markAsRead(item.id),
                         );
                       },
                     ),
                   ),
 
                 // Footer
-                const Divider(height: 1, color: AppColors.divider),
+                Divider(height: 1, color: colorScheme.outlineVariant),
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: SizedBox(
@@ -163,9 +168,9 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
                       },
                       child: Text(
                         l10n.view_all_notifications,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: colorScheme.primary,
                           fontSize: 13,
                         ),
                       ),
@@ -190,7 +195,10 @@ class _NotificationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.read<NotificationProvider>();
     final l10n = AppLocalizations.of(context)!;
-    final displayTitle = item.title.trim().isEmpty ? l10n.notifications : item.title.trim();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final displayTitle =
+        item.title.trim().isEmpty ? l10n.notifications : item.title.trim();
     final displayBody = item.body.trim();
 
     return InkWell(
@@ -198,12 +206,13 @@ class _NotificationItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: item.isRead ? null : AppColors.primary.withValues(alpha: 0.04),
+          color:
+              item.isRead ? null : colorScheme.primary.withValues(alpha: 0.04),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildIcon(),
+            _buildIcon(colorScheme),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -211,9 +220,10 @@ class _NotificationItem extends StatelessWidget {
                 children: [
                   Text(
                     displayTitle,
-                    style: AppTextStyles.cardTitle.copyWith(
-                      fontSize: 14,
-                      color: item.isRead ? AppColors.textSubtle : AppColors.textDark,
+                    style: textTheme.titleSmall?.copyWith(
+                      color: item.isRead
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.onSurface,
                     ),
                   ),
                   if (displayBody.isNotEmpty) ...[
@@ -222,19 +232,17 @@ class _NotificationItem extends StatelessWidget {
                       displayBody,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.label.copyWith(
-                        fontSize: 12,
-                        color: AppColors.textSubtle,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                         height: 1.3,
                       ),
                     ),
                   ],
                   const SizedBox(height: 4),
                   Text(
-                    _formatTime(item.createdAt, l10n: l10n, backendText: item.backendTimeText),
-                    style: AppTextStyles.caption.copyWith(
-                      fontSize: 11,
-                    ),
+                    _formatTime(item.createdAt,
+                        l10n: l10n, backendText: item.backendTimeText),
+                    style: textTheme.labelSmall,
                   ),
                 ],
               ),
@@ -244,9 +252,9 @@ class _NotificationItem extends StatelessWidget {
               children: [
                 IconButton(
                   onPressed: () => provider.deleteNotification(item.id),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.delete_outline_rounded,
-                    color: AppColors.notifRed,
+                    color: colorScheme.error,
                     size: 18,
                   ),
                   padding: EdgeInsets.zero,
@@ -258,8 +266,8 @@ class _NotificationItem extends StatelessWidget {
                     width: 8,
                     height: 8,
                     margin: const EdgeInsets.only(top: 6),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -271,8 +279,9 @@ class _NotificationItem extends StatelessWidget {
     );
   }
 
-  Widget _buildIcon() {
-    final (IconData icon, Color iconColor) = _iconForType(item.type);
+  Widget _buildIcon(ColorScheme colorScheme) {
+    final (IconData icon, Color iconColor) =
+        _iconForType(item.type, colorScheme);
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -284,24 +293,25 @@ class _NotificationItem extends StatelessWidget {
     );
   }
 
-  (IconData, Color) _iconForType(NotificationType type) {
+  (IconData, Color) _iconForType(
+      NotificationType type, ColorScheme colorScheme) {
     switch (type) {
       case NotificationType.report:
-        return (Icons.article_outlined, AppColors.info);
+        return (Icons.article_outlined, Colors.blue);
       case NotificationType.chatbot:
-        return (Icons.chat_bubble_outline_rounded, AppColors.adminAccent);
+        return (Icons.chat_bubble_outline_rounded, colorScheme.secondary);
       case NotificationType.user:
-        return (Icons.person_outline_rounded, AppColors.warning);
+        return (Icons.person_outline_rounded, Colors.orange);
       case NotificationType.system:
-        return (Icons.settings_outlined, AppColors.textSubtle);
+        return (Icons.settings_outlined, colorScheme.onSurfaceVariant);
     }
   }
 
   String _formatTime(
-      DateTime dt, {
-        required AppLocalizations l10n,
-        required String? backendText,
-      }) {
+    DateTime dt, {
+    required AppLocalizations l10n,
+    required String? backendText,
+  }) {
     final backend = backendText?.trim();
     if (backend != null && backend.isNotEmpty) {
       final duration = AppNotification.parseBackendTimeToDuration(backend);

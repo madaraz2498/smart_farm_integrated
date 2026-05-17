@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../shared/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import '../../features/farmer/providers/dashboard_provider.dart';
-import '../../l10n/app_localizations.dart';
 
 /// Offline empty state widget for when network is unavailable
 class OfflineEmptyState extends StatelessWidget {
@@ -10,8 +8,9 @@ class OfflineEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -23,38 +22,33 @@ class OfflineEmptyState extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(40),
               ),
               child: Icon(
                 Icons.wifi_off_rounded,
                 size: 40,
-                color: AppColors.primary,
+                color: colorScheme.primary,
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Title
             Text(
               'No Internet Connection',
-              style: AppTextStyles.pageTitle.copyWith(
-                color: AppColors.textDark,
-                fontWeight: FontWeight.w600,
-              ),
+              style: textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            
+
             // Description
             Text(
               'Please check your internet connection and try again.',
-              style: AppTextStyles.pageSubtitle.copyWith(
-                color: AppColors.textSubtle,
-              ),
+              style: textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            
+
             // Retry Button
             ElevatedButton.icon(
               onPressed: () {
@@ -63,14 +57,6 @@ class OfflineEmptyState extends StatelessWidget {
               },
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
             ),
           ],
         ),
@@ -98,6 +84,9 @@ class NoDataEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -109,51 +98,38 @@ class NoDataEmptyState extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(40),
               ),
               child: Icon(
                 icon,
                 size: 40,
-                color: AppColors.primary,
+                color: colorScheme.primary,
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Title
             Text(
               title,
-              style: AppTextStyles.pageTitle.copyWith(
-                color: AppColors.textDark,
-                fontWeight: FontWeight.w600,
-              ),
+              style: textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            
+
             // Description
             Text(
               description,
-              style: AppTextStyles.pageSubtitle.copyWith(
-                color: AppColors.textSubtle,
-              ),
+              style: textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
-            
+
             if (onAction != null) ...[
               const SizedBox(height: 32),
               ElevatedButton.icon(
                 onPressed: onAction,
                 icon: const Icon(Icons.refresh_rounded),
                 label: Text(actionText ?? 'Refresh'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
               ),
             ],
           ],
@@ -171,21 +147,22 @@ class LoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
             ),
             const SizedBox(height: 24),
             Text(
               message ?? 'Loading...',
-              style: AppTextStyles.pageSubtitle.copyWith(
-                color: AppColors.textSubtle,
-              ),
+              style: textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ],

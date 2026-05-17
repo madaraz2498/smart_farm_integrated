@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 
 import '../../features/auth/providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
-import '../../shared/theme/app_theme.dart';
 import '../../core/utils/responsive.dart';
 
 // ── Farmer pages ──────────────────────────────────────────────────────────────
@@ -25,7 +24,6 @@ import '../../features/admin/pages/admin_dashboard_page.dart';
 import '../../features/admin/pages/user_management_page.dart';
 import '../../features/admin/pages/system_management_page.dart';
 import '../../features/admin/reports/screens/admin_reports_screen.dart';
-import '../../features/admin/providers/admin_provider.dart';
 import '../../features/shared/profile/pages/profile_page.dart';
 import '../../features/admin/pages/messages_page.dart' as admin;
 import '../../features/admin/pages/admin_settings_page.dart';
@@ -70,7 +68,8 @@ class MainLayout extends StatelessWidget {
     final isWide = Responsive.isDesktop(context);
 
     // Special Case: Chatbot Experience (Independent Full Screen)
-    if (!isAdmin && nav.farmerIndex == 6) { // 6 = Chatbot
+    if (!isAdmin && nav.farmerIndex == 6) {
+      // 6 = Chatbot
       return const ChatbotPage();
     }
 
@@ -94,33 +93,34 @@ class _Shell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.surface,
       drawer: isWide ? null : AppSidebar.asDrawer(),
       body: SafeArea(
           child: Column(children: [
-            AppTopBar(showBurger: !isWide),
-            Expanded(
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  if (isWide) const AppSidebar(),
-                  // ── Lazy page stack ────────────────────────────────────────────────
-                  // Offstage keeps a page's widget tree alive once first shown, so
-                  // state is preserved when navigating away, but initState only fires
-                  // the FIRST TIME the page becomes visible — not at shell mount time.
-                  // TickerMode disables animations on hidden pages to save CPU.
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        for (int i = 0; i < pages.length; i++)
-                          _LazyPage(
-                            isActive: i == pageIndex,
-                            child: pages[i],
-                          ),
-                      ],
-                    ),
+        AppTopBar(showBurger: !isWide),
+        Expanded(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (isWide) const AppSidebar(),
+          // ── Lazy page stack ────────────────────────────────────────────────
+          // Offstage keeps a page's widget tree alive once first shown, so
+          // state is preserved when navigating away, but initState only fires
+          // the FIRST TIME the page becomes visible — not at shell mount time.
+          // TickerMode disables animations on hidden pages to save CPU.
+          Expanded(
+            child: Stack(
+              children: [
+                for (int i = 0; i < pages.length; i++)
+                  _LazyPage(
+                    isActive: i == pageIndex,
+                    child: pages[i],
                   ),
-                ])),
-          ])),
+              ],
+            ),
+          ),
+        ])),
+      ])),
     );
   }
 }

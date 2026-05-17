@@ -10,7 +10,7 @@ import 'package:smart_farm/providers/location_provider.dart';
 
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../providers/navigation_provider.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:smart_farm/core/theme/app_dimensions.dart';
 
 import 'package:smart_farm/features/farmer/providers/reports_provider.dart';
 import 'package:smart_farm/features/farmer/providers/dashboard_provider.dart';
@@ -75,6 +75,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final name = context.watch<AuthProvider>().displayName;
     final nav = context.read<NavigationProvider>();
     final dashboardProv = context.watch<DashboardProvider>();
@@ -157,8 +158,9 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
             messageProvider.fetchMessages(userId),
           ]);
         },
-        color: AppColors.primary,
-        child: _buildContent(hPadding, l10n, name, nav, dashboardProv, dashboard, features),
+        color: colorScheme.primary,
+        child: _buildContent(
+            hPadding, l10n, name, nav, dashboardProv, dashboard, features),
       ),
     );
   }
@@ -173,6 +175,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
     List<dynamic> features,
   ) {
     final locationProvider = context.watch<LocationProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
 
     // Show location loading state while GPS is still being acquired and
     // the dashboard has no coordinates yet to work with.
@@ -205,123 +208,158 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // Enhanced Header
+            Row(
               children: [
-          // Enhanced Header
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${l10n.welcome_user}, $name 👋',
-                        style: AppTextStyles.pageTitle.copyWith(fontSize: 24)),
-                    const SizedBox(height: 4),
-                    Text(l10n.use_ai_subtitle,
-                        style: AppTextStyles.pageSubtitle),
-                  ],
-                ),
-              ),
-              if (dashboard?.locationName != null ||
-                  context.watch<LocationProvider>().city != null)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 14, color: AppColors.primary),
-                      const SizedBox(width: 4),
-                      Text(
-                        dashboard?.locationName ??
-                            context.watch<LocationProvider>().city!,
-                        style: AppTextStyles.label.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
-                      ),
+                      Text('${l10n.welcome_user}, $name 👋',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          )),
+                      const SizedBox(height: 4),
+                      Text(l10n.use_ai_subtitle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurfaceVariant,
+                          )),
                     ],
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 32),
+                if (dashboard?.locationName != null ||
+                    context.watch<LocationProvider>().city != null)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.location_on_outlined,
+                            size: 14, color: colorScheme.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          dashboard?.locationName ??
+                              context.watch<LocationProvider>().city!,
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 32),
 
-          // ── Stats Section ──────────────────────────────────────────────────
-          LayoutBuilder(builder: (context, statsConstraints) {
-            if (dashboardProv.isLoading && dashboard == null) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
-                  child: CircularProgressIndicator(),
+            // ── Stats Section ──────────────────────────────────────────────────
+            LayoutBuilder(builder: (context, statsConstraints) {
+              if (dashboardProv.isLoading && dashboard == null) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              final statsWidgets = [
+                _StatCard(
+                  icon: Icons.bar_chart_rounded,
+                  iconColor: colorScheme.primary,
+                  label: l10n.total_analyses,
+                  value: '${dashboard?.totalAnalyses ?? 0}',
                 ),
+                _StatCard(
+                  icon: Icons.show_chart_rounded,
+                  iconColor: colorScheme.primary,
+                  label: l10n.today,
+                  value: '${dashboard?.todayAnalyses ?? 0}',
+                ),
+                _StatCard(
+                  icon: Icons.trending_up_rounded,
+                  iconColor: colorScheme.tertiary,
+                  label: l10n.most_used,
+                  value: translateService(
+                      dashboard?.mostUsedService ?? 'N/A', l10n),
+                ),
+                _WeatherCardCompact(
+                  temp: dashboard?.weatherTemp,
+                  humidity: dashboard?.weatherHumidity,
+                  wind: dashboard?.weatherWind,
+                  locationName: dashboard?.locationName,
+                ),
+              ];
+
+              final crossAxisCount = Responsive.isMobile(context)
+                  ? 2
+                  : (Responsive.isTablet(context) ? 3 : 4);
+
+              // Adjust childAspectRatio to reduce height
+              // Larger number = shorter card
+              final double aspectRatio =
+                  Responsive.isMobile(context) ? 1.4 : 1.3;
+
+              return GridView.count(
+                crossAxisCount: crossAxisCount,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: aspectRatio,
+                children: statsWidgets,
               );
-            }
+            }),
+            const SizedBox(height: 32),
 
-            final statsWidgets = [
-              _StatCard(
-                icon: Icons.bar_chart_rounded,
-                iconColor: AppColors.success, // Emerald
-                label: l10n.total_analyses,
-                value: '${dashboard?.totalAnalyses ?? 0}',
-              ),
-              _StatCard(
-                icon: Icons.show_chart_rounded,
-                iconColor: AppColors.success, // Emerald
-                label: l10n.today,
-                value: '${dashboard?.todayAnalyses ?? 0}',
-              ),
-              _StatCard(
-                icon: Icons.trending_up_rounded,
-                iconColor: AppColors.warning, // Amber
-                label: l10n.most_used,
-                value: translateService(dashboard?.mostUsedService ?? 'N/A', l10n),
-              ),
-              _WeatherCardCompact(
-                temp: dashboard?.weatherTemp,
-                humidity: dashboard?.weatherHumidity,
-                wind: dashboard?.weatherWind,
-                locationName: dashboard?.locationName,
-              ),
-            ];
+            LayoutBuilder(builder: (_, constraints) {
+              final cols = Responsive.isDesktop(context)
+                  ? 3
+                  : Responsive.isTablet(context)
+                      ? 2
+                      : 1;
+              const gap = AppDimensions.itemPadding;
+              final w = (constraints.maxWidth - gap * (cols - 1)) / cols;
 
-            final crossAxisCount = Responsive.isMobile(context) ? 2 : (Responsive.isTablet(context) ? 3 : 4);
-            final isVerySmall = Responsive.screenWidth(context) < 450;
+              if (cols == 1) {
+                return Column(
+                    children: features
+                        .map((f) => Padding(
+                              padding: const EdgeInsets.only(bottom: gap),
+                              child: AspectRatio(
+                                aspectRatio:
+                                    2.2, // Shorter cards for mobile list
+                                child: _FeatureCard(
+                                    svg: f.svg,
+                                    icon: f.icon,
+                                    title: f.title ?? '',
+                                    desc: f.desc ?? '',
+                                    fixedHeight: true,
+                                    onTap: () => nav.goToFarmerPage(f.page)),
+                              ),
+                            ))
+                        .toList());
+              }
 
-            return GridView.count(
-              crossAxisCount: crossAxisCount,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: isVerySmall ? 1.2 : 0.9, // Much smaller cards
-              children: statsWidgets,
-            );
-          }),
-          const SizedBox(height: 32),
-
-          LayoutBuilder(builder: (_, constraints) {
-            final cols = Responsive.isDesktop(context)
-                ? 3
-                : Responsive.isTablet(context)
-                    ? 2
-                    : 1;
-            const gap = AppSizes.itemPadding;
-            final w = (constraints.maxWidth - gap * (cols - 1)) / cols;
-
-            if (cols == 1) {
-              return Column(
+              return Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
                   children: features
-                      .map((f) => Padding(
-                            padding: const EdgeInsets.only(bottom: gap),
+                      .map((f) => SizedBox(
+                            width: w,
                             child: AspectRatio(
-                              aspectRatio: 1.6, // Much smaller cards for mobile
+                              aspectRatio:
+                                  1.4, // Shorter cards for grid (Desktop/Tablet)
                               child: _FeatureCard(
                                   svg: f.svg,
                                   icon: f.icon,
@@ -332,30 +370,10 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
                             ),
                           ))
                       .toList());
-            }
-
-            return Wrap(
-                spacing: gap,
-                runSpacing: gap,
-                children: features
-                    .map((f) => SizedBox(
-                          width: w,
-                          child: AspectRatio(
-                            aspectRatio: 0.8, // Much smaller cards for grid
-                            child: _FeatureCard(
-                                svg: f.svg,
-                                icon: f.icon,
-                                title: f.title ?? '',
-                                desc: f.desc ?? '',
-                                fixedHeight: true,
-                                onTap: () => nav.goToFarmerPage(f.page)),
-                          ),
-                        ))
-                    .toList());
-          }),
-                ]),
-            ),
-          ),
+            }),
+          ]),
+        ),
+      ),
     );
   }
 }
@@ -376,24 +394,25 @@ class _WeatherCardCompact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isRtl = Directionality.of(context) == TextDirection;
 
     final cleanHumidity = _formatPercent(humidity);
     final cleanWind = _formatWind(wind, l10n);
     final displayTemp = (temp == null || temp!.isEmpty) ? '--°C' : temp!;
 
     final now = DateTime.now();
-    final timeStr = DateFormat('hh:mm a').format(now);
     final dateStr = DateFormat('dd/MM/yyyy').format(now);
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.5)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -420,12 +439,12 @@ class _WeatherCardCompact extends StatelessWidget {
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: AppColors.primarySurface,
+                              color: colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.wb_sunny_outlined,
-                              color: AppColors.primary,
+                              color: colorScheme.primary,
                               size: 18,
                             ),
                           ),
@@ -438,18 +457,18 @@ class _WeatherCardCompact extends StatelessWidget {
                                   locationName ?? l10n.weather,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
-                                    color: AppColors.textSubtle,
+                                    color: colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                                 Text(
                                   displayTemp,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.textDark,
+                                    color: colorScheme.onSurface,
                                   ),
                                 ),
                               ],
@@ -467,28 +486,28 @@ class _WeatherCardCompact extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.water_drop_outlined,
-                                size: 12, color: AppColors.primary),
+                            Icon(Icons.water_drop_outlined,
+                                size: 12, color: colorScheme.primary),
                             const SizedBox(width: 2),
                             Text(
                               cleanHumidity,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 10,
-                                  color: AppColors.textSubtle),
+                                  color: colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
                         const SizedBox(height: 2),
                         Row(
                           children: [
-                            const Icon(Icons.air_rounded,
-                                size: 12, color: AppColors.primary),
+                            Icon(Icons.air_rounded,
+                                size: 12, color: colorScheme.primary),
                             const SizedBox(width: 2),
                             Text(
                               cleanWind,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 10,
-                                  color: AppColors.textSubtle),
+                                  color: colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -506,15 +525,15 @@ class _WeatherCardCompact extends StatelessWidget {
                       l10n.localeName == 'ar'
                           ? 'الجو مناسب للزراعة'
                           : 'Weather is suitable ',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
-                        color: AppColors.success,
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.check_circle,
-                        size: 12, color: AppColors.success),
+                    Icon(Icons.check_circle,
+                        size: 12, color: colorScheme.primary),
                   ],
                 ),
 
@@ -524,26 +543,16 @@ class _WeatherCardCompact extends StatelessWidget {
             ),
           ),
 
-          /// 🔻 التاريخ والوقت في الآخر
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                timeStr,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
+          /// 🔻 التاريخ في الآخر
+          Align(
+            alignment: isRtl ? Alignment.bottomLeft : Alignment.bottomRight,
+            child: Text(
+              dateStr,
+              style: TextStyle(
+                fontSize: 10,
+                color: colorScheme.onSurfaceVariant,
               ),
-              Text(
-                dateStr,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: AppColors.textSubtle,
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
@@ -566,6 +575,7 @@ class _WeatherCardCompact extends StatelessWidget {
     return '$v ${l10n.weather_wind_unit}';
   }
 }
+
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.icon,
@@ -581,15 +591,16 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.5)),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -605,7 +616,7 @@ class _StatCard extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMid),
             ),
             child: Icon(icon, color: iconColor, size: 18),
           ),
@@ -620,9 +631,9 @@ class _StatCard extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
-                    color: AppColors.textSubtle,
+                    color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.2,
                   ),
@@ -630,9 +641,9 @@ class _StatCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textDark,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
                   ),
@@ -662,46 +673,62 @@ class _FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
+      borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
-          border: Border.all(color: AppColors.cardBorder),
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
+                color: colorScheme.shadow.withValues(alpha: 0.08),
                 blurRadius: 10,
                 offset: const Offset(0, 4))
           ],
         ),
-        padding: const EdgeInsets.all(AppSizes.cardPadding),
+        padding:
+            const EdgeInsets.all(16), // Reduced from AppDimensions.cardPadding
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: fixedHeight ? MainAxisSize.max : MainAxisSize.min,
             children: [
               Container(
-                  width: 48,
-                  height: 48,
+                  width: 40, // Reduced from 48
+                  height: 40, // Reduced from 48
                   decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
+                      color:
+                          colorScheme.primaryContainer.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(12)),
                   child: Center(
                       child: svg != null
-                          ? SvgPicture.asset(svg!, width: 24, height: 24)
+                          ? SvgPicture.asset(svg!,
+                              width: 20, // Reduced from 24
+                              height: 20,
+                              colorFilter: ColorFilter.mode(
+                                  colorScheme.primary, BlendMode.srcIn))
                           : Icon(icon ?? Icons.help_outline,
-                              color: AppColors.primary, size: 24))),
-              const SizedBox(height: AppSizes.itemPadding),
-              Text(title, style: AppTextStyles.cardTitle),
-              const SizedBox(height: 6),
+                              color: colorScheme.primary, size: 20))),
+              const SizedBox(height: 12), // Reduced from 16
+              Text(title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 15, // Reduced from 16
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface)),
+              const SizedBox(height: 4), // Reduced from 8
               Expanded(
                 child: Text(desc,
-                    style: AppTextStyles.pageSubtitle.copyWith(fontSize: 13),
-                    maxLines: fixedHeight ? 2 : null,
-                    overflow: fixedHeight ? TextOverflow.ellipsis : null),
+                    maxLines: 2, // Ensure it doesn't overflow in small height
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 12, // Reduced from 13
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.3)),
               ),
             ]),
       ),

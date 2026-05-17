@@ -5,8 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:smart_farm/core/utils/responsive.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../../shared/theme/app_theme.dart';
-import '../../auth/providers/auth_provider.dart';
+import 'package:smart_farm/core/theme/app_text_styles.dart';
 import '../../../shared/models/message_model.dart';
 import '../../../shared/widgets/message_status_badge.dart';
 import '../providers/admin_provider.dart';
@@ -45,17 +44,19 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<AdminMessageProvider>();
     final pagePadding = Responsive.responsivePadding(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: RefreshIndicator(
-              onRefresh: () =>
-                  context.read<AdminMessageProvider>().fetchMessages(force: true),
-              color: AppColors.primary,
+              onRefresh: () => context
+                  .read<AdminMessageProvider>()
+                  .fetchMessages(force: true),
+              color: colorScheme.primary,
               child: Column(
                 children: [
                   Padding(
@@ -63,7 +64,9 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(l10n.messages, style: AppTextStyles.pageTitle),
+                        Text(l10n.messages,
+                            style: AppTextStyles.pageTitle
+                                .copyWith(color: colorScheme.onSurface)),
                         const SizedBox(height: 16),
                         _AdminHeader(
                           count: provider.messages.length,
@@ -76,24 +79,24 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
                     child: provider.isLoading && provider.messages.isEmpty
                         ? const Center(child: CircularProgressIndicator())
                         : provider.messages.isEmpty
-                        ? _buildEmptyState(l10n)
-                        : ListView.separated(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: pagePadding),
-                      itemCount: provider.messages.length,
-                      separatorBuilder: (_, __) =>
-                      const SizedBox(height: 16),
-                      itemBuilder: (context, index) {
-                        final msg = provider.messages[index];
-                        return _MessageCard(
-                          message: msg,
-                          onReply: () =>
-                              _showReplyDialog(context, msg),
-                          onDelete: () =>
-                              _confirmDelete(context, msg.id),
-                        );
-                      },
-                    ),
+                            ? _buildEmptyState(l10n)
+                            : ListView.separated(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: pagePadding),
+                                itemCount: provider.messages.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 16),
+                                itemBuilder: (context, index) {
+                                  final msg = provider.messages[index];
+                                  return _MessageCard(
+                                    message: msg,
+                                    onReply: () =>
+                                        _showReplyDialog(context, msg),
+                                    onDelete: () =>
+                                        _confirmDelete(context, msg.id),
+                                  );
+                                },
+                              ),
                   ),
                 ],
               ),
@@ -105,14 +108,17 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
   }
 
   Widget _buildEmptyState(AppLocalizations l10n) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.mail_outline_rounded,
-              size: 64, color: AppColors.textSubtle.withValues(alpha: 0.5)),
+              size: 64, color: colorScheme.onSurface.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          Text(l10n.no_messages_found, style: AppTextStyles.pageSubtitle),
+          Text(l10n.no_messages_found,
+              style: AppTextStyles.pageSubtitle
+                  .copyWith(color: colorScheme.onSurfaceVariant)),
         ],
       ),
     );
@@ -137,14 +143,16 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
             onPressed: () async {
               if (_replyController.text.isNotEmpty) {
                 final success =
-                await context.read<AdminMessageProvider>().replyToMessage(
-                  messageId: msg.id,
-                  reply: _replyController.text,
-                );
+                    await context.read<AdminMessageProvider>().replyToMessage(
+                          messageId: msg.id,
+                          reply: _replyController.text,
+                        );
                 if (success) {
-                  if (mounted) Navigator.pop(context);
-                  _replyController.clear();
-                  _snack(l10n.success_msg);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    _replyController.clear();
+                    _snack(l10n.success_msg);
+                  }
                 }
               }
             },
@@ -169,10 +177,12 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
           TextButton(
             onPressed: () async {
               final success =
-              await context.read<AdminMessageProvider>().deleteMessage(id);
+                  await context.read<AdminMessageProvider>().deleteMessage(id);
               if (success) {
-                if (mounted) Navigator.pop(context);
-                _snack(l10n.success_msg);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  _snack(l10n.success_msg);
+                }
               }
             },
             child: Text(l10n.confirm_button,
@@ -192,14 +202,15 @@ class _AdminHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -210,29 +221,24 @@ class _AdminHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
+              color: colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF4F46E5).withValues(alpha: 0.2),
-                  blurRadius: 15,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
-            child: const Icon(Icons.email, color: Color(0xFF4F46E5)),
+            child: Icon(Icons.email, color: colorScheme.primary),
           ),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(l10n.farmer_messages,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16)),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: colorScheme.onSurface)),
               Text(
                   '$count ${l10n.messages} · $pendingCount ${l10n.pending.toLowerCase()}',
-                  style: const TextStyle(
-                      color: AppColors.textSubtle, fontSize: 13)),
+                  style: TextStyle(
+                      color: colorScheme.onSurfaceVariant, fontSize: 13)),
             ],
           ),
         ],
@@ -263,25 +269,26 @@ class _MessageCard extends StatelessWidget {
     final replyDateStr = DateFormat.yMMMd(locale).add_Hm().format(repliedAt);
 
     // Resolve display name — fall back to email prefix if name is generic
-    final displayName =
-    (message.userName.isEmpty ||
-        message.userName == 'User' ||
-        message.userName == 'Unknown User' ||
-        message.userName == 'مستخدم مجهول')
+    final displayName = (message.userName.isEmpty ||
+            message.userName == 'User' ||
+            message.userName == 'Unknown User' ||
+            message.userName == 'مستخدم مجهول')
         ? (message.userEmail.isNotEmpty
-        ? message.userEmail.split('@').first
-        : l10n.unknown_user)
+            ? message.userEmail.split('@').first
+            : l10n.unknown_user)
         : message.userName;
+
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: colorScheme.shadow.withValues(alpha: 0.03),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -297,8 +304,8 @@ class _MessageCard extends StatelessWidget {
               // Circular Avatar Icon
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF10B981),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.person, color: Colors.white, size: 24),
@@ -311,24 +318,24 @@ class _MessageCard extends StatelessWidget {
                   children: [
                     Text(
                       displayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: Color(0xFF111827),
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     if (message.userEmail.isNotEmpty)
                       Row(
                         children: [
                           Icon(Icons.email_outlined,
-                              size: 12, color: Colors.grey.shade500),
+                              size: 12, color: colorScheme.onSurfaceVariant),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               message.userEmail,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Colors.grey.shade500,
+                                color: colorScheme.onSurfaceVariant,
                                 fontSize: 12,
                               ),
                             ),
@@ -352,7 +359,8 @@ class _MessageCard extends StatelessWidget {
                       IconButton(
                         onPressed: onDelete,
                         icon: Icon(Icons.delete_outline,
-                            color: Colors.grey.shade400, size: 20),
+                            color: colorScheme.error.withValues(alpha: 0.5),
+                            size: 20),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
@@ -368,12 +376,12 @@ class _MessageCard extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.access_time_rounded,
-                  size: 13, color: Colors.grey.shade400),
+                  size: 13, color: colorScheme.onSurfaceVariant),
               const SizedBox(width: 4),
               Text(
                 dateStr,
                 style: TextStyle(
-                  color: Colors.grey.shade500,
+                  color: colorScheme.onSurfaceVariant,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -387,7 +395,7 @@ class _MessageCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF9FAFB),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -396,19 +404,19 @@ class _MessageCard extends StatelessWidget {
                 // Subject Tag
                 Container(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.2)),
+                        color: colorScheme.primary.withValues(alpha: 0.2)),
                   ),
                   child: Text(
                     message.subject,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF047857),
+                      color: colorScheme.primary,
                     ),
                   ),
                 ),
@@ -416,14 +424,14 @@ class _MessageCard extends StatelessWidget {
                 // Message Body
                 Align(
                   alignment:
-                  isRtl ? Alignment.centerRight : Alignment.centerLeft,
+                      isRtl ? Alignment.centerRight : Alignment.centerLeft,
                   child: Text(
                     message.content,
                     textAlign: isRtl ? TextAlign.right : TextAlign.left,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF374151),
+                      color: colorScheme.onSurface,
                       height: 1.5,
                     ),
                   ),
@@ -441,10 +449,10 @@ class _MessageCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.primarySurface.withValues(alpha: 0.45),
+                color: colorScheme.primaryContainer.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppColors.cardBorder.withValues(alpha: 0.9),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                 ),
               ),
               child: Column(
@@ -452,15 +460,14 @@ class _MessageCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.reply,
-                          size: 16, color: AppColors.primary),
+                      Icon(Icons.reply, size: 16, color: colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
                         l10n.admin_reply,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 12,
-                          color: AppColors.primary,
+                          color: colorScheme.primary,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -470,9 +477,9 @@ class _MessageCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.end,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textDisabled,
+                            color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -482,18 +489,18 @@ class _MessageCard extends StatelessWidget {
                   const SizedBox(height: 10),
                   Container(
                     width: double.infinity,
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.cardBorder),
+                      border: Border.all(color: colorScheme.outlineVariant),
                     ),
                     child: Text(
                       replyText,
                       textAlign: isRtl ? TextAlign.right : TextAlign.left,
-                      style: const TextStyle(
-                        color: AppColors.textDark,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         height: 1.45,
@@ -514,11 +521,11 @@ class _MessageCard extends StatelessWidget {
                 icon: const Icon(Icons.reply, size: 16),
                 label: Text(l10n.reply),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
-                  foregroundColor: Colors.white,
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
                   elevation: 0,
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),

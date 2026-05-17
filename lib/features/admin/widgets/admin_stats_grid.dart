@@ -6,7 +6,7 @@ import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../notifications/providers/notification_provider.dart';
 import '../../notifications/models/notification_model.dart';
 import '../providers/admin_provider.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:smart_farm/core/theme/app_dimensions.dart';
 
 class AdminStatsGrid extends StatefulWidget {
   const AdminStatsGrid({super.key});
@@ -19,26 +19,32 @@ class _AdminStatsGridState extends State<AdminStatsGrid> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Consumer<AdminProvider>(builder: (context, prov, _) {
       if (prov.statsLoading) {
-        return const SizedBox(
+        return SizedBox(
             height: 120,
             child: Center(
-                child: CircularProgressIndicator(color: AppColors.primary)));
+                child: CircularProgressIndicator(color: colorScheme.primary)));
       }
 
       final s = prov.stats;
-      
+
       return LayoutBuilder(builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
         final isExtraWide = screenWidth > 1200;
         final isWide = screenWidth > 700;
         final isCompact = screenWidth < 400;
-        
+
         // Responsive grid configuration
-        final crossAxisCount = isExtraWide ? 6 : isWide ? 4 : 2;
+        final crossAxisCount = isExtraWide
+            ? 6
+            : isWide
+                ? 4
+                : 2;
         final spacing = isCompact ? 8.0 : 16.0;
-        
+
         // Dynamic aspect ratio based on screen size
         double childAspectRatio;
         if (isExtraWide) {
@@ -49,7 +55,7 @@ class _AdminStatsGridState extends State<AdminStatsGrid> {
           childAspectRatio = 1.4;
         } else {
           childAspectRatio = 1.2;
-        }        // Lower ratio = Taller cards. Adjusted to fix 11px overflow.
+        } // Lower ratio = Taller cards. Adjusted to fix 11px overflow.
 
         return GridView.count(
           shrinkWrap: true,
@@ -105,15 +111,16 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: AppColors.cardBorder),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: colorScheme.shadow.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -138,18 +145,25 @@ class _StatCard extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SvgPicture.asset(svgPath, width: iconSize, height: iconSize),
+                  SvgPicture.asset(
+                    svgPath,
+                    width: iconSize,
+                    height: iconSize,
+                    colorFilter:
+                        ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+                  ),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
                     decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
+                        color: colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(3)),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
                         badge,
                         style: TextStyle(
-                            color: AppColors.primary,
+                            color: colorScheme.primary,
                             fontSize: 7,
                             fontWeight: FontWeight.bold),
                       ),
@@ -168,8 +182,11 @@ class _StatCard extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    title, 
-                    style: AppTextStyles.caption.copyWith(fontSize: titleFontSize),
+                    title,
+                    style: TextStyle(
+                        fontSize: titleFontSize,
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -189,7 +206,7 @@ class _StatCard extends StatelessWidget {
                     style: TextStyle(
                         fontSize: valueFontSize,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textDark),
+                        color: colorScheme.onSurface),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -205,8 +222,11 @@ class _StatCard extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    subtitle, 
-                    style: AppTextStyles.caption.copyWith(fontSize: subtitleFontSize),
+                    subtitle,
+                    style: TextStyle(
+                        fontSize: subtitleFontSize,
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w400),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -235,19 +255,22 @@ class RecentActivityList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: AppColors.cardBorder),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)
+          BoxShadow(
+              color: colorScheme.shadow.withValues(alpha: 0.02), blurRadius: 10)
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l10n.recent_activity, style: AppTextStyles.cardTitle),
+        Text(l10n.recent_activity,
+            style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 16),
         Consumer<NotificationProvider>(
           builder: (context, prov, _) {
@@ -264,7 +287,8 @@ class RecentActivityList extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'No recent activity',
-                    style: AppTextStyles.caption,
+                    style: TextStyle(
+                        fontSize: 12, color: colorScheme.onSurfaceVariant),
                   ),
                 ),
               );
@@ -275,7 +299,7 @@ class RecentActivityList extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: activities.length,
               separatorBuilder: (_, __) =>
-                  const Divider(height: 1, color: AppColors.cardBorder),
+                  Divider(height: 1, color: colorScheme.outlineVariant),
               itemBuilder: (_, i) {
                 final activity = activities[i];
                 return Padding(
@@ -284,13 +308,13 @@ class RecentActivityList extends StatelessWidget {
                     Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                            color: AppColors.primarySurface,
+                            color: colorScheme.primaryContainer,
                             shape: BoxShape.circle),
                         child: Icon(
                             activity.type == NotificationType.system
                                 ? Icons.settings_outlined
                                 : Icons.person_outline,
-                            color: AppColors.primary,
+                            color: colorScheme.primary,
                             size: 20)),
                     const SizedBox(width: 16),
                     Expanded(
@@ -298,17 +322,20 @@ class RecentActivityList extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                           Text(activity.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
-                                  color: AppColors.textDark)),
+                                  color: colorScheme.onSurface)),
                           Text(activity.body,
-                              style: AppTextStyles.caption,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.onSurfaceVariant),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),
                         ])),
                     Text(_timeAgo(activity.createdAt, l10n),
-                        style: AppTextStyles.caption.copyWith(fontSize: 11)),
+                        style: TextStyle(
+                            fontSize: 11, color: colorScheme.onSurfaceVariant)),
                   ]),
                 );
               },

@@ -8,16 +8,17 @@ class CropRecommendationRequest {
   });
 
   final String cityName;
-  final String  soilType;
+  final String soilType;
   final String? userId;
   final String lang;
 
-  CropRecommendationRequest copyWith({String? userId, String? lang}) => CropRecommendationRequest(
-    cityName: cityName,
-    soilType: soilType,
-    userId: userId ?? this.userId,
-    lang: lang ?? this.lang,
-  );
+  CropRecommendationRequest copyWith({String? userId, String? lang}) =>
+      CropRecommendationRequest(
+        cityName: cityName,
+        soilType: soilType,
+        userId: userId ?? this.userId,
+        lang: lang ?? this.lang,
+      );
 
   Map<String, String> toForm() => {
         'city_name': cityName,
@@ -62,36 +63,86 @@ class CropRecommendationResponse {
     this.dailyGuide = const [],
     required this.confidence,
     this.yieldLevel,
+    this.vegetables = const [],
+    this.fruits = const [],
+    this.fieldCrops = const [],
   });
 
   factory CropRecommendationResponse.fromJson(Map<String, dynamic> j) {
-    final rec = (j['recommendation'] is Map<String, dynamic>)
-        ? j['recommendation'] as Map<String, dynamic>
-        : j;
+    // If the API returns { "recommendation": "Rice | Eggplant | ..." } as a string
+    final dynamic rawRec = j['recommendation'] ?? j['result'] ?? j['data'];
+
+    Map<String, dynamic> rec = {};
+    String? rawStringRec;
+
+    if (rawRec is Map<String, dynamic>) {
+      rec = rawRec;
+    } else if (rawRec is String) {
+      rawStringRec = rawRec;
+    } else {
+      rec = j;
+    }
+
     final daily = (j['expert_daily_guide'] ??
-            j['daily_expert_guide'] ??
-            j['daily_guide'] ??
-            j['dailyGuides'] ??
-            j['forecast']) as List?;
+        j['daily_expert_guide'] ??
+        j['daily_guide'] ??
+        j['dailyGuides'] ??
+        j['forecast']) as List?;
+
+    // Try to find categories
+    var vegetables = _extractItems(rec['vegetables'] ?? j['vegetables']);
+    var fruits = _extractItems(rec['fruits'] ?? j['fruits']);
+    var fieldCrops = _extractItems(rec['field_crops'] ?? j['field_crops']);
+
+    // If all categories are empty but we have a raw string with '|', split it
+    if (vegetables.isEmpty &&
+        fruits.isEmpty &&
+        fieldCrops.isEmpty &&
+        rawStringRec != null &&
+        rawStringRec.contains('|')) {
+      final parts = rawStringRec
+          .split('|')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (parts.isNotEmpty) {
+        // Fallback: put them in field crops so they show up in the 3-row layout
+        fieldCrops = parts;
+      }
+    }
 
     final primary = rec['primary_crop'] as String? ??
         rec['primary'] as String? ??
         rec['recommended_crop'] as String? ??
-        rec['crop'] as String?;
-    final secondary = rec['secondary_crop'] as String? ?? rec['secondary'] as String?;
+        rec['crop'] as String? ??
+        (fieldCrops.isNotEmpty ? fieldCrops.first : null);
+
+    final secondary = rec['secondary_crop'] as String? ??
+        rec['secondary'] as String? ??
+        (fieldCrops.length > 1 ? fieldCrops[1] : null);
+
     final third = rec['third_option'] as String? ??
         rec['third_crop'] as String? ??
-        rec['tertiary'] as String?;
+        rec['tertiary'] as String? ??
+        (fieldCrops.length > 2 ? fieldCrops[2] : null);
+
+    final explanation = rec['explanation'] as String? ??
+        rec['description'] as String? ??
+        rawStringRec ??
+        '';
 
     return CropRecommendationResponse(
       recommendedCrop: primary ?? 'Unknown',
       confidence: _d(j['confidence'] ?? rec['confidence'] ?? j['score'] ?? 0),
-      explanation: rec['explanation'] as String? ?? rec['description'] as String? ?? '',
+      explanation: explanation,
       primaryCrop: primary,
       secondaryCrop: secondary,
       thirdOption: third,
-      expertAdvice: j['expert_advice'] as String? ?? rec['expert_advice'] as String?,
-      generalStatus: j['general_status'] as String? ?? rec['general_status'] as String?,
+      expertAdvice: j['expert_advice'] as String? ??
+          rec['expert_advice'] as String? ??
+          (explanation.isNotEmpty ? explanation : null),
+      generalStatus:
+          j['general_status'] as String? ?? rec['general_status'] as String?,
       dailyGuide: daily == null
           ? const []
           : daily
@@ -99,11 +150,14 @@ class CropRecommendationResponse {
               .map((e) => CropDailyGuide.fromJson(Map<String, dynamic>.from(e)))
               .toList(),
       yieldLevel: rec['yield_level'] as String? ?? rec['yield'] as String?,
+      vegetables: vegetables,
+      fruits: fruits,
+      fieldCrops: fieldCrops,
     );
   }
 
-  final String  recommendedCrop, explanation;
-  final double  confidence;
+  final String recommendedCrop, explanation;
+  final double confidence;
   final String? primaryCrop;
   final String? secondaryCrop;
   final String? thirdOption;
@@ -111,8 +165,28 @@ class CropRecommendationResponse {
   final String? generalStatus;
   final List<CropDailyGuide> dailyGuide;
   final String? yieldLevel;
+  final List<String> vegetables;
+  final List<String> fruits;
+  final List<String> fieldCrops;
 
   String get yieldDisplay => yieldLevel ?? 'Medium';
+}
+
+List<String> _extractItems(dynamic v) {
+  if (v == null) return const [];
+  if (v is List) return v.map((e) => e.toString()).toList();
+  if (v is Map) {
+    final items = v['items'];
+    if (items is List) return items.map((e) => e.toString()).toList();
+  }
+  if (v is String && v.isNotEmpty) return [v];
+  return const [];
+}
+
+List<String> _asList(dynamic v) {
+  if (v is List) return v.map((e) => e.toString()).toList();
+  if (v is String && v.isNotEmpty) return [v];
+  return const [];
 }
 
 class CropDailyGuide {
@@ -140,26 +214,27 @@ class CropDailyGuide {
           'الطقس',
         ]),
         irrigationAdvice: _firstGuideValue(j, const [
+          'irrigation',
           'irrigation_advice',
           'irrigationAdvice',
           'Irrigation Advice',
-          'irrigation',
           'water_advice',
           'waterAdvice',
           'نصيحة الري',
           'الري',
         ]),
         fertilizerAdvice: _firstGuideValue(j, const [
+          'fertilizer',
           'fertilizer_advice',
           'fertilizerAdvice',
           'Fertilizer Advice',
-          'fertilizer',
           'fertiliser_advice',
           'fertiliserAdvice',
           'نصيحة السماد',
           'التسميد',
         ]),
         diseaseAlert: _firstGuideValue(j, const [
+          'disease',
           'disease_alert',
           'diseaseAlert',
           'Disease Alert',
@@ -190,7 +265,7 @@ String _firstGuideValue(Map<String, dynamic> map, List<String> keys) {
 
 double _d(dynamic v) {
   if (v is double) return v;
-  if (v is int)    return v.toDouble();
+  if (v is int) return v.toDouble();
   if (v is String) return double.tryParse(v) ?? 0.0;
   return 0.0;
 }

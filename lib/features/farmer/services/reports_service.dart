@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
@@ -94,8 +93,18 @@ class ReportsService {
 
   Future<String> downloadReportToFile(String reportId,
       {String? manualUrl}) async {
-    String url = manualUrl ??
-        '${ApiClient.baseUrl}/farmer_reports/download/$reportId';
+    // ── Mock Handling ────────────────────────────────────────────────────────
+    if (reportId.startsWith('mock-')) {
+      ProductionLogger.reports('Mock download triggered for: $reportId');
+      // In a real app, we might return a bundled PDF or a generic success.
+      // For now, let's simulate a delay and throw an error or return a fake success.
+      await Future.delayed(const Duration(seconds: 1));
+      throw const ApiException(
+          'This is a mock report for preview. Download is only available for generated reports.');
+    }
+
+    String url =
+        manualUrl ?? '${ApiClient.baseUrl}/farmer_reports/download/$reportId';
 
     ProductionLogger.reports('Downloading PDF: $url');
 
@@ -104,8 +113,7 @@ class ReportsService {
       final headResponse = await http.head(
         Uri.parse(url),
         headers: {
-          if (_c.token != null)
-            'Authorization': 'Bearer ${_c.token}',
+          if (_c.token != null) 'Authorization': 'Bearer ${_c.token}',
         },
       );
 
@@ -120,8 +128,7 @@ class ReportsService {
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          if (_c.token != null)
-            'Authorization': 'Bearer ${_c.token}',
+          if (_c.token != null) 'Authorization': 'Bearer ${_c.token}',
         },
       );
 

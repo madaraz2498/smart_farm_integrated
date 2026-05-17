@@ -1,5 +1,5 @@
 // lib/shared/models/user_model.dart
-enum UserRole { farmer, admin, super_admin }
+enum UserRole { farmer, admin, superAdmin }
 
 class UserModel {
   const UserModel({
@@ -18,8 +18,8 @@ class UserModel {
   final String? phone;
   final String? profileImg;
 
-  bool get isAdmin => role == UserRole.admin || role == UserRole.super_admin;
-  bool get isSuperAdmin => role == UserRole.super_admin;
+  bool get isAdmin => role == UserRole.admin || role == UserRole.superAdmin;
+  bool get isSuperAdmin => role == UserRole.superAdmin;
   String get displayName => name.isNotEmpty ? name : email.split('@').first;
 
   UserModel copyWith({
@@ -47,7 +47,7 @@ class UserModel {
         role = UserRole.admin;
         break;
       case 'super_admin':
-        role = UserRole.super_admin;
+        role = UserRole.superAdmin;
         break;
       default:
         role = UserRole.farmer;

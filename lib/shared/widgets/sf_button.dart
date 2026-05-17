@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 
 /// Full-width primary button with loading state.
 class SfPrimaryButton extends StatelessWidget {
@@ -14,40 +13,47 @@ class SfPrimaryButton extends StatelessWidget {
     this.height,
   });
 
-  final String     label;
+  final String label;
   final VoidCallback? onPressed;
-  final bool       isLoading;
-  final IconData?  icon;
-  final Color?     color;
-  final double?    width;
-  final double?    height;
+  final bool isLoading;
+  final IconData? icon;
+  final Color? color;
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final bg = color ?? colorScheme.primary;
+    final fg = colorScheme.onPrimary;
+
     return SizedBox(
       width: width ?? double.infinity,
-      height: height,
+      height: height ?? 54,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? AppColors.primary,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: (color ?? AppColors.primary).withValues(alpha: 0.6),
-          padding: EdgeInsets.symmetric(vertical: height != null ? 0 : 15),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+          backgroundColor: bg,
+          foregroundColor: fg,
+          disabledBackgroundColor: bg.withValues(alpha: 0.6),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 0,
         ),
         child: isLoading
-            ? const SizedBox(
-                width: 20, height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.5, color: fg))
             : icon != null
                 ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Icon(icon, size: 18),
                     const SizedBox(width: 8),
-                    Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                    Text(label,
+                        style: textTheme.labelLarge?.copyWith(color: fg)),
                   ])
-                : Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                : Text(label, style: textTheme.labelLarge?.copyWith(color: fg)),
       ),
     );
   }
@@ -65,35 +71,38 @@ class SfOutlineButton extends StatelessWidget {
     this.height,
   });
 
-  final String     label;
+  final String label;
   final VoidCallback? onPressed;
-  final Color?     color;
-  final IconData?  icon;
-  final double?    width;
-  final double?    height;
+  final Color? color;
+  final IconData? icon;
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.primary;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final c = color ?? colorScheme.primary;
+
     return SizedBox(
       width: width ?? double.infinity,
-      height: height,
+      height: height ?? 54,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: c,
-          side:    BorderSide(color: c),
-          padding: EdgeInsets.symmetric(vertical: height != null ? 0 : 14),
-          shape:   RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+          side: BorderSide(color: c),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           backgroundColor: c.withValues(alpha: 0.05),
         ),
         child: icon != null
             ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(icon, size: 18),
                 const SizedBox(width: 8),
-                Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(label, style: textTheme.labelLarge?.copyWith(color: c)),
               ])
-            : Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            : Text(label, style: textTheme.labelLarge?.copyWith(color: c)),
       ),
     );
   }

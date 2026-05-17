@@ -55,7 +55,7 @@ class AuthService {
       final raw = await _c.postForm('/register', formFields);
 
       final resp =
-      _parse(raw, fallbackName: name.trim(), fallbackEmail: email.trim());
+          _parse(raw, fallbackName: name.trim(), fallbackEmail: email.trim());
 
       if (resp.hasToken) {
         return _persist(resp, fallbackEmail: email.trim());
@@ -96,10 +96,12 @@ class AuthService {
       final resp = _parse(raw, fallbackEmail: email.trim());
       return _persist(resp, fallbackEmail: email.trim());
     } on ApiException catch (e) {
-      if (e.isUnauthorized)
+      if (e.isUnauthorized) {
         return AuthResult.fail('Incorrect email or password.');
-      if (e.isValidation)
+      }
+      if (e.isValidation) {
         return AuthResult.fail('Please enter a valid email and password.');
+      }
       return AuthResult.fail(e.message);
     } catch (e) {
       ProductionLogger.error('Login failed', e);
@@ -229,7 +231,8 @@ class AuthService {
         return null;
       }
       if (id.isEmpty || id == '0') {
-        ProductionLogger.auth('[AuthService] restoreSession: invalid id="$id" → clearing corrupted cache');
+        ProductionLogger.auth(
+            '[AuthService] restoreSession: invalid id="$id" → clearing corrupted cache');
         await _clear();
         return null;
       }
@@ -248,8 +251,13 @@ class AuthService {
         id: id,
         name: name.isNotEmpty ? name : email.split('@').first,
         email: email,
-        role: role == 'super_admin' ? UserRole.super_admin : role == 'admin' ? UserRole.admin : UserRole.farmer,
-        profileImg: sanitizedImg,);
+        role: role == 'super_admin'
+            ? UserRole.superAdmin
+            : role == 'admin'
+                ? UserRole.admin
+                : UserRole.farmer,
+        profileImg: sanitizedImg,
+      );
     } catch (e) {
       ProductionLogger.error('restoreSession failed', e);
       await _clear();
@@ -263,8 +271,9 @@ class AuthService {
     try {
       ProductionLogger.auth('refreshUserProfile for ${current.id}');
 
-      // If admin or super_admin, fetch from admin users list.
-      if (current.role == UserRole.admin || current.role == UserRole.super_admin) {
+      // If admin or superAdmin, fetch from admin users list.
+      if (current.role == UserRole.admin ||
+          current.role == UserRole.superAdmin) {
         final adminSvc = AdminService.instance;
         final data = await RequestCache.instance.execute(
           key: 'users_summary',
@@ -295,14 +304,18 @@ class AuthService {
   Future<void> _persistUpdated(UserModel u) async {
     final token = await TokenStorage.getToken();
     if (token == null) {
-        return;
-      }
+      return;
+    }
     await TokenStorage.save(
       token: token,
       userId: u.id,
       userName: u.name,
       userEmail: u.email,
-      userRole: u.role == UserRole.super_admin ? 'super_admin' : u.role == UserRole.admin ? 'admin' : 'farmer',
+      userRole: u.role == UserRole.superAdmin
+          ? 'super_admin'
+          : u.role == UserRole.admin
+              ? 'admin'
+              : 'farmer',
       profileImg: u.profileImg,
     );
   }
@@ -336,7 +349,7 @@ class AuthService {
       // Nested shape: { "access_token": "...", "user": { "id": ..., ... } }
       if (top['user'] is Map) {
         final Map<String, dynamic> userFields =
-        Map<String, dynamic>.from(top['user'] as Map);
+            Map<String, dynamic>.from(top['user'] as Map);
 
         final flattened = <String, dynamic>{
           ...userFields,
@@ -348,12 +361,14 @@ class AuthService {
           if (top['message'] != null) 'message': top['message'],
         };
 
-        ProductionLogger.auth('[AuthService] _parse nested → id=${flattened['id']}, name=${flattened['name']}');
+        ProductionLogger.auth(
+            '[AuthService] _parse nested → id=${flattened['id']}, name=${flattened['name']}');
         return AuthResponse.fromJson(flattened);
       }
 
       // Flat shape: { "access_token": "...", "id": ..., "name": "...", ... }
-      ProductionLogger.auth('_parse flat → id=${top['id'] ?? top['user_id']}, name=${top['name'] ?? top['username']}');
+      ProductionLogger.auth(
+          '_parse flat → id=${top['id'] ?? top['user_id']}, name=${top['name'] ?? top['username']}');
       return AuthResponse.fromJson(top);
     }
 
@@ -366,18 +381,21 @@ class AuthService {
 
   Future<AuthResult> _persist(AuthResponse resp,
       {required String fallbackEmail}) async {
-    if (!resp.hasToken)
+    if (!resp.hasToken) {
       return AuthResult.fail('No token received from server.');
+    }
     _c.setToken(resp.accessToken);
     final email = resp.email.isNotEmpty ? resp.email : fallbackEmail;
-    ProductionLogger.auth('_persist → userId=${resp.userId}, name=${resp.displayName}, email=$email, role=${resp.role}');
+    ProductionLogger.auth(
+        '_persist → userId=${resp.userId}, name=${resp.displayName}, email=$email, role=${resp.role}');
     await TokenStorage.save(
       token: resp.accessToken,
       userId: resp.userId,
       userName: resp.displayName,
       userEmail: email,
       userRole: resp.role,
-      profileImg: resp.profileImg,);
+      profileImg: resp.profileImg,
+    );
     return AuthResult.ok(UserModel(
       id: resp.userId,
       name: resp.displayName,

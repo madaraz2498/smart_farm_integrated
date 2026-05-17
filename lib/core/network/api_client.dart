@@ -18,8 +18,9 @@ class ApiClient {
   ApiClient._();
   static final ApiClient instance = ApiClient._();
 
-  static const String baseUrl         = 'https://mahmoud123mahmoud-smartfarm-api.hf.space';
-  static const Duration _timeout      = Duration(seconds: 30);
+  static const String baseUrl =
+      'https://mahmoud123mahmoud-smartfarm-api.hf.space';
+  static const Duration _timeout = Duration(seconds: 30);
   static const Duration _uploadTimeout = Duration(seconds: 60);
 
   String? _token;
@@ -35,13 +36,13 @@ class ApiClient {
 
   Map<String, String> _jsonHeaders() => {
         'Content-Type': 'application/json',
-        'Accept':       'application/json',
+        'Accept': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
   Map<String, String> _formHeaders() => {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept':       'application/json',
+        'Accept': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
@@ -51,9 +52,13 @@ class ApiClient {
     final uri = _uri(path, query);
     ProductionLogger.api('GET $uri');
     try {
-      return _handle(await http.get(uri, headers: _jsonHeaders()).timeout(_timeout));
-    } on SocketException  { throw const ApiException('No internet connection.', statusCode: 0); }
-    on TimeoutException   { throw const ApiException('Request timed out.',       statusCode: 408); }
+      return _handle(
+          await http.get(uri, headers: _jsonHeaders()).timeout(_timeout));
+    } on SocketException {
+      throw const ApiException('No internet connection.', statusCode: 0);
+    } on TimeoutException {
+      throw const ApiException('Request timed out.', statusCode: 408);
+    }
   }
 
   // ── POST JSON ──────────────────────────────────────────────────────────────
@@ -82,12 +87,14 @@ class ApiClient {
     final uri = _uri(path);
     ProductionLogger.api('POST-FORM $uri  keys=${fields.keys.toList()}');
     try {
-      return _handle(await http.post(uri,
-          headers: _formHeaders(),
-          body:    fields
-      ).timeout(_timeout));
-    } on SocketException  { throw const ApiException('No internet connection.', statusCode: 0); }
-    on TimeoutException   { throw const ApiException('Request timed out.',       statusCode: 408); }
+      return _handle(await http
+          .post(uri, headers: _formHeaders(), body: fields)
+          .timeout(_timeout));
+    } on SocketException {
+      throw const ApiException('No internet connection.', statusCode: 0);
+    } on TimeoutException {
+      throw const ApiException('Request timed out.', statusCode: 408);
+    }
   }
 
   // ── PUT ────────────────────────────────────────────────────────────────────
@@ -96,12 +103,16 @@ class ApiClient {
     final uri = _uri(path);
     ProductionLogger.api('PUT $uri');
     try {
-      return _handle(await http.put(uri,
-          headers: _jsonHeaders(),
-          body: body != null ? jsonEncode(body) : null
-      ).timeout(_timeout));
-    } on SocketException  { throw const ApiException('No internet connection.', statusCode: 0); }
-    on TimeoutException   { throw const ApiException('Request timed out.',       statusCode: 408); }
+      return _handle(await http
+          .put(uri,
+              headers: _jsonHeaders(),
+              body: body != null ? jsonEncode(body) : null)
+          .timeout(_timeout));
+    } on SocketException {
+      throw const ApiException('No internet connection.', statusCode: 0);
+    } on TimeoutException {
+      throw const ApiException('Request timed out.', statusCode: 408);
+    }
   }
 
   // ── PATCH ──────────────────────────────────────────────────────────────────
@@ -202,12 +213,12 @@ class ApiClient {
       if (fields != null) req.fields.addAll(fields);
 
       if (fileField != null && fileBytes != null && fileName != null) {
-        req.files.add(
-            http.MultipartFile.fromBytes(fileField, fileBytes, filename: fileName));
+        req.files.add(http.MultipartFile.fromBytes(fileField, fileBytes,
+            filename: fileName));
       }
 
-      final resp =
-          await http.Response.fromStream(await req.send().timeout(_uploadTimeout));
+      final resp = await http.Response.fromStream(
+          await req.send().timeout(_uploadTimeout));
       return _handle(resp);
     } on SocketException {
       throw const ApiException('No internet connection.', statusCode: 0);
@@ -221,12 +232,19 @@ class ApiClient {
   dynamic _handle(http.Response r) {
     ProductionLogger.api('RESPONSE ${r.statusCode}  ${r.request?.url}');
     if (kDebugMode && r.body.isNotEmpty) {
-      ProductionLogger.api('BODY ${r.body.length > 500 ? "${r.body.substring(0, 500)}…" : r.body}');
+      ProductionLogger.api(
+          'BODY ${r.body.length > 500 ? "${r.body.substring(0, 500)}…" : r.body}');
     }
 
     if (r.statusCode >= 200 && r.statusCode < 300) {
-      if (r.body.isEmpty) return null;
-      try { return jsonDecode(r.body); } catch (_) { return r.body; }
+      if (r.body.isEmpty) {
+        return null;
+      }
+      try {
+        return jsonDecode(r.body);
+      } catch (_) {
+        return r.body;
+      }
     }
 
     final msg = _extractMessage(r);
@@ -256,12 +274,14 @@ class ApiClient {
       final e = jsonDecode(r.body);
       if (e is Map) {
         if (e['detail'] is String) return e['detail'] as String;
-        if (e['detail'] is List)  return (e['detail'] as List)
-            .map((x) => x is Map ? (x['msg'] ?? '') : x.toString())
-            .where((s) => s.toString().isNotEmpty)
-            .join(', ');
+        if (e['detail'] is List) {
+          return (e['detail'] as List)
+              .map((x) => x is Map ? (x['msg'] ?? '') : x.toString())
+              .where((s) => s.toString().isNotEmpty)
+              .join(', ');
+        }
         if (e['message'] is String) return e['message'] as String;
-        if (e['msg']     is String) return e['msg']     as String;
+        if (e['msg'] is String) return e['msg'] as String;
       }
     } catch (_) {}
     return r.body;

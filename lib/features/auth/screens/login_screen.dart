@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:smart_farm/core/theme/app_colors.dart';
 import '../../../shared/widgets/sf_button.dart';
 import '../../../shared/widgets/sf_text_field.dart';
 import 'register_screen.dart';
@@ -59,154 +59,166 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final hPadding = Responsive.responsiveValue(context, 16.0, 24.0, 32.0);
     final vPadding = Responsive.responsiveValue(context, 32.0, 40.0, 56.0);
-    final cardPadding = Responsive.responsiveValue(context, 20.0, 24.0, 32.0);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
+            padding:
+                EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 448),
               child: Container(
-                padding: EdgeInsets.all(cardPadding),
+                padding: EdgeInsets.all(vPadding * 0.7),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.cardBorder),
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 8)
+                      color: colorScheme.shadow.withValues(alpha: 0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
                   ],
                 ),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                    // Logo
-                    Center(
-                        child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(Icons.eco_rounded,
-                          color: Colors.white, size: 38),
-                    )),
-                    const SizedBox(height: 20),
-                    Center(
-                        child: Text(l10n.app_name,
-                            style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textDark))),
-                    const SizedBox(height: 6),
-                    Center(
-                        child: Text(l10n.sign_in_to_account,
-                            style: const TextStyle(
-                                fontSize: 14, color: AppColors.textSubtle))),
-                    const SizedBox(height: 24),
-
-                    // Error banner
-                    Consumer<AuthProvider>(builder: (_, auth, __) {
-                      if (auth.errorMsg == null) return const SizedBox.shrink();
-                      return Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.all(12),
+                      // Logo
+                      Center(
+                          child: Container(
+                        width: 64,
+                        height: 64,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEF2F2),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: AppColors.error.withValues(alpha: 0.3)),
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Row(children: [
-                          const Icon(Icons.error_outline,
-                              size: 16, color: AppColors.error),
-                          const SizedBox(width: 8),
-                          Expanded(
-                              child: Text(auth.errorMsg!,
-                                  style: const TextStyle(
-                                      fontSize: 13, color: AppColors.error))),
-                        ]),
-                      );
-                    }),
+                        child: const Icon(Icons.eco_rounded,
+                            color: Colors.white, size: 38),
+                      )),
+                      const SizedBox(height: 20),
+                      Center(
+                          child: Text(l10n.app_name,
+                              style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: colorScheme.onSurface))),
+                      const SizedBox(height: 6),
+                      Center(
+                          child: Text(l10n.sign_in_to_account,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: colorScheme.onSurfaceVariant))),
+                      const SizedBox(height: 24),
 
-                    SfTextField(
-                        controller: _emailCtrl,
-                        hint: l10n.enter_email,
-                        label: l10n.email,
-                        keyboardType: TextInputType.emailAddress,
-                        errorText: _emailError,
-                        onChanged: (_) => setState(() => _emailError = null)),
-                    const SizedBox(height: 16),
-                    SfTextField(
-                        controller: _passCtrl,
-                        hint: l10n.enter_password,
-                        label: l10n.password,
-                        obscureText: _obscure,
-                        textInputAction: TextInputAction.done,
-                        errorText: _passError,
-                        onChanged: (_) => setState(() => _passError = null),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                              _obscure
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                              size: 20,
-                              color: AppColors.textSubtle),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        )),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const ForgotPasswordScreen())),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          textStyle: const TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w600),
+                      // Error banner
+                      Consumer<AuthProvider>(builder: (_, auth, __) {
+                        if (auth.errorMsg == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color:
+                                    colorScheme.error.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(children: [
+                            Icon(Icons.error_outline,
+                                size: 16, color: colorScheme.error),
+                            const SizedBox(width: 8),
+                            Expanded(
+                                child: Text(auth.errorMsg!,
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        color: colorScheme.onErrorContainer))),
+                          ]),
+                        );
+                      }),
+
+                      SfTextField(
+                          controller: _emailCtrl,
+                          hint: l10n.enter_email,
+                          label: l10n.email,
+                          keyboardType: TextInputType.emailAddress,
+                          errorText: _emailError,
+                          onChanged: (_) => setState(() => _emailError = null)),
+                      const SizedBox(height: 16),
+                      SfTextField(
+                          controller: _passCtrl,
+                          hint: l10n.enter_password,
+                          label: l10n.password,
+                          obscureText: _obscure,
+                          textInputAction: TextInputAction.done,
+                          errorText: _passError,
+                          onChanged: (_) => setState(() => _passError = null),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                                _obscure
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                size: 20,
+                                color: colorScheme.onSurfaceVariant),
+                            onPressed: () =>
+                                setState(() => _obscure = !_obscure),
+                          )),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      const ForgotPasswordScreen())),
+                          style: TextButton.styleFrom(
+                            foregroundColor: colorScheme.primary,
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            textStyle: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                          child: Text(l10n.forgot_password),
                         ),
-                        child: Text(l10n.forgot_password),
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    Consumer<AuthProvider>(
-                        builder: (_, auth, __) => SfPrimaryButton(
-                            label: l10n.login,
-                            onPressed: () => _submit(l10n),
-                            isLoading: auth.isLoading)),
-                    const SizedBox(height: 20),
+                      Consumer<AuthProvider>(
+                          builder: (_, auth, __) => SfPrimaryButton(
+                              label: l10n.login,
+                              onPressed: () => _submit(l10n),
+                              isLoading: auth.isLoading)),
+                      const SizedBox(height: 20),
 
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text("${l10n.dont_have_account} ",
-                          style: const TextStyle(
-                              fontSize: 14, color: AppColors.textSubtle)),
-                      GestureDetector(
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const RegisterScreen())),
-                        child: Text(l10n.register,
-                            style: const TextStyle(
-                                fontSize: 14,
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600)),
-                      ),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("${l10n.dont_have_account} ",
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: colorScheme.onSurfaceVariant)),
+                            GestureDetector(
+                              onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const RegisterScreen())),
+                              child: Text(l10n.register,
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.w600)),
+                            ),
+                          ]),
                     ]),
-                  ]),
               ),
             ),
           ),

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../main.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:smart_farm/core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
@@ -50,9 +50,9 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       final userId = context.read<AuthProvider>().currentUser?.id;
       if (userId != null) {
         context.read<NotificationProvider>().fetchNotifications(
-          userId: userId,
-          force: true,
-        );
+              userId: userId,
+              force: true,
+            );
       }
     });
   }
@@ -84,8 +84,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               Navigator.pop(ctx);
               provider.deleteAllNotifications(userId: userId);
             },
-            style:
-            TextButton.styleFrom(foregroundColor: AppColors.error),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: Text(l10n.delete_all),
           ),
         ],
@@ -98,17 +97,20 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     final provider = context.watch<NotificationProvider>();
     final userId = context.watch<AuthProvider>().currentUser?.id;
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         centerTitle: true,
         title: Text(
           l10n.notifications,
-          style: AppTextStyles.pageTitle.copyWith(fontSize: 18),
+          style: textTheme.titleLarge,
         ),
+        iconTheme: IconThemeData(color: colorScheme.onSurface),
         actions: [
           if (provider.notifications.isNotEmpty && userId != null)
             PopupMenuButton<String>(
@@ -158,39 +160,39 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               onRefresh: _onRefresh,
               child: provider.isLoading
                   ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                children: const [
-                  SizedBox(height: 120),
-                  Center(child: CircularProgressIndicator()),
-                ],
-              )
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      children: const [
+                        SizedBox(height: 120),
+                        Center(child: CircularProgressIndicator()),
+                      ],
+                    )
                   : provider.error != null
-                  ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                children: [
-                  SizedBox(
-                    height: MediaQuery.sizeOf(context).height * 0.7,
-                    child: _buildErrorState(provider, userId),
-                  ),
-                ],
-              )
-                  : provider.notifications.isEmpty
-                  ? _buildEmptyState(l10n)
-                  : ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: provider.notifications.length,
-                separatorBuilder: (_, __) =>
-                const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final item = provider.notifications[index];
-                  return _NotificationCard(
-                    item: item,
-                    userId: userId ?? '',
-                  );
-                },
-              ),
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(16),
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.sizeOf(context).height * 0.7,
+                              child: _buildErrorState(provider, userId),
+                            ),
+                          ],
+                        )
+                      : provider.notifications.isEmpty
+                          ? _buildEmptyState(l10n)
+                          : ListView.separated(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: provider.notifications.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final item = provider.notifications[index];
+                                return _NotificationCard(
+                                  item: item,
+                                  userId: userId ?? '',
+                                );
+                              },
+                            ),
             ),
           ),
         ),
@@ -200,18 +202,16 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
   Widget _buildErrorState(NotificationProvider provider, String? userId) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.cloud_off_outlined,
-              size: 64, color: AppColors.textDisabled.withValues(alpha: 0.8)),
+              size: 64, color: colorScheme.onSurface.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          Text(l10n.notifications_load_error,
-              style: AppTextStyles.label.copyWith(
-                fontSize: 16,
-                color: AppColors.textSubtle,
-              )),
+          Text(l10n.notifications_load_error, style: textTheme.bodyLarge),
           const SizedBox(height: 8),
           ElevatedButton.icon(
             onPressed: () {
@@ -228,6 +228,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   Widget _buildEmptyState(AppLocalizations l10n) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: SizedBox(
@@ -238,13 +240,11 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             children: [
               Icon(Icons.notifications_off_outlined,
                   size: 80,
-                  color: AppColors.textDisabled.withValues(alpha: 0.3)),
+                  color: colorScheme.onSurface.withValues(alpha: 0.1)),
               const SizedBox(height: 24),
-              Text(l10n.no_notifications,
-                  style: AppTextStyles.cardTitle),
+              Text(l10n.no_notifications, style: textTheme.titleMedium),
               const SizedBox(height: 8),
-              Text(l10n.manage_account_preferences,
-                  style: AppTextStyles.caption),
+              Text(l10n.manage_account_preferences, style: textTheme.bodySmall),
             ],
           ),
         ),
@@ -264,9 +264,11 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.read<NotificationProvider>();
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     final title =
-    item.title.trim().isEmpty ? l10n.notifications : item.title.trim();
+        item.title.trim().isEmpty ? l10n.notifications : item.title.trim();
     final body = item.body.trim();
 
     return InkWell(
@@ -276,13 +278,13 @@ class _NotificationCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: item.isRead
-              ? AppColors.surface
-              : AppColors.surface.withValues(alpha: 0.7),
+              ? colorScheme.surface
+              : colorScheme.surface.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: item.isRead
-                ? AppColors.cardBorder
-                : AppColors.primary.withValues(alpha: 0.3),
+                ? colorScheme.outlineVariant
+                : colorScheme.primary.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -297,10 +299,10 @@ class _NotificationCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: AppTextStyles.cardTitle.copyWith(
-                      fontSize: 14,
-                      color:
-                      item.isRead ? AppColors.textSubtle : AppColors.textDark,
+                    style: textTheme.titleSmall?.copyWith(
+                      color: item.isRead
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.onSurface,
                     ),
                   ),
                   if (body.isNotEmpty) ...[
@@ -308,9 +310,8 @@ class _NotificationCard extends StatelessWidget {
                     Text(
                       body,
                       softWrap: true,
-                      style: AppTextStyles.label.copyWith(
-                        fontSize: 14,
-                        color: AppColors.textSubtle,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                         height: 1.35,
                       ),
                     ),
@@ -319,7 +320,8 @@ class _NotificationCard extends StatelessWidget {
                   Text(
                     _formatTime(item.createdAt,
                         l10n: l10n, backendText: item.backendTimeText),
-                    style: AppTextStyles.caption,
+                    style: textTheme.labelSmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -332,17 +334,18 @@ class _NotificationCard extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 6),
                     width: 8,
                     height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
                       shape: BoxShape.circle,
                     ),
                   ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
+                  icon: Icon(Icons.delete_outline,
+                      size: 20,
+                      color: colorScheme.error.withValues(alpha: 0.5)),
                   onPressed: () => provider.deleteNotification(item.id),
-                  color: AppColors.error.withValues(alpha: 0.7),
-                  visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
               ],
             ),
@@ -353,10 +356,10 @@ class _NotificationCard extends StatelessWidget {
   }
 
   String _formatTime(
-      DateTime dt, {
-        required AppLocalizations l10n,
-        required String? backendText,
-      }) {
+    DateTime dt, {
+    required AppLocalizations l10n,
+    required String? backendText,
+  }) {
     final backend = backendText?.trim();
     if (backend != null && backend.isNotEmpty) {
       final duration = AppNotification.parseBackendTimeToDuration(backend);
@@ -388,12 +391,15 @@ class _TypeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final (IconData icon, Color color) = switch (type) {
-      NotificationType.report => (Icons.article_outlined, AppColors.info),
-      NotificationType.chatbot =>
-      (Icons.chat_bubble_outline_rounded, AppColors.adminAccent),
-      NotificationType.user => (Icons.person_outline_rounded, AppColors.warning),
-      NotificationType.system => (Icons.settings_outlined, AppColors.textSubtle),
+      NotificationType.report => (Icons.article_outlined, Colors.blue),
+      NotificationType.chatbot => (
+          Icons.chat_bubble_outline_rounded,
+          colorScheme.secondary
+        ),
+      NotificationType.user => (Icons.person_outline_rounded, Colors.orange),
+      NotificationType.system => (Icons.settings_outlined, colorScheme.outline),
     };
 
     return Container(

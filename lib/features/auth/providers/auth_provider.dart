@@ -37,8 +37,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _loading;
   String? get errorMsg => _error;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
-  bool get isAdmin => _user?.role == UserRole.admin || _user?.role == UserRole.super_admin;
-  bool get isSuperAdmin => _user?.role == UserRole.super_admin;
+  bool get isAdmin => _user?.role == UserRole.admin || _user?.role == UserRole.superAdmin;
+  bool get isSuperAdmin => _user?.role == UserRole.superAdmin;
   String get displayName => _user?.displayName ?? 'Farmer';
 
   // ── Session restore & Refresh ─────────────────────────────────────────────

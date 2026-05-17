@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 
 class SfTextField extends StatelessWidget {
   const SfTextField({
@@ -33,59 +32,38 @@ class SfTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
-          Text(label!,
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textDark)),
-          const SizedBox(height: 6),
-        ],
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          decoration: BoxDecoration(
-            color: enabled ? const Color(0xFFF9FAFB) : const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: errorText != null ? AppColors.error : AppColors.cardBorder,
-              width: errorText != null ? 1.5 : 1,
+          Text(
+            label!,
+            style: textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
-          child: TextField(
-            controller: controller,
-            keyboardType: keyboardType,
-            obscureText: obscureText,
-            textInputAction: textInputAction,
-            onChanged: onChanged,
-            enabled: enabled,
-            readOnly: readOnly,
-            style: TextStyle(
-                fontSize: 14,
-                color: enabled ? AppColors.textDark : AppColors.textDisabled),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle:
-                  const TextStyle(color: AppColors.textDisabled, fontSize: 14),
-              border: InputBorder.none,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              suffixIcon: suffixIcon,
-              prefixIcon: prefixIcon,
-            ),
+          const SizedBox(height: 8),
+        ],
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          textInputAction: textInputAction,
+          onChanged: onChanged,
+          enabled: enabled,
+          readOnly: readOnly,
+          style: textTheme.bodyLarge,
+          decoration: InputDecoration(
+            hintText: hint,
+            errorText: errorText,
+            suffixIcon: suffixIcon,
+            prefixIcon: prefixIcon,
+            // These will automatically use the InputDecorationTheme from our dark/light theme files
           ),
         ),
-        if (errorText != null) ...[
-          const SizedBox(height: 5),
-          Row(children: [
-            const Icon(Icons.error_outline, size: 13, color: AppColors.error),
-            const SizedBox(width: 4),
-            Text(errorText!,
-                style: const TextStyle(fontSize: 12, color: AppColors.error)),
-          ]),
-        ],
       ],
     );
   }

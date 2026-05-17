@@ -3,7 +3,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
-import '../../../../shared/theme/app_theme.dart';
 import '../models/report_model.dart';
 import '../utils/label_mapper.dart';
 
@@ -28,16 +27,18 @@ class AdminChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       height: height,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.cardBorder),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: colorScheme.shadow.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -52,11 +53,10 @@ class AdminChartCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: AppTextStyles.cardTitle.copyWith(fontSize: 18)),
+                  Text(title, style: textTheme.titleLarge),
                   if (subtitle != null) ...[
                     const SizedBox(height: 4),
-                    Text(subtitle!, style: AppTextStyles.caption),
+                    Text(subtitle!, style: textTheme.bodySmall),
                   ],
                 ],
               ),
@@ -81,6 +81,8 @@ class UserGrowthChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     double maxY = 100;
     if (data.isNotEmpty) {
@@ -99,7 +101,7 @@ class UserGrowthChart extends StatelessWidget {
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: AppColors.cardBorder.withValues(alpha: 0.5),
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                     strokeWidth: 1,
                   ),
                 ),
@@ -115,7 +117,7 @@ class UserGrowthChart extends StatelessWidget {
                       reservedSize: 40,
                       getTitlesWidget: (val, meta) => Text(
                         val.toInt().toString(),
-                        style: AppTextStyles.caption.copyWith(fontSize: 10),
+                        style: textTheme.labelSmall,
                       ),
                     ),
                   ),
@@ -131,7 +133,7 @@ class UserGrowthChart extends StatelessWidget {
                           child: Text(
                               LabelMapper.getLocalizedMonth(
                                   data[value.toInt()].month, l10n),
-                              style: const TextStyle(fontSize: 10)),
+                              style: textTheme.labelSmall),
                         );
                       },
                     ),
@@ -143,13 +145,13 @@ class UserGrowthChart extends StatelessWidget {
                     spots: List.generate(data.length,
                         (i) => FlSpot(i.toDouble(), data[i].users.toDouble())),
                     isCurved: true,
-                    color: AppColors.primary,
+                    color: colorScheme.primary,
                     barWidth: 4,
                     isStrokeCapRound: true,
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppColors.primary.withValues(alpha: 0.1),
+                      color: colorScheme.primary.withValues(alpha: 0.1),
                     ),
                   ),
                 ],
@@ -169,6 +171,16 @@ class ServiceDistributionChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final List<Color> colors = [
+      colorScheme.primary,
+      const Color(0xFF66BB6A),
+      const Color(0xFF81C784),
+      const Color(0xFFA5D6A7),
+      const Color(0xFFC8E6C9),
+      const Color(0xFFE8F5E9),
+    ];
 
     return AdminChartCard(
       title: l10n.service_distribution,
@@ -183,7 +195,7 @@ class ServiceDistributionChart extends StatelessWidget {
                     PieChartData(
                       sectionsSpace: 2,
                       centerSpaceRadius: 40,
-                      sections: _buildSections(),
+                      sections: _buildSections(colors),
                     ),
                   ),
                 ),
@@ -194,7 +206,7 @@ class ServiceDistributionChart extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _buildLegend(l10n),
+                      children: _buildLegend(l10n, colors),
                     ),
                   ),
                 ),
@@ -203,27 +215,18 @@ class ServiceDistributionChart extends StatelessWidget {
     );
   }
 
-  static const List<Color> _colors = [
-    Color(0xFF4CAF50),
-    Color(0xFF66BB6A),
-    Color(0xFF81C784),
-    Color(0xFFA5D6A7),
-    Color(0xFFC8E6C9),
-    Color(0xFFE8F5E9),
-  ];
-
-  List<PieChartSectionData> _buildSections() {
+  List<PieChartSectionData> _buildSections(List<Color> colors) {
     return List.generate(data.length, (i) {
       return PieChartSectionData(
         value: data[i].count.toDouble(),
-        color: _colors[i % _colors.length],
+        color: colors[i % colors.length],
         radius: 35,
         showTitle: false,
       );
     });
   }
 
-  List<Widget> _buildLegend(AppLocalizations l10n) {
+  List<Widget> _buildLegend(AppLocalizations l10n, List<Color> colors) {
     final total = data.fold(0, (sum, e) => sum + e.count);
     return List.generate(data.length, (i) {
       final item = data[i];
@@ -237,7 +240,7 @@ class ServiceDistributionChart extends StatelessWidget {
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                  color: _colors[i % _colors.length], shape: BoxShape.circle),
+                  color: colors[i % colors.length], shape: BoxShape.circle),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -267,6 +270,7 @@ class WeeklyActivityChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     double maxY = 60;
     if (data.isNotEmpty) {
@@ -297,8 +301,8 @@ class WeeklyActivityChart extends StatelessWidget {
                       interval: maxY / 2,
                       getTitlesWidget: (val, meta) => Text(
                         val.toInt().toString(),
-                        style: const TextStyle(
-                            color: Color(0xFF94A3B8), fontSize: 10),
+                        style: TextStyle(
+                            color: colorScheme.onSurfaceVariant, fontSize: 10),
                       ),
                     ),
                   ),
@@ -318,8 +322,8 @@ class WeeklyActivityChart extends StatelessWidget {
                             : localizedDay;
                         return Text(
                           label,
-                          style: const TextStyle(
-                              color: Color(0xFF64748B),
+                          style: TextStyle(
+                              color: colorScheme.onSurfaceVariant,
                               fontSize: 10,
                               fontWeight: FontWeight.w600),
                         );
@@ -332,18 +336,19 @@ class WeeklyActivityChart extends StatelessWidget {
                   drawVerticalLine: false,
                   horizontalInterval: maxY / 4,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: const Color(0xFFF1F5F9),
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                     strokeWidth: 1,
                   ),
                 ),
                 borderData: FlBorderData(show: false),
-                barGroups: _buildBarGroups(maxY),
+                barGroups: _buildBarGroups(maxY, colorScheme),
               ),
             ),
     );
   }
 
-  List<BarChartGroupData> _buildBarGroups(double maxY) {
+  List<BarChartGroupData> _buildBarGroups(
+      double maxY, ColorScheme colorScheme) {
     return List.generate(
         data.length,
         (i) => BarChartGroupData(
@@ -351,14 +356,14 @@ class WeeklyActivityChart extends StatelessWidget {
               barRods: [
                 BarChartRodData(
                   toY: data[i].activity.toDouble(),
-                  color: const Color(0xFF53B175),
+                  color: colorScheme.primary,
                   width: 16,
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(4)),
                   backDrawRodData: BackgroundBarChartRodData(
                     show: true,
                     toY: maxY,
-                    color: const Color(0xFFF8FAFC),
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.2),
                   ),
                 ),
               ],

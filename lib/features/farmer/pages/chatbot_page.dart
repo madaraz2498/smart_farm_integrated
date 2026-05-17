@@ -4,7 +4,6 @@ import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/chatbot_provider.dart';
 import '../models/chatbot_models.dart';
-import '../../../shared/theme/app_theme.dart';
 import '../../../providers/navigation_provider.dart';
 
 class ChatbotPage extends StatefulWidget {
@@ -60,12 +59,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final isDesktop = Responsive.isDesktop(context);
     final width = Responsive.screenWidth(context);
     final cardMaxWidth = width > 1400 ? 1220.0 : 1100.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F5F3),
+      backgroundColor: colorScheme.surface,
       drawer: isDesktop
           ? null
           : Drawer(
@@ -77,18 +77,20 @@ class _ChatbotPageState extends State<ChatbotPage> {
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: isDesktop ? cardMaxWidth : double.infinity),
+            constraints: BoxConstraints(
+                maxWidth: isDesktop ? cardMaxWidth : double.infinity),
             child: Padding(
-              padding: EdgeInsets.fromLTRB(isDesktop ? 20 : 0, isDesktop ? 18 : 0, isDesktop ? 20 : 0, 0),
+              padding: EdgeInsets.fromLTRB(isDesktop ? 20 : 0,
+                  isDesktop ? 18 : 0, isDesktop ? 20 : 0, 0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(isDesktop ? 14 : 0),
-                  border: Border.all(color: const Color(0xFFD9E1DC)),
+                  border: Border.all(color: colorScheme.outline),
                   boxShadow: isDesktop
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
+                            color: colorScheme.shadow.withValues(alpha: 0.08),
                             blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
@@ -108,30 +110,37 @@ class _ChatbotPageState extends State<ChatbotPage> {
                               child: Consumer<ChatbotProvider>(
                                 builder: (context, prov, _) {
                                   if (prov.isLoading && prov.messages.isEmpty) {
-                                    return const Center(child: CircularProgressIndicator());
+                                    return const Center(
+                                        child: CircularProgressIndicator());
                                   }
 
                                   return Column(
                                     children: [
                                       if (prov.messages.isEmpty)
-                                        _SuggestionsBar(
-                                            onTap: (s) {
-                                              _ctrl.text = s;
-                                              _send();
-                                            }),
+                                        _SuggestionsBar(onTap: (s) {
+                                          _ctrl.text = s;
+                                          _send();
+                                        }),
                                       Expanded(
                                         child: prov.messages.isEmpty
                                             ? const _EmptyState()
                                             : ListView.builder(
                                                 controller: _scroll,
-                                                physics: const AlwaysScrollableScrollPhysics(),
-                                                padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
-                                                itemCount: prov.messages.length + (prov.isSending ? 1 : 0),
+                                                physics:
+                                                    const AlwaysScrollableScrollPhysics(),
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                        18, 18, 18, 10),
+                                                itemCount: prov
+                                                        .messages.length +
+                                                    (prov.isSending ? 1 : 0),
                                                 itemBuilder: (_, i) {
-                                                  if (i == prov.messages.length) {
+                                                  if (i ==
+                                                      prov.messages.length) {
                                                     return const _TypingIndicator();
                                                   }
-                                                  return _Bubble(msg: prov.messages[i]);
+                                                  return _Bubble(
+                                                      msg: prov.messages[i]);
                                                 },
                                               ),
                                       ),
@@ -142,7 +151,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                             ),
                             _InputBar(
                                 ctrl: _ctrl,
-                                isSending: context.watch<ChatbotProvider>().isSending,
+                                isSending:
+                                    context.watch<ChatbotProvider>().isSending,
                                 onSend: _send,
                                 hint: l10n.type_message),
                           ],
@@ -167,26 +177,27 @@ class _ChatHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final prov = context.watch<ChatbotProvider>();
-    
+
     // Find current session or use a placeholder
     final currentSession = prov.sessions.cast<ChatSession?>().firstWhere(
-      (s) => s?.id == prov.currentSessionId,
-      orElse: () => null,
-    );
+          (s) => s?.id == prov.currentSessionId,
+          orElse: () => null,
+        );
 
     return Container(
       height: isDesktop ? 74 : 60,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(bottom: BorderSide(color: Color(0xFFDDE3DF))),
+        color: colorScheme.surface,
+        border: Border(bottom: BorderSide(color: colorScheme.outline)),
       ),
       child: Row(
         children: [
           if (!isDesktop)
             IconButton(
-              icon: const Icon(Icons.menu, color: AppColors.textDark),
+              icon: Icon(Icons.menu, color: colorScheme.onSurface),
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           Expanded(
@@ -195,13 +206,13 @@ class _ChatHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  prov.currentSessionId == null || currentSession == null 
+                  prov.currentSessionId == null || currentSession == null
                       ? l10n.new_chat
                       : currentSession.title,
                   style: TextStyle(
                     fontSize: isDesktop ? 16 : 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
+                    color: colorScheme.onSurface,
                   ),
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
@@ -209,7 +220,6 @@ class _ChatHeader extends StatelessWidget {
               ],
             ),
           ),
-
         ],
       ),
     );
@@ -224,19 +234,24 @@ class _ChatSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final prov = context.watch<ChatbotProvider>();
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-    final sessions = [...prov.sessions]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final sessions = [...prov.sessions]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final now = DateTime.now();
-    final recentSessions = sessions.where((s) => now.difference(s.createdAt).inDays <= 2).toList();
-    final olderSessions = sessions.where((s) => now.difference(s.createdAt).inDays > 2).toList();
+    final recentSessions =
+        sessions.where((s) => now.difference(s.createdAt).inDays <= 2).toList();
+    final olderSessions =
+        sessions.where((s) => now.difference(s.createdAt).inDays > 2).toList();
 
     return Container(
       width: isInDrawer ? double.infinity : 280,
       height: double.infinity,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(right: BorderSide(color: AppColors.cardBorder, width: 1.33)),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border:
+            Border(right: BorderSide(color: colorScheme.outline, width: 1.33)),
       ),
       child: SafeArea(
         top: true,
@@ -247,15 +262,16 @@ class _ChatSidebar extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
               child: Row(
                 children: [
-                  const Icon(Icons.chat_bubble_outline_rounded, size: 18, color: AppColors.primary),
+                  Icon(Icons.chat_bubble_outline_rounded,
+                      size: 18, color: colorScheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       l10n.nav_chatbot,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textDark,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -268,11 +284,11 @@ class _ChatSidebar extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   l10n.main_menu,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.2,
-                    color: AppColors.textSubtle,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -290,15 +306,16 @@ class _ChatSidebar extends StatelessWidget {
                 icon: const Icon(Icons.add, size: 18),
                 label: Text(l10n.new_chat),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: AppColors.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                  backgroundColor: colorScheme.primary,
                   elevation: 0,
                   minimumSize: const Size(double.infinity, 46),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(99)),
                 ),
               ),
             ),
-            const Divider(height: 1, color: AppColors.cardBorder),
+            Divider(height: 1, color: colorScheme.outline),
             Expanded(
               child: prov.isLoading && prov.sessions.isEmpty
                   ? const _SidebarShimmer()
@@ -314,7 +331,8 @@ class _ChatSidebar extends StatelessWidget {
                                     .map(
                                       (session) => _SessionTile(
                                         session: session,
-                                        isSelected: prov.currentSessionId == session.id,
+                                        isSelected:
+                                            prov.currentSessionId == session.id,
                                         isArabic: isArabic,
                                         onTap: () {
                                           prov.selectSession(session.id);
@@ -333,7 +351,8 @@ class _ChatSidebar extends StatelessWidget {
                                     .map(
                                       (session) => _SessionTile(
                                         session: session,
-                                        isSelected: prov.currentSessionId == session.id,
+                                        isSelected:
+                                            prov.currentSessionId == session.id,
                                         isArabic: isArabic,
                                         onTap: () {
                                           prov.selectSession(session.id);
@@ -348,15 +367,18 @@ class _ChatSidebar extends StatelessWidget {
                           ],
                         ),
             ),
-            const Divider(height: 1),
+            Divider(height: 1, color: colorScheme.outline),
             Padding(
               padding: const EdgeInsets.all(16),
               child: TextButton.icon(
-                onPressed: () => context.read<NavigationProvider>().goToFarmerPage(FarmerPage.welcome),
-                icon: const Icon(Icons.dashboard_outlined),
+                onPressed: () => context
+                    .read<NavigationProvider>()
+                    .goToFarmerPage(FarmerPage.welcome),
+                icon: Icon(Icons.dashboard_outlined,
+                    color: colorScheme.onSurfaceVariant),
                 label: Text(l10n.back_to_dashboard),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.textSubtle,
+                  foregroundColor: colorScheme.onSurfaceVariant,
                   minimumSize: const Size(double.infinity, 48),
                   alignment: Alignment.centerLeft,
                 ),
@@ -370,7 +392,11 @@ class _ChatSidebar extends StatelessWidget {
 }
 
 class _SessionTile extends StatelessWidget {
-  const _SessionTile({required this.session, required this.isSelected, required this.onTap, required this.isArabic});
+  const _SessionTile(
+      {required this.session,
+      required this.isSelected,
+      required this.onTap,
+      required this.isArabic});
   final ChatSession session;
   final bool isSelected;
   final bool isArabic;
@@ -378,10 +404,11 @@ class _SessionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.primary : Colors.transparent,
+        color: isSelected ? colorScheme.primary : Colors.transparent,
         borderRadius: BorderRadius.circular(99),
       ),
       child: ListTile(
@@ -391,7 +418,7 @@ class _SessionTile extends StatelessWidget {
         leading: Icon(
           Icons.chat_bubble_outline_rounded,
           size: 20,
-          color: isSelected ? Colors.white : AppColors.primary,
+          color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
         ),
         title: Text(
           session.title,
@@ -400,12 +427,16 @@ class _SessionTile extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected ? Colors.white : AppColors.textDark,
+            color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
           ),
         ),
         subtitle: Text(
           _formatSessionDate(session.createdAt, isArabic: isArabic),
-          style: TextStyle(fontSize: 11, color: isSelected ? Colors.white70 : AppColors.textDisabled),
+          style: TextStyle(
+              fontSize: 11,
+              color: isSelected
+                  ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                  : colorScheme.onSurfaceVariant),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -418,7 +449,9 @@ class _SessionTile extends StatelessWidget {
                 child: Icon(
                   Icons.edit_outlined,
                   size: 18,
-                  color: isSelected ? Colors.white : AppColors.textSubtle,
+                  color: isSelected
+                      ? colorScheme.onPrimary
+                      : colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
@@ -426,9 +459,10 @@ class _SessionTile extends StatelessWidget {
             InkWell(
               borderRadius: BorderRadius.circular(14),
               onTap: () => _showDeleteDialog(context, session),
-              child: const Padding(
-                padding: EdgeInsets.all(4),
-                child: Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(Icons.delete_outline,
+                    size: 18, color: colorScheme.error),
               ),
             ),
           ],
@@ -445,7 +479,9 @@ class _SessionTile extends StatelessWidget {
       barrierDismissible: true,
       builder: (context) => AlertDialog(
         title: Text(l10n.rename_chat_title),
-        content: TextField(controller: ctrl, decoration: InputDecoration(hintText: l10n.enter_new_title)),
+        content: TextField(
+            controller: ctrl,
+            decoration: InputDecoration(hintText: l10n.enter_new_title)),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
           SizedBox(
@@ -462,7 +498,9 @@ class _SessionTile extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      context.read<ChatbotProvider>().renameSession(session.id, ctrl.text.trim());
+                      context
+                          .read<ChatbotProvider>()
+                          .renameSession(session.id, ctrl.text.trim());
                       Navigator.pop(context);
                     },
                     child: Text(l10n.save),
@@ -499,12 +537,15 @@ class _SessionTile extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.error),
                     onPressed: () {
                       context.read<ChatbotProvider>().deleteSession(session.id);
                       Navigator.pop(context);
                     },
-                    child: Text(l10n.delete, style: const TextStyle(color: Colors.white)),
+                    child: Text(l10n.delete,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onError)),
                   ),
                 ),
               ],
@@ -523,6 +564,7 @@ class _SessionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -532,10 +574,10 @@ class _SessionSection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textSubtle,
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -553,23 +595,29 @@ class _SidebarEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.forum_outlined, size: 40, color: AppColors.textDisabled),
+            Icon(Icons.forum_outlined,
+                size: 40, color: colorScheme.onSurfaceVariant),
             const SizedBox(height: 12),
             Text(
               l10n.no_chats_yet,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark),
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface),
             ),
             const SizedBox(height: 6),
             Text(
               l10n.start_new_chat_hint,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, color: AppColors.textSubtle),
+              style:
+                  TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -580,10 +628,14 @@ class _SidebarEmptyState extends StatelessWidget {
 
 String _formatSessionDate(DateTime date, {required bool isArabic}) {
   final now = DateTime.now();
-  final difference = DateTime(now.year, now.month, now.day).difference(DateTime(date.year, date.month, date.day)).inDays;
+  final difference = DateTime(now.year, now.month, now.day)
+      .difference(DateTime(date.year, date.month, date.day))
+      .inDays;
   if (difference == 0) return isArabic ? 'اليوم' : 'Today';
   if (difference == 1) return isArabic ? 'أمس' : 'Yesterday';
-  if (difference < 7) return isArabic ? 'منذ $difference أيام' : '$difference days ago';
+  if (difference < 7) {
+    return isArabic ? 'منذ $difference أيام' : '$difference days ago';
+  }
   return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 }
 
@@ -591,6 +643,7 @@ class _SidebarShimmer extends StatelessWidget {
   const _SidebarShimmer();
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: 5,
@@ -598,7 +651,7 @@ class _SidebarShimmer extends StatelessWidget {
         height: 40,
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.5),
+          color: colorScheme.surface.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
       ),
@@ -613,22 +666,35 @@ class _SuggestionsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final suggestions = [l10n.chat_suggest_1, l10n.chat_suggest_2, l10n.chat_suggest_3, l10n.chat_suggest_4];
+    final colorScheme = Theme.of(context).colorScheme;
+    final suggestions = [
+      l10n.chat_suggest_1,
+      l10n.chat_suggest_2,
+      l10n.chat_suggest_3,
+      l10n.chat_suggest_4
+    ];
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l10n.chat_suggestions_title, style: AppTextStyles.caption),
+        Text(l10n.chat_suggestions_title,
+            style:
+                TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: suggestions.map((s) => ActionChip(
-            label: Text(s, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
-            backgroundColor: AppColors.primarySurface,
-            onPressed: () => onTap(s),
-            side: BorderSide(color: AppColors.primary.withValues(alpha: 0.1)),
-          )).toList(),
+          children: suggestions
+              .map((s) => ActionChip(
+                    label: Text(s,
+                        style: TextStyle(
+                            fontSize: 12, color: colorScheme.primary)),
+                    backgroundColor: colorScheme.primaryContainer,
+                    onPressed: () => onTap(s),
+                    side: BorderSide(
+                        color: colorScheme.primary.withValues(alpha: 0.1)),
+                  ))
+              .toList(),
         ),
       ]),
     );
@@ -641,17 +707,20 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      const Icon(Icons.chat_bubble_outline_rounded, size: 80, color: AppColors.textDisabled),
+      Icon(Icons.chat_bubble_outline_rounded,
+          size: 80, color: colorScheme.onSurfaceVariant),
       const SizedBox(height: 16),
-      Text(
-          l10n.chat_empty_state,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+      Text(l10n.chat_empty_state,
+          style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface)),
       const SizedBox(height: 8),
-      Text(
-          l10n.chat_empty_subtitle,
-          style: const TextStyle(fontSize: 14, color: AppColors.textSubtle)),
+      Text(l10n.chat_empty_subtitle,
+          style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant)),
     ]));
   }
 }
@@ -662,12 +731,15 @@ class _Bubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ts = '${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}';
+    final colorScheme = Theme.of(context).colorScheme;
+    final ts =
+        '${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}';
     final maxBubbleWidth = Responsive.screenWidth(context) * 0.58;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!msg.isUser) ...[
@@ -682,25 +754,40 @@ class _Bubble extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: msg.isUser ? const Color(0xFF2BAE66) : const Color(0xFFF3F4F6),
+                color: msg.isUser
+                    ? colorScheme.primary
+                    : colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
                   bottomLeft: Radius.circular(msg.isUser ? 16 : 8),
                   bottomRight: Radius.circular(msg.isUser ? 8 : 16),
                 ),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                boxShadow: [
+                  BoxShadow(
+                      color: colorScheme.shadow.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2))
+                ],
               ),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(msg.text,
                         softWrap: true,
-                        style: TextStyle(fontSize: 15, color: msg.isUser ? Colors.white : AppColors.textDark, height: 1.5)),
+                        style: TextStyle(
+                            fontSize: 15,
+                            color: msg.isUser
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurface,
+                            height: 1.5)),
                     const SizedBox(height: 8),
                     Text(ts,
                         style: TextStyle(
-                            fontSize: 10, color: msg.isUser ? Colors.white.withValues(alpha: 0.7) : AppColors.textDisabled)),
+                            fontSize: 10,
+                            color: msg.isUser
+                                ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                                : colorScheme.onSurfaceVariant)),
                   ]),
             ),
           ),
@@ -718,11 +805,17 @@ class _Avatar extends StatelessWidget {
   const _Avatar({required this.isUser});
   final bool isUser;
   @override
-  Widget build(BuildContext context) => CircleAvatar(
-        radius: 14,
-        backgroundColor: isUser ? const Color(0xFFE4F6EB) : const Color(0xFFEAF3EE),
-        child: Icon(isUser ? Icons.person : Icons.smart_toy, size: 14, color: const Color(0xFF1E9C63)),
-      );
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return CircleAvatar(
+      radius: 14,
+      backgroundColor: isUser
+          ? colorScheme.primaryContainer
+          : colorScheme.surfaceContainerHighest,
+      child: Icon(isUser ? Icons.person : Icons.smart_toy,
+          size: 14, color: colorScheme.primary),
+    );
+  }
 }
 
 class _TypingIndicator extends StatelessWidget {
@@ -730,6 +823,7 @@ class _TypingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Row(children: [
@@ -738,20 +832,30 @@ class _TypingIndicator extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
+              boxShadow: [
+                BoxShadow(
+                    color: colorScheme.shadow.withValues(alpha: 0.08),
+                    blurRadius: 10)
+              ]),
           child: Text(l10n.typing,
-              style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic, color: AppColors.textSubtle)),
+              style: TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                  color: colorScheme.onSurfaceVariant)),
         ),
       ]),
     );
   }
-
 }
 
 class _InputBar extends StatelessWidget {
-  const _InputBar({required this.ctrl, required this.isSending, required this.onSend, required this.hint});
+  const _InputBar(
+      {required this.ctrl,
+      required this.isSending,
+      required this.onSend,
+      required this.hint});
   final TextEditingController ctrl;
   final bool isSending;
   final VoidCallback onSend;
@@ -759,11 +863,12 @@ class _InputBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAF9),
-        border: const Border(top: BorderSide(color: Color(0xFFDDE3DF))),
+        color: colorScheme.surfaceContainerHighest,
+        border: Border(top: BorderSide(color: colorScheme.outline)),
       ),
       child: SafeArea(
         child: Center(
@@ -780,20 +885,22 @@ class _InputBar extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: hint,
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: colorScheme.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFFCAD5CE)),
+                        borderSide: BorderSide(color: colorScheme.outline),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFFCAD5CE)),
+                        borderSide: BorderSide(color: colorScheme.outline),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF2BAE66), width: 1.2),
+                        borderSide:
+                            BorderSide(color: colorScheme.primary, width: 1.2),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
                     ),
                   ),
                 ),
@@ -802,16 +909,23 @@ class _InputBar extends StatelessWidget {
                   height: 40,
                   width: 40,
                   child: ElevatedButton(
-                  onPressed: isSending ? null : onSend,
-                  style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2BAE66),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: EdgeInsets.zero,
-                ),
-                  child: isSending
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                    onPressed: isSending ? null : onSend,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding: EdgeInsets.zero,
+                    ),
+                    child: isSending
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: colorScheme.onPrimary))
+                        : Icon(Icons.send_rounded,
+                            color: colorScheme.onPrimary, size: 18),
                   ),
                 ),
               ],

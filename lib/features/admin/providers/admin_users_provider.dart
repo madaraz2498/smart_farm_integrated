@@ -6,7 +6,6 @@ import '../../../core/utils/production_logger.dart';
 import '../models/admin_models.dart';
 import '../services/admin_service.dart';
 import '../../notifications/providers/notification_provider.dart';
-import '../../notifications/models/notification_model.dart';
 
 /// Dedicated provider for user management
 /// Handles all user-related state and API calls
@@ -17,14 +16,14 @@ class AdminUsersProvider extends ChangeNotifier {
 
   final AdminService _svc = AdminService.instance;
   final RequestCache _cache = RequestCache.instance;
-  
+
   // State management
   List<AdminUser> _users = [];
   bool _isLoading = false;
   String? _error;
   bool _isInitialized = false;
   bool _isInitializing = false;
-  
+
   // Notification provider for side effects
   NotificationProvider? _notif;
   String _locale = 'en';
@@ -53,14 +52,15 @@ class AdminUsersProvider extends ChangeNotifier {
   /// Initialize users data - thread-safe and prevents duplicates
   Future<void> initializeIfNeeded() async {
     if (_isInitialized || _isInitializing) return;
-    
+
     _isInitializing = true;
     ProductionLogger.info('[AdminUsersProvider] Initializing users');
-    
+
     try {
       await loadUsers(force: false);
       _isInitialized = true;
-      ProductionLogger.info('[AdminUsersProvider] Users initialization completed');
+      ProductionLogger.info(
+          '[AdminUsersProvider] Users initialization completed');
     } catch (e) {
       ProductionLogger.error('[AdminUsersProvider] Initialization failed', e);
       _isInitialized = false; // Allow retry on failure
@@ -73,12 +73,12 @@ class AdminUsersProvider extends ChangeNotifier {
   Future<void> loadUsers({bool force = false}) async {
     // Prevent concurrent calls
     if (_isLoading) return;
-    
+
     // Return early if we have data and not forcing
     if (_users.isNotEmpty && !force) return;
 
     final wasSilent = _users.isNotEmpty;
-    
+
     if (!wasSilent) {
       _isLoading = true;
       _error = null;

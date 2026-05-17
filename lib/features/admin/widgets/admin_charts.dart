@@ -1,7 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:smart_farm/core/theme/app_colors.dart';
+import 'package:smart_farm/core/theme/app_text_styles.dart';
 import '../reports/models/report_model.dart';
 import '../reports/utils/label_mapper.dart';
 
@@ -26,16 +27,17 @@ class AdminChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       height: height,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.cardBorder),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: colorScheme.shadow.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -51,10 +53,13 @@ class AdminChartCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: AppTextStyles.cardTitle.copyWith(fontSize: 18)),
+                      style: AppTextStyles.cardTitle.copyWith(
+                          fontSize: 18, color: colorScheme.onSurface)),
                   if (subtitle != null) ...[
                     const SizedBox(height: 4),
-                    Text(subtitle!, style: AppTextStyles.caption),
+                    Text(subtitle!,
+                        style: AppTextStyles.caption
+                            .copyWith(color: colorScheme.onSurfaceVariant)),
                   ],
                 ],
               ),
@@ -79,6 +84,7 @@ class UserGrowthChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     double maxY = 100;
     if (data.isNotEmpty) {
@@ -90,14 +96,16 @@ class UserGrowthChart extends StatelessWidget {
       title: l10n.user_growth,
       subtitle: l10n.new_user_registrations,
       child: data.isEmpty
-          ? const Center(child: Text('No growth data available'))
+          ? Center(
+              child: Text('No growth data available',
+                  style: TextStyle(color: colorScheme.onSurfaceVariant)))
           : LineChart(
               LineChartData(
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: AppColors.cardBorder.withValues(alpha: 0.5),
+                    color: colorScheme.outlineVariant,
                     strokeWidth: 1,
                   ),
                 ),
@@ -113,7 +121,8 @@ class UserGrowthChart extends StatelessWidget {
                       reservedSize: 40,
                       getTitlesWidget: (val, meta) => Text(
                         val.toInt().toString(),
-                        style: AppTextStyles.caption.copyWith(fontSize: 10),
+                        style: AppTextStyles.caption.copyWith(
+                            fontSize: 10, color: colorScheme.onSurfaceVariant),
                       ),
                     ),
                   ),
@@ -129,7 +138,9 @@ class UserGrowthChart extends StatelessWidget {
                           child: Text(
                               LabelMapper.getLocalizedMonth(
                                   data[value.toInt()].month, l10n),
-                              style: const TextStyle(fontSize: 10)),
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: colorScheme.onSurfaceVariant)),
                         );
                       },
                     ),
@@ -141,13 +152,13 @@ class UserGrowthChart extends StatelessWidget {
                     spots: List.generate(data.length,
                         (i) => FlSpot(i.toDouble(), data[i].users.toDouble())),
                     isCurved: true,
-                    color: AppColors.primary,
+                    color: colorScheme.primary,
                     barWidth: 4,
                     isStrokeCapRound: true,
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppColors.primary.withValues(alpha: 0.1),
+                      color: colorScheme.primary.withValues(alpha: 0.1),
                     ),
                   ),
                 ],
@@ -202,7 +213,7 @@ class ServiceDistributionChart extends StatelessWidget {
   }
 
   static const List<Color> _colors = [
-    Color(0xFF4CAF50),
+    AppColors.primary,
     Color(0xFF66BB6A),
     Color(0xFF81C784),
     Color(0xFFA5D6A7),

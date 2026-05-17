@@ -495,6 +495,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get date_range => 'Date Range';
 
   @override
+  String get all_time => 'All Time';
+
+  @override
+  String get last_month => 'Last Month';
+
+  @override
+  String get last_3_months => 'Last 3 Months';
+
+  @override
   String get last_30_days => 'Last 30 Days';
 
   @override
@@ -1013,6 +1022,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get crop_recommendation_result => 'Recommendation Result';
+
+  @override
+  String get crop_vegetables => 'Vegetables';
+
+  @override
+  String get crop_fruits => 'Fruits';
+
+  @override
+  String get crop_field_crops => 'Field Crops';
 
   @override
   String get crop_primary_crop => 'Primary Crop';

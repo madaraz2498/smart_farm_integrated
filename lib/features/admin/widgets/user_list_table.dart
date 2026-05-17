@@ -4,6 +4,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/admin_models.dart';
+import 'package:smart_farm/core/theme/app_colors.dart';
 import 'package:smart_farm/core/utils/production_logger.dart';
 
 class UserListTable extends StatefulWidget {
@@ -70,11 +71,15 @@ class _UserListTableState extends State<UserListTable> {
             const statusWidth = 80.0;
             const actionsWidth = 60.0;
             const horizontalPadding = 24.0; // 12 on each side
-            const totalWidth =
-                nameWidth + roleWidth + statusWidth + actionsWidth + horizontalPadding;
+            const totalWidth = nameWidth +
+                roleWidth +
+                statusWidth +
+                actionsWidth +
+                horizontalPadding;
 
-            final tableWidth =
-                constraints.maxWidth < totalWidth ? totalWidth : constraints.maxWidth;
+            final tableWidth = constraints.maxWidth < totalWidth
+                ? totalWidth
+                : constraints.maxWidth;
 
             return Scrollbar(
               controller: _horizontalController,
@@ -87,7 +92,8 @@ class _UserListTableState extends State<UserListTable> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildTableHeaders(l10n, nameWidth, roleWidth, statusWidth, actionsWidth),
+                      _buildTableHeaders(l10n, nameWidth, roleWidth,
+                          statusWidth, actionsWidth),
                       if (filteredUsers.isEmpty)
                         const Padding(
                           padding: EdgeInsets.all(32),
@@ -101,7 +107,13 @@ class _UserListTableState extends State<UserListTable> {
                           separatorBuilder: (_, __) =>
                               Divider(height: 1, color: Colors.grey.shade50),
                           itemBuilder: (context, index) => _buildUserRow(
-                              context, filteredUsers[index], l10n, nameWidth, roleWidth, statusWidth, actionsWidth),
+                              context,
+                              filteredUsers[index],
+                              l10n,
+                              nameWidth,
+                              roleWidth,
+                              statusWidth,
+                              actionsWidth),
                         ),
                     ],
                   ),
@@ -264,15 +276,16 @@ class _UserListTableState extends State<UserListTable> {
                         ? imgUrl
                         : '${ApiClient.baseUrl}$imgUrl'),
                     fit: BoxFit.cover,
-                    onError: (e, s) => ProductionLogger.warning('Table image error: $e'))
+                    onError: (e, s) =>
+                        ProductionLogger.warning('Table image error: $e'))
                 : null),
       ),
       child: (localBytes == null && (imgUrl == null || imgUrl.isEmpty))
           ? Center(
               child: Text(
                 u.displayName.isNotEmpty ? u.displayName[0].toUpperCase() : '?',
-                style: const TextStyle(
-                    color: Color(0xFF10B981),
+                style: TextStyle(
+                    color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                     fontSize: 14),
               ),
@@ -289,7 +302,7 @@ class _RoleBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final roleLower = user.role.toLowerCase();
-    
+
     if (roleLower == 'super_admin') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -308,7 +321,7 @@ class _RoleBadge extends StatelessWidget {
         ),
       );
     }
-    
+
     if (roleLower == 'admin' || user.isAdmin) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -366,8 +379,7 @@ class _StatusBadge extends StatelessWidget {
             width: 6,
             height: 6,
             decoration: BoxDecoration(
-              color:
-                  isActive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+              color: isActive ? AppColors.primary : const Color(0xFFEF4444),
               shape: BoxShape.circle,
             ),
           ),
@@ -377,8 +389,7 @@ class _StatusBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color:
-                  isActive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+              color: isActive ? AppColors.primary : const Color(0xFFEF4444),
             ),
           ),
         ],

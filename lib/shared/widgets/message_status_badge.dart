@@ -1,15 +1,17 @@
 // lib/shared/widgets/message_status_badge.dart
 import 'package:flutter/material.dart';
+import 'package:smart_farm/core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 
 class MessageStatusBadge extends StatelessWidget {
-  const MessageStatusBadge({super.key, required this.isReplied, required this.l10n});
+  const MessageStatusBadge(
+      {super.key, required this.isReplied, required this.l10n});
   final bool isReplied;
   final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
-    final color = isReplied ? const Color(0xFF10B981) : const Color(0xFFF59E0B);
+    final color = isReplied ? AppColors.primary : const Color(0xFFF59E0B);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

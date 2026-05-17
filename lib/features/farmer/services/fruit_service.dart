@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/fruit_models.dart';
@@ -18,7 +17,8 @@ class FruitService {
     required String userId,
     required String lang,
   }) async {
-    ProductionLogger.info('[FruitService] POST /fruits/analyze-fruit  file=$fileName  userId=$userId');
+    ProductionLogger.info(
+        '[FruitService] POST /fruits/analyze-fruit  file=$fileName  userId=$userId');
     try {
       final data = await _c.postMultipart(
         '/fruits/analyze-fruit',
@@ -28,7 +28,8 @@ class FruitService {
         fields: {
           'user_id': userId,
           'lang': _normalizeLang(lang),
-        },);
+        },
+      );
       ProductionLogger.info('response: $data');
       return FruitQualityResponse.fromJson(_asMap(data));
     } on ApiException {

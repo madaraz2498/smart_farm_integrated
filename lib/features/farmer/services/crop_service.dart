@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/crop_models.dart';
@@ -10,15 +9,18 @@ class CropService {
   static final CropService instance = CropService._();
   final ApiClient _c = ApiClient.instance;
 
-  Future<CropRecommendationResponse> recommend(CropRecommendationRequest req) async {
+  Future<CropRecommendationResponse> recommend(
+      CropRecommendationRequest req) async {
     ProductionLogger.info('POST /crops/recommend-smart-expert');
     ProductionLogger.info('body: ${req.toForm()}');
     try {
-      final data = await _c.postForm('/crops/recommend-smart-expert', req.toForm());
+      final data =
+          await _c.postForm('/crops/recommend-smart-expert', req.toForm());
       ProductionLogger.info('response: $data');
       return CropRecommendationResponse.fromJson(_asMap(data));
-    } on ApiException { rethrow; }
-    catch (e) {
+    } on ApiException {
+      rethrow;
+    } catch (e) {
       ProductionLogger.info('error: $e');
       throw const ApiException('Crop recommendation failed.');
     }
@@ -33,5 +35,3 @@ class CropService {
     throw const ApiException('Invalid crop response format.');
   }
 }
-
-

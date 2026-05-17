@@ -5,7 +5,6 @@ import 'package:smart_farm/core/utils/responsive.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/models/message_model.dart';
-import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/message_status_badge.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/message_provider.dart';
@@ -22,7 +21,6 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
   final _messageController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  bool _showSendForm = false;
   String? _selectedType;
 
   @override
@@ -45,7 +43,9 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
   Future<void> _refreshMessages() async {
     final userId = context.read<AuthProvider>().currentUser?.id;
     if (userId != null) {
-      await context.read<FarmerMessageProvider>().fetchMessages(userId, force: true);
+      await context
+          .read<FarmerMessageProvider>()
+          .fetchMessages(userId, force: true);
     }
   }
 
@@ -124,6 +124,8 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final auth = context.watch<AuthProvider>();
     final provider = context.watch<FarmerMessageProvider>();
     final userId = auth.currentUser?.id ?? '';
@@ -135,77 +137,72 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
           constraints: const BoxConstraints(maxWidth: 900),
           child: RefreshIndicator(
             onRefresh: _refreshMessages,
-            color: AppColors.primary,
+            color: colorScheme.primary,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.all(pagePadding),
               children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.message_rounded,
-                  color: AppColors.primary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(
-                      l10n.messages,
-                      style: AppTextStyles.pageTitle.copyWith(
-                        fontWeight: FontWeight.w900,
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.message_rounded,
+                        color: colorScheme.primary,
+                        size: 24,
                       ),
                     ),
-                    Text(
-                      '${provider.messages.length} ${l10n.messages}',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.messages,
+                            style: textTheme.headlineMedium,
+                          ),
+                          Text(
+                            '${provider.messages.length} ${l10n.messages}',
+                            style: textTheme.bodySmall,
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _FarmerHeader(
-            onNewMessage: () => _showNewMessageDialog(context),
-            count: provider.messages.length,
-            pendingCount: provider.pendingCount,
-          ),
-          const SizedBox(height: 28),
-          if (provider.isLoading && provider.messages.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(40),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else if (provider.messages.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(40),
-              child: _buildEmptyState(l10n),
-            )
-          else
-            ...provider.messages.map((msg) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _MessageCard(
-                    message: msg,
-                    onDelete: () => _confirmDelete(context, msg.id, userId),
-                  ),
-                )),
-          const SizedBox(height: 40),
+                const SizedBox(height: 20),
+                _FarmerHeader(
+                  onNewMessage: () => _showNewMessageDialog(context),
+                  count: provider.messages.length,
+                  pendingCount: provider.pendingCount,
+                ),
+                const SizedBox(height: 28),
+                if (provider.isLoading && provider.messages.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else if (provider.messages.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: _buildEmptyState(l10n, colorScheme),
+                  )
+                else
+                  ...provider.messages.map((msg) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _MessageCard(
+                          message: msg,
+                          onDelete: () =>
+                              _confirmDelete(context, msg.id, userId),
+                        ),
+                      )),
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -214,15 +211,37 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
     );
   }
 
-  Widget _buildEmptyState(AppLocalizations l10n) {
+  Widget _buildEmptyState(AppLocalizations l10n, ColorScheme colorScheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.mail_outline_rounded,
-              size: 64, color: AppColors.textSubtle.withValues(alpha: 0.5)),
-          const SizedBox(height: 16),
-          Text(l10n.no_messages_found, style: AppTextStyles.pageSubtitle),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.mail_outline_rounded,
+                size: 48, color: colorScheme.primary),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            l10n.no_messages_found,
+            style: TextStyle(
+              color: colorScheme.onSurface,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.communicate_with_admin,
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
@@ -230,6 +249,7 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
 
   void _confirmDelete(BuildContext context, int id, String userId) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -256,8 +276,8 @@ class _FarmerMessagesPageState extends State<FarmerMessagesPage> {
               }
             },
             child: Text(l10n.confirm_button,
-                style: const TextStyle(
-                    color: Colors.red, fontWeight: FontWeight.bold)),
+                style: TextStyle(
+                    color: colorScheme.error, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -278,17 +298,18 @@ class _FarmerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isSmallScreen = MediaQuery.of(context).size.width < 400;
-    
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -302,33 +323,19 @@ class _FarmerHeader extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
+                  color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
-                child: const Icon(Icons.email, color: AppColors.primary, size: 20),
+                child: Icon(Icons.email, color: colorScheme.primary, size: 20),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(l10n.your_messages,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 18,
-                            color: Color(0xFF111827))),
+                    Text(l10n.your_messages, style: textTheme.titleLarge),
                     Text(l10n.communicate_with_admin,
-                        style: const TextStyle(
-                            color: AppColors.textSubtle,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500)),
+                        style: textTheme.bodySmall),
                   ],
                 ),
               ),
@@ -340,31 +347,8 @@ class _FarmerHeader extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: onNewMessage,
-              icon: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Icon(Icons.add, size: 16),
-              ),
-              label: Text(
-                l10n.new_message,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 2,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                shadowColor: AppColors.primary.withValues(alpha: 0.3),
-              ),
+              icon: Icon(Icons.add, size: 18, color: colorScheme.onPrimary),
+              label: Text(l10n.new_message),
             ),
           ),
         ],
@@ -395,6 +379,7 @@ class _SendNewMessageForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final types = [
       l10n.complaint,
       l10n.suggestion,
@@ -407,12 +392,12 @@ class _SendNewMessageForm extends StatelessWidget {
           const BoxConstraints(maxWidth: 500), // Limit width on large screens
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -425,28 +410,27 @@ class _SendNewMessageForm extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.send_rounded,
-                    color: AppColors.primary, size: 22),
+                Icon(Icons.send_rounded, color: colorScheme.primary, size: 22),
                 const SizedBox(width: 12),
                 Text(
                   l10n.send_message,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF111827),
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
             Text(l10n.message_type,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF374151))),
+                    color: colorScheme.onSurface)),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: selectedType,
+              initialValue: selectedType,
               items: types
                   .map((t) => DropdownMenuItem(
                       value: t,
@@ -454,32 +438,32 @@ class _SendNewMessageForm extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.w500))))
                   .toList(),
               onChanged: onTypeChanged,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: Colors.grey),
+              icon: Icon(Icons.keyboard_arrow_down_rounded,
+                  color: colorScheme.onSurfaceVariant),
               decoration: InputDecoration(
                 hintText: l10n.select_message_type,
                 filled: true,
-                fillColor: const Color(0xFFF9FAFB),
+                fillColor: colorScheme.surfaceContainerHighest,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200)),
+                    borderSide: BorderSide(color: colorScheme.outline)),
                 enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200)),
+                    borderSide: BorderSide(color: colorScheme.outline)),
                 focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.primary)),
+                    borderSide: BorderSide(color: colorScheme.primary)),
               ),
               validator: (v) => (v == null) ? l10n.field_required : null,
             ),
             const SizedBox(height: 20),
             Text(l10n.message_content,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF374151))),
+                    color: colorScheme.onSurface)),
             const SizedBox(height: 10),
             TextFormField(
               controller: messageController,
@@ -487,18 +471,18 @@ class _SendNewMessageForm extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: l10n.type_message,
                 filled: true,
-                fillColor: const Color(0xFFF9FAFB),
+                fillColor: colorScheme.surfaceContainerHighest,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200)),
+                    borderSide: BorderSide(color: colorScheme.outline)),
                 enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200)),
+                    borderSide: BorderSide(color: colorScheme.outline)),
                 focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.primary)),
+                    borderSide: BorderSide(color: colorScheme.primary)),
               ),
               validator: (v) =>
                   (v == null || v.isEmpty) ? l10n.field_required : null,
@@ -516,29 +500,29 @@ class _SendNewMessageForm extends StatelessWidget {
                         horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
-                    side: BorderSide(color: Colors.grey.shade200),
+                    side: BorderSide(color: colorScheme.outline),
                   ),
                   child: Text(l10n.cancel,
-                      style: const TextStyle(
-                          color: Color(0xFF374151),
+                      style: TextStyle(
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 13)),
                 ),
                 ElevatedButton.icon(
                   onPressed: isLoading ? null : onSend,
                   icon: isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                              strokeWidth: 2, color: colorScheme.onPrimary),
                         )
-                      : const Icon(Icons.send_rounded, size: 16),
+                      : Icon(Icons.send_rounded, size: 16),
                   label: Text(l10n.send_message,
                       style: const TextStyle(fontSize: 13)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
@@ -568,6 +552,7 @@ class _MessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context).toString();
     final dateStr = DateFormat.yMMMd(locale).add_Hm().format(message.createdAt);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
@@ -575,7 +560,7 @@ class _MessageCard extends StatelessWidget {
     final repliedAt = message.repliedAt ?? message.createdAt;
     final replyDateStr = DateFormat.yMMMd(locale).add_Hm().format(repliedAt);
     final hasReply = replyText != null && replyText.isNotEmpty;
-    
+
     // Debug logging to check reply data
     if (message.isReplied || (replyText != null && replyText.isNotEmpty)) {
       ProductionLogger.info('Message ${message.id} has reply: $replyText');
@@ -585,19 +570,19 @@ class _MessageCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: hasReply 
-              ? AppColors.primary.withValues(alpha: 0.3)
-              : Colors.grey.shade200,
+          color: hasReply
+              ? colorScheme.primary.withValues(alpha: 0.3)
+              : colorScheme.outline,
           width: hasReply ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: hasReply 
-                ? AppColors.primary.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.04),
+            color: hasReply
+                ? colorScheme.primary.withValues(alpha: 0.08)
+                : colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: hasReply ? 20 : 12,
             offset: const Offset(0, 4),
           ),
@@ -609,8 +594,8 @@ class _MessageCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: hasReply 
-                  ? AppColors.primarySurface.withValues(alpha: 0.3)
+              color: hasReply
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.3)
                   : Colors.transparent,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
@@ -631,19 +616,23 @@ class _MessageCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: hasReply 
-                                ? AppColors.primary.withValues(alpha: 0.15)
-                                : AppColors.primarySurface,
+                            color: hasReply
+                                ? colorScheme.primary.withValues(alpha: 0.15)
+                                : colorScheme.primaryContainer,
                             shape: BoxShape.circle,
-                            border: hasReply 
-                                ? Border.all(color: AppColors.primary.withValues(alpha: 0.3))
+                            border: hasReply
+                                ? Border.all(
+                                    color: colorScheme.primary
+                                        .withValues(alpha: 0.3))
                                 : null,
                           ),
                           child: Stack(
                             children: [
                               Icon(
-                                Icons.email_outlined, 
-                                color: hasReply ? AppColors.primary : AppColors.primaryDark,
+                                Icons.email_outlined,
+                                color: hasReply
+                                    ? colorScheme.primary
+                                    : colorScheme.primary,
                                 size: 18,
                               ),
                               if (hasReply)
@@ -653,8 +642,8 @@ class _MessageCard extends StatelessWidget {
                                   child: Container(
                                     width: 6,
                                     height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.green,
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primary,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -669,19 +658,20 @@ class _MessageCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
+                              color: colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                  color: AppColors.primary.withValues(alpha: 0.2)),
+                                  color: colorScheme.primary
+                                      .withValues(alpha: 0.2)),
                             ),
                             child: Text(
                               message.subject,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.primaryDark,
+                                color: colorScheme.primary,
                               ),
                             ),
                           ),
@@ -689,21 +679,21 @@ class _MessageCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         // Status Badge
                         MessageStatusBadge(
-                          isReplied: message.isReplied, 
+                          isReplied: message.isReplied,
                           l10n: l10n,
                         ),
                         const SizedBox(width: 8),
                         // Delete Button
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.red.shade50,
+                            color: colorScheme.errorContainer,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: IconButton(
                             onPressed: onDelete,
                             icon: Icon(
                               Icons.delete_outline_rounded,
-                              color: Colors.red.shade400,
+                              color: colorScheme.error,
                               size: 18,
                             ),
                             padding: const EdgeInsets.all(8),
@@ -723,13 +713,13 @@ class _MessageCard extends StatelessWidget {
                         Icon(
                           Icons.schedule_outlined,
                           size: 12,
-                          color: Colors.grey.shade500,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           dateStr,
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
@@ -744,18 +734,19 @@ class _MessageCard extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50.withValues(alpha: 0.5),
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: colorScheme.outline),
                   ),
                   child: Text(
                     message.content,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF2C3E50),
+                      color: colorScheme.onSurface,
                       height: 1.4,
                     ),
                   ),
@@ -763,21 +754,21 @@ class _MessageCard extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Admin Reply Section (if exists)
           if (message.reply != null && message.reply!.isNotEmpty)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.primarySurface.withValues(alpha: 0.45),
+                color: colorScheme.primaryContainer.withValues(alpha: 0.45),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
                 border: Border(
                   top: BorderSide(
-                    color: AppColors.cardBorder.withValues(alpha: 0.9),
+                    color: colorScheme.outline,
                     width: 1,
                   ),
                 ),
@@ -788,15 +779,14 @@ class _MessageCard extends StatelessWidget {
                   // Reply Header
                   Row(
                     children: [
-                      const Icon(Icons.reply,
-                          size: 16, color: AppColors.primary),
+                      Icon(Icons.reply, size: 16, color: colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
                         l10n.admin_reply,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 12,
-                          color: AppColors.primary,
+                          color: colorScheme.primary,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -806,9 +796,9 @@ class _MessageCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.end,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textDisabled,
+                            color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -819,18 +809,18 @@ class _MessageCard extends StatelessWidget {
                   // Reply Content
                   Container(
                     width: double.infinity,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.cardBorder),
+                      border: Border.all(color: colorScheme.outline),
                     ),
                     child: Text(
                       message.reply!,
                       textAlign: isRtl ? TextAlign.right : TextAlign.left,
-                      style: const TextStyle(
-                        color: AppColors.textDark,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         height: 1.45,

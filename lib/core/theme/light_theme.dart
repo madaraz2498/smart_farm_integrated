@@ -24,7 +24,7 @@ ThemeData get lightTheme {
     onPrimaryContainer: AppColors.primaryDark,
 
     // ── Secondary ────────────────────────────────────────────────────────────
-    secondary: c.onSurfaceVariant,       // dark text-green for inactive items
+    secondary: c.onSurfaceVariant, // dark text-green for inactive items
     onSecondary: Colors.white,
     secondaryContainer: c.surfaceVariant,
     onSecondaryContainer: c.onBackground,
@@ -44,7 +44,7 @@ ThemeData get lightTheme {
     // ── Surface (cards, sheets, dialogs) ─────────────────────────────────────
     surface: c.surface,
     onSurface: c.onSurface,
-    surfaceVariant: c.surfaceVariant,
+    surfaceContainerHighest: c.surfaceVariant,
     onSurfaceVariant: c.onSurfaceVariant,
     inverseSurface: c.inverseSurface,
     onInverseSurface: c.onInverseSurface,
@@ -53,12 +53,6 @@ ThemeData get lightTheme {
     // ── Outline ──────────────────────────────────────────────────────────────
     outline: c.outline,
     outlineVariant: c.outlineVariant,
-
-    // ── Background ───────────────────────────────────────────────────────────
-    // ignore: deprecated_member_use
-    background: c.background,
-    // ignore: deprecated_member_use
-    onBackground: c.onBackground,
 
     // ── Shadow ───────────────────────────────────────────────────────────────
     shadow: const Color(0x0F000000),
@@ -70,6 +64,7 @@ ThemeData get lightTheme {
     useMaterial3: true,
     brightness: Brightness.light,
     colorScheme: colorScheme,
+    textTheme: buildTextTheme(colorScheme),
 
     // ── Scaffold ──────────────────────────────────────────────────────────────
     scaffoldBackgroundColor: c.background,
@@ -116,7 +111,8 @@ ThemeData get lightTheme {
           if (states.contains(WidgetState.disabled)) return c.onSurfaceVariant;
           return Colors.white;
         }),
-        overlayColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.12)),
+        overlayColor:
+            WidgetStateProperty.all(Colors.white.withValues(alpha: 0.12)),
         minimumSize: WidgetStateProperty.all(
           const Size(double.infinity, AppDimensions.buttonHeight),
         ),
@@ -404,8 +400,5 @@ ThemeData get lightTheme {
     splashFactory: InkRipple.splashFactory,
     splashColor: AppColors.primary.withValues(alpha: 0.08),
     highlightColor: Colors.transparent,
-
-    // ── Text Theme ────────────────────────────────────────────────────────────
-    textTheme: buildTextTheme(isDark: false),
   );
 }

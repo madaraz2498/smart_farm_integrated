@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../shared/models/message_model.dart';
@@ -44,7 +43,8 @@ class FarmerMessageService {
 
       // 🔍 DEBUG: Print raw API response to see all field names
       if (raw.isNotEmpty) {
-        ProductionLogger.info('Sample message keys: ${(raw.first as Map).keys.toList()}');
+        ProductionLogger.info(
+            'Sample message keys: ${(raw.first as Map).keys.toList()}');
         ProductionLogger.info('Sample message data: ${raw.first}');
       }
 

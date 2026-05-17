@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/animal_models.dart';
@@ -18,7 +17,8 @@ class AnimalService {
     required String userId,
     required String lang,
   }) async {
-    ProductionLogger.info('[AnimalService] POST /animals/estimate-weight  file=$fileName  userId=$userId');
+    ProductionLogger.info(
+        '[AnimalService] POST /animals/estimate-weight  file=$fileName  userId=$userId');
     try {
       final data = await _c.postMultipart(
         '/animals/estimate-weight',
@@ -28,7 +28,8 @@ class AnimalService {
         fields: {
           'user_id': userId,
           'lang': _normalizeLang(lang),
-        },);
+        },
+      );
       ProductionLogger.info('response: $data');
       return AnimalWeightResponse.fromJson(_asMap(data));
     } on ApiException {

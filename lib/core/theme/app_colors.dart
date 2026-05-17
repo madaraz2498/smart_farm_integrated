@@ -24,13 +24,16 @@ abstract final class AppColors {
   // ---------------------------------------------------------------------------
 
   /// Primary brand green — buttons, active states, FABs, links
-  static const Color primary = Color(0xFF15B86C);
+  static const Color primary = Color(0xFF2BAB6F);
 
   /// A slightly deeper green for pressed/hover states
-  static const Color primaryDark = Color(0xFF0F9757);
+  static const Color primaryDark = Color(0xFF1D8353);
 
   /// Very light green used for tinted surfaces / icon backgrounds
-  static const Color primarySurface = Color(0xFFE8F5EE);
+  static const Color primarySurface = Color(0xFFE6F5EE);
+
+  /// Alias for old AppColors.primaryLight
+  static const Color primaryLight = Color(0xFF5CC091);
 
   // ---------------------------------------------------------------------------
   // Semantic / status colors  (theme-independent)
@@ -49,36 +52,48 @@ abstract final class AppColors {
   /// Error — already in ColorScheme but useful as a shorthand
   static const Color error = Color(0xFFEF4444);
 
+  /// Notification Red - Alias for old AppColors.notifRed
+  static const Color notifRed = Color(0xFFEF4444);
+
   // ---------------------------------------------------------------------------
   // Admin accent  (used only in admin-specific UI)
   // ---------------------------------------------------------------------------
   static const Color adminAccent = Color(0xFFE65100);
   static const Color adminAccentSurface = Color(0xFFFFF3E0);
+  static const Color adminSurface =
+      Color(0xFFFFF3E0); // Alias for old AppColors.adminSurface
+
+  // ---------------------------------------------------------------------------
+  // Surface/Background (Compatibility aliases)
+  // ---------------------------------------------------------------------------
+  static const Color background = Color(0xFFF6F7F9);
+  static const Color surface = Color(0xFFFFFFFF);
 
   // ---------------------------------------------------------------------------
   // Light palette  — resolved by the app via Theme.of(context).colorScheme
   //                  Do NOT use these directly in widgets; use ColorScheme tokens
   // ---------------------------------------------------------------------------
-  static const _LightPalette light = _LightPalette();
+  static const LightPalette light = LightPalette();
 
   // ---------------------------------------------------------------------------
   // Dark palette
   // ---------------------------------------------------------------------------
-  static const _DarkPalette dark = _DarkPalette();
+  static const DarkPalette dark = DarkPalette();
 }
 
 // =============================================================================
 // Internal palette definitions — used only by app_theme.dart to build ThemeData
 // =============================================================================
 
-final class _LightPalette {
-  const _LightPalette();
+final class LightPalette {
+  const LightPalette();
 
   // Backgrounds
   Color get background => const Color(0xFFF6F7F9); // page scaffold
   Color get surface => const Color(0xFFFFFFFF); // cards, app bar, bottom nav
   Color get surfaceVariant => const Color(0xFFF0F4F2); // subtle sections
-  Color get inverseSurface => const Color(0xFF1F2937); // dark surfaces in light mode
+  Color get inverseSurface =>
+      const Color(0xFF1F2937); // dark surfaces in light mode
 
   // Text on background/surface
   Color get onBackground => const Color(0xFF161F1B); // body text, headings
@@ -95,26 +110,38 @@ final class _LightPalette {
   Color get topBarBg => const Color(0xFFE8F5E9);
 }
 
-final class _DarkPalette {
-  const _DarkPalette();
+final class DarkPalette {
+  const DarkPalette();
 
   // Backgrounds
-  Color get background => const Color(0xFF181818); // page scaffold
-  Color get surface => const Color(0xFF222222); // cards, app bar, bottom nav
-  Color get surfaceVariant => const Color(0xFF2A2A2A); // subtle sections
-  Color get inverseSurface => const Color(0xFFF6F7F9);
+  Color get background => const Color(0xFF0F0F0F); // Very dark (almost black)
+  Color get surface => const Color(0xFF1E1E1E); // Cards (slightly lighter)
+  Color get surfaceVariant => const Color(0xFF262626); // Subtle sections
+  Color get inverseSurface => const Color(0xFFF3F4F6);
 
   // Text
-  Color get onBackground => const Color(0xFFFFFCFC);
-  Color get onSurface => const Color(0xFFFFFCFC);
-  Color get onSurfaceVariant => const Color(0xFFC6C6C6);
-  Color get onInverseSurface => const Color(0xFF181818);
+  Color get onBackground => const Color(0xFFFFFFFF); // Pure white titles
+  Color get onSurface => const Color(0xFFD1D5DB); // Light gray body
+  Color get onSurfaceVariant =>
+      const Color(0xFF9CA3AF); // Darker gray secondary
+  Color get onInverseSurface => const Color(0xFF0F0F0F);
 
   // Borders, dividers
-  Color get outline => const Color(0xFF404040);
-  Color get outlineVariant => const Color(0xFF333333);
+  Color get outline => const Color(0xFF3F3F3F);
+  Color get outlineVariant => const Color(0xFF262626);
 
   // Specific component fills
-  Color get inputFill => const Color(0xFF2A2A2A);
-  Color get topBarBg => const Color(0xFF1E2E27);
+  Color get inputFill => const Color(0xFF181818);
+  Color get topBarBg => const Color(0xFF121212);
+}
+
+// =============================================================================
+// ColorScheme Extensions — convenient access to semantic colors that are
+//                           not in the standard Material 3 scheme.
+// =============================================================================
+
+extension ColorSchemeExtensions on ColorScheme {
+  Color get info => AppColors.info;
+  Color get success => AppColors.success;
+  Color get warning => AppColors.warning;
 }

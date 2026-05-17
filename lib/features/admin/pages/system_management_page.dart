@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
-import '../../auth/providers/auth_provider.dart';
 import '../providers/admin_provider.dart';
-import '../../../shared/theme/app_theme.dart';
-import '../../../shared/widgets/sf_button.dart';
+import 'package:smart_farm/core/theme/app_text_styles.dart';
 import 'package:smart_farm/core/utils/production_logger.dart';
+import 'package:smart_farm/core/utils/responsive.dart';
 
 class SystemManagementPage extends StatefulWidget {
   const SystemManagementPage({super.key});
@@ -80,7 +78,8 @@ class _SystemManagementPageState extends State<SystemManagementPage>
 
   Future<void> _toggleService(String key, bool val) async {
     setState(() => _services[key] = val);
-    ProductionLogger.info('[SystemManagementPage] Calling AdminProvider.toggleService for $key');
+    ProductionLogger.info(
+        '[SystemManagementPage] Calling AdminProvider.toggleService for $key');
     await context.read<AdminProvider>().toggleService(key);
   }
 
@@ -94,213 +93,259 @@ class _SystemManagementPageState extends State<SystemManagementPage>
     await context.read<AdminProvider>().toggleSystemSetting(key);
   }
 
-  void _snack(String msg) => ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: AppColors.primary));
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final pagePadding = Responsive.responsivePadding(context);
-    return SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 900),
-          child: RefreshIndicator(
-            onRefresh: () => _loadData(force: true),
-            color: AppColors.primary,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.all(pagePadding),
-              child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l10n.system_management_title, style: AppTextStyles.pageTitle),
-                const SizedBox(height: 4),
-                Text(l10n.system_management_subtitle,
-                    style: AppTextStyles.pageSubtitle),
-                const SizedBox(height: 24),
-                Container(
-                  decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-                      border:
-                      Border.all(color: Colors.black.withValues(alpha: 0.06))),
-                  child: TabBar(
-                    controller: _tab,
-                    indicator: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(AppSizes.radiusMid)),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: AppColors.textSubtle,
-                    padding: const EdgeInsets.all(4),
-                    tabs: [
-                      Tab(text: l10n.ai_models),
-                      Tab(text: l10n.general_settings)
-                    ],
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: RefreshIndicator(
+              onRefresh: () => _loadData(force: true),
+              color: colorScheme.primary,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(pagePadding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.system_management,
+                            style: AppTextStyles.pageTitle
+                                .copyWith(color: colorScheme.onSurface)),
+                        const SizedBox(height: 20),
+                        _buildTabHeader(colorScheme),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                AnimatedBuilder(
-                    animation: _tab,
-                    builder: (_, __) {
-                      final loading = context.watch<AdminProvider>().systemLoading;
-                      if (loading && _services.isEmpty) {
-                        return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(40.0),
-                              child: CircularProgressIndicator(),
-                            ));
-                      }
-                      return _tab.index == 0
-                          ? _buildAITab(l10n)
-                          : _buildGeneralTab(l10n);
-                    }),
-              ]),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tab,
+                      children: [
+                        _buildAIServicesTab(pagePadding, l10n, colorScheme),
+                        _buildGeneralSettingsTab(
+                            pagePadding, l10n, colorScheme),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),);
+      ),
+    );
   }
 
-  Widget _buildAITab(AppLocalizations l10n) {
-    final models = [
-      ('plant_disease', l10n.nav_plant_disease, Icons.local_florist_outlined),
-      ('animal_weight', l10n.nav_animal_weight, Icons.monitor_weight_outlined),
-      ('crop_rec', l10n.nav_crop_recommendation, Icons.grass_outlined),
-      ('soil_analysis', l10n.nav_soil_analysis, Icons.layers_outlined),
-      ('fruit_quality', l10n.nav_fruit_quality, Icons.apple_outlined),
-      ('chatbot', l10n.nav_chatbot, Icons.chat_bubble_outline),
-    ];
-    return Column(children: [
-      ...models.map((m) => Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-            border:
-            Border.all(color: Colors.black.withValues(alpha: 0.06))),
-        child: Row(children: [
-          Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                  color: (_services[m.$1] ?? false)
-                      ? AppColors.primarySurface
-                      : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(10)),
-              child: Icon(m.$3,
-                  color: (_services[m.$1] ?? false)
-                      ? AppColors.primary
-                      : Colors.grey,
-                  size: 22)),
-          const SizedBox(width: 14),
-          Expanded(
-              child: Text(m.$2,
-                  style: AppTextStyles.label,
-                  overflow: TextOverflow.ellipsis)),
-          Switch(
-              value: _services[m.$1] ?? false,
-              onChanged: (v) => _toggleService(m.$1, v),
-              activeThumbColor: AppColors.primary),
-        ]),
-      )),
-      SfPrimaryButton(
-          label: l10n.save_ai_config,
-          onPressed: () {
-            context.read<AdminProvider>().logAIConfigurationUpdate();
-            _snack(l10n.ai_config_saved);
-          }),
-    ]);
+  Widget _buildTabHeader(ColorScheme colorScheme) {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: TabBar(
+        controller: _tab,
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: colorScheme.primary,
+        ),
+        labelColor: colorScheme.onPrimary,
+        unselectedLabelColor: colorScheme.onSurfaceVariant,
+        indicatorSize: TabBarIndicatorSize.tab,
+        tabs: const [
+          Tab(text: 'AI Services'),
+          Tab(text: 'System Settings'),
+        ],
+      ),
+    );
   }
 
-  Widget _buildGeneralTab(AppLocalizations l10n) {
-    return Column(children: [
-      Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-              border: Border.all(color: Colors.black.withValues(alpha: 0.06))),
-          child:
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(l10n.platform_settings, style: AppTextStyles.cardTitle),
-            const SizedBox(height: 16),
-            _ToggleRow(
-                l10n.maintenance_mode,
-                l10n.maintenance_mode_desc,
-                _maintenance,
-                AppColors.error,
-                    (v) => _toggleSetting('maintenance_mode', v)),
-            _ToggleRow(
-                l10n.email_notifications,
-                l10n.email_alerts,
-                _emailNotif,
-                AppColors.info,
-                    (v) => _toggleSetting('email_notifications', v)),
-            _ToggleRow(
-                l10n.auto_backup,
-                l10n.auto_backup_desc,
-                _autoBackup,
-                const Color(0xFF9C27B0),
-                    (v) => _toggleSetting('auto_backup', v)),
-          ])),
-      const SizedBox(height: 16),
-      SfPrimaryButton(
-          label: l10n.save_general_settings,
-          onPressed: () async {
-            final userId = context.read<AuthProvider>().currentUser?.id;
-            if (userId == null) {
-              _snack(l10n.error_user_not_found);
-              return;
-            }
+  Widget _buildAIServicesTab(
+      double padding, AppLocalizations l10n, ColorScheme colorScheme) {
+    return ListView(
+      padding: EdgeInsets.symmetric(horizontal: padding),
+      children: [
+        _SectionHeader(title: 'AI Feature Controls', colorScheme: colorScheme),
+        const SizedBox(height: 12),
+        _ToggleCard(
+          title: l10n.nav_plant_disease,
+          subtitle: 'Enable/Disable Plant Disease AI',
+          val: _services['plant_disease'] ?? true,
+          onChanged: (v) => _toggleService('plant_disease', v),
+          icon: Icons.eco_rounded,
+          colorScheme: colorScheme,
+        ),
+        _ToggleCard(
+          title: l10n.nav_animal_weight,
+          subtitle: 'Enable/Disable Animal AI',
+          val: _services['animal_weight'] ?? true,
+          onChanged: (v) => _toggleService('animal_weight', v),
+          icon: Icons.pets_rounded,
+          colorScheme: colorScheme,
+        ),
+        _ToggleCard(
+          title: l10n.nav_crop_recommendation,
+          subtitle: 'Enable/Disable Crop AI',
+          val: _services['crop_rec'] ?? true,
+          onChanged: (v) => _toggleService('crop_rec', v),
+          icon: Icons.grass_rounded,
+          colorScheme: colorScheme,
+        ),
+        _ToggleCard(
+          title: l10n.nav_soil_analysis,
+          subtitle: 'Enable/Disable Soil AI',
+          val: _services['soil_analysis'] ?? true,
+          onChanged: (v) => _toggleService('soil_analysis', v),
+          icon: Icons.landscape_rounded,
+          colorScheme: colorScheme,
+        ),
+        _ToggleCard(
+          title: l10n.nav_fruit_quality,
+          subtitle: 'Enable/Disable Fruit AI',
+          val: _services['fruit_quality'] ?? true,
+          onChanged: (v) => _toggleService('fruit_quality', v),
+          icon: Icons.apple_rounded,
+          colorScheme: colorScheme,
+        ),
+        _ToggleCard(
+          title: l10n.nav_chatbot,
+          subtitle: 'Enable/Disable Chatbot AI',
+          val: _services['chatbot'] ?? true,
+          onChanged: (v) => _toggleService('chatbot', v),
+          icon: Icons.chat_rounded,
+          colorScheme: colorScheme,
+        ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
 
-            context
-                .read<AdminProvider>()
-                .updateAdminNotificationSettings(
-              emailNotifications: _emailNotif,
-              pushNotifications: true,
-              systemAlerts: _maintenance,
-            );
-            final success = true; // The method is void, so we assume success
-
-            if (!mounted) return;
-
-            if (success) {
-              _snack(l10n.general_settings_saved);
-            } else {
-              final error = context.read<AdminProvider>().statsError;
-              _snack(error ?? l10n.error_msg);
-            }
-          }),
-    ]);
+  Widget _buildGeneralSettingsTab(
+      double padding, AppLocalizations l10n, ColorScheme colorScheme) {
+    return ListView(
+      padding: EdgeInsets.symmetric(horizontal: padding),
+      children: [
+        _SectionHeader(title: 'Global Settings', colorScheme: colorScheme),
+        const SizedBox(height: 12),
+        _ToggleCard(
+          title: 'Maintenance Mode',
+          subtitle: 'Restrict access to the application',
+          val: _maintenance,
+          onChanged: (v) => _toggleSetting('maintenance_mode', v),
+          icon: Icons.build_circle_outlined,
+          colorScheme: colorScheme,
+        ),
+        _ToggleCard(
+          title: 'Email Notifications',
+          subtitle: 'Enable system alerts via email',
+          val: _emailNotif,
+          onChanged: (v) => _toggleSetting('email_notifications', v),
+          icon: Icons.notifications_active_outlined,
+          colorScheme: colorScheme,
+        ),
+        _ToggleCard(
+          title: 'Auto Data Backup',
+          subtitle: 'Daily database backups',
+          val: _autoBackup,
+          onChanged: (v) => _toggleSetting('auto_backup', v),
+          icon: Icons.cloud_upload_outlined,
+          colorScheme: colorScheme,
+        ),
+      ],
+    );
   }
 }
 
-class _ToggleRow extends StatelessWidget {
-  const _ToggleRow(
-      this.label, this.desc, this.value, this.color, this.onChanged);
-  final String label, desc;
-  final bool value;
-  final Color color;
-  final ValueChanged<bool> onChanged;
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, required this.colorScheme});
+  final String title;
+  final ColorScheme colorScheme;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 16),
-    child: Row(children: [
-      Expanded(
-          child: Column(
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(
+        title.toUpperCase(),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.1,
+          color: colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+class _ToggleCard extends StatelessWidget {
+  const _ToggleCard({
+    required this.title,
+    required this.subtitle,
+    required this.val,
+    required this.onChanged,
+    required this.icon,
+    required this.colorScheme,
+  });
+
+  final String title, subtitle;
+  final bool val;
+  final ValueChanged<bool> onChanged;
+  final IconData icon;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: (val ? colorScheme.primary : colorScheme.onSurface)
+                  .withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon,
+                color:
+                    val ? colorScheme.primary : colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: AppTextStyles.label),
-                Text(desc,
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textSubtle)),
-              ])),
-      Switch(
-          value: value,
-          onChanged: onChanged,
-          activeThumbColor: AppColors.primary),
-    ]),
-  );
+                Text(title,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface)),
+                Text(subtitle,
+                    style: TextStyle(
+                        fontSize: 12, color: colorScheme.onSurfaceVariant)),
+              ],
+            ),
+          ),
+          Switch(
+            value: val,
+            onChanged: onChanged,
+            activeThumbColor: colorScheme.primary,
+          ),
+        ],
+      ),
+    );
+  }
 }

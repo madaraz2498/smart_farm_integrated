@@ -1040,6 +1040,24 @@ abstract class AppLocalizations {
   /// **'Date Range'**
   String get date_range;
 
+  /// No description provided for @all_time.
+  ///
+  /// In en, this message translates to:
+  /// **'All Time'**
+  String get all_time;
+
+  /// No description provided for @last_month.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Month'**
+  String get last_month;
+
+  /// No description provided for @last_3_months.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 3 Months'**
+  String get last_3_months;
+
   /// No description provided for @last_30_days.
   ///
   /// In en, this message translates to:
@@ -2047,6 +2065,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recommendation Result'**
   String get crop_recommendation_result;
+
+  /// No description provided for @crop_vegetables.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetables'**
+  String get crop_vegetables;
+
+  /// No description provided for @crop_fruits.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruits'**
+  String get crop_fruits;
+
+  /// No description provided for @crop_field_crops.
+  ///
+  /// In en, this message translates to:
+  /// **'Field Crops'**
+  String get crop_field_crops;
 
   /// No description provided for @crop_primary_crop.
   ///

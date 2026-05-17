@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../../../core/network/api_exception.dart';
 import '../../../core/network/request_cache.dart';
 import '../../../core/utils/production_logger.dart';
 import '../services/admin_service.dart';
 import '../../notifications/providers/notification_provider.dart';
-import '../../notifications/models/notification_model.dart';
 
 /// Dedicated provider for system settings and services
 /// Handles all system-related state and API calls
@@ -16,14 +14,14 @@ class AdminSystemProvider extends ChangeNotifier {
 
   final AdminService _svc = AdminService.instance;
   final RequestCache _cache = RequestCache.instance;
-  
+
   // State management
   Map<String, bool> _servicesStatus = {};
   Map<String, bool> _systemSettings = {};
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _isInitializing = false;
-  
+
   // Notification provider for side effects
   NotificationProvider? _notif;
   String _locale = 'en';
@@ -31,7 +29,7 @@ class AdminSystemProvider extends ChangeNotifier {
   // Allow coordinator access to dependencies
   NotificationProvider? get notifProvider => _notif;
   String get locale => _locale;
-  
+
   // Thread-safe notification refresh
   bool _isRefreshing = false;
   Completer<void>? _refreshCompleter;
@@ -56,14 +54,15 @@ class AdminSystemProvider extends ChangeNotifier {
   /// Initialize system data - thread-safe and prevents duplicates
   Future<void> initializeIfNeeded() async {
     if (_isInitialized || _isInitializing) return;
-    
+
     _isInitializing = true;
     ProductionLogger.info('[AdminSystemProvider] Initializing system');
-    
+
     try {
       await loadSystemStatus(forceRefresh: false);
       _isInitialized = true;
-      ProductionLogger.info('[AdminSystemProvider] System initialization completed');
+      ProductionLogger.info(
+          '[AdminSystemProvider] System initialization completed');
     } catch (e) {
       ProductionLogger.error('[AdminSystemProvider] Initialization failed', e);
       _isInitialized = false; // Allow retry on failure
@@ -106,7 +105,6 @@ class AdminSystemProvider extends ChangeNotifier {
         settingsMap[setting.key] = setting.isOnline;
       }
       _systemSettings = settingsMap;
-      
     } catch (e) {
       ProductionLogger.info('[AdminSystemProvider] loadSystemStatus error: $e');
     } finally {
@@ -123,7 +121,8 @@ class AdminSystemProvider extends ChangeNotifier {
       final serviceName = (res['service'] ?? moduleName).toString();
       final isOnline = rawStatus.toLowerCase() == 'online';
 
-      ProductionLogger.info('[AdminSystemProvider] Toggled $moduleName -> $rawStatus');
+      ProductionLogger.info(
+          '[AdminSystemProvider] Toggled $moduleName -> $rawStatus');
 
       // Update local state immediately for responsive UI
       _servicesStatus[moduleName] = isOnline;
@@ -131,7 +130,7 @@ class AdminSystemProvider extends ChangeNotifier {
 
       // Invalidate cache to force refresh on next load
       invalidateCache();
-      
+
       // Add notification
       _addSystemNotification(
         title: 'Service Alert 🚜',
@@ -142,12 +141,11 @@ class AdminSystemProvider extends ChangeNotifier {
 
       // Refresh notifications safely
       await _refreshNotificationsSafely();
-      
     } catch (e) {
       // Revert state on error
       _servicesStatus[moduleName] = _servicesStatus[moduleName] ?? false;
       notifyListeners();
-      
+
       ProductionLogger.error('[AdminSystemProvider] toggleService failed', e);
       rethrow;
     }
@@ -158,7 +156,8 @@ class AdminSystemProvider extends ChangeNotifier {
     try {
       await _svc.toggleSystemSetting(settingName);
 
-      ProductionLogger.info('[AdminSystemProvider] Toggled setting: $settingName');
+      ProductionLogger.info(
+          '[AdminSystemProvider] Toggled setting: $settingName');
 
       // Update local state immediately for responsive UI
       final currentValue = _systemSettings[settingName] ?? false;
@@ -176,14 +175,14 @@ class AdminSystemProvider extends ChangeNotifier {
 
       // Refresh notifications safely
       await _refreshNotificationsSafely();
-      
     } catch (e) {
       // Revert state on error
       final currentValue = _systemSettings[settingName] ?? false;
       _systemSettings[settingName] = currentValue;
       notifyListeners();
-      
-      ProductionLogger.error('[AdminSystemProvider] toggleSystemSetting failed', e);
+
+      ProductionLogger.error(
+          '[AdminSystemProvider] toggleSystemSetting failed', e);
       rethrow;
     }
   }
@@ -209,7 +208,8 @@ class AdminSystemProvider extends ChangeNotifier {
         force: true,
       );
     } catch (e) {
-      ProductionLogger.error('[AdminSystemProvider] _refreshNotificationsSafely failed', e);
+      ProductionLogger.error(
+          '[AdminSystemProvider] _refreshNotificationsSafely failed', e);
     } finally {
       _isRefreshing = false;
       _refreshCompleter?.complete();
@@ -226,7 +226,8 @@ class AdminSystemProvider extends ChangeNotifier {
         forceRefresh: false,
       );
     } catch (e) {
-      ProductionLogger.info('[AdminSystemProvider] getModelsTable non-critical: $e');
+      ProductionLogger.info(
+          '[AdminSystemProvider] getModelsTable non-critical: $e');
       return [];
     }
   }

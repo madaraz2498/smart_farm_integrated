@@ -84,7 +84,8 @@ class AdminProvider extends ChangeNotifier {
   void updateLocale(String languageCode) {
     if (_locale == languageCode) return;
 
-    ProductionLogger.info('[AdminProvider] updateLocale: $_locale -> $languageCode');
+    ProductionLogger.info(
+        '[AdminProvider] updateLocale: $_locale -> $languageCode');
     _locale = languageCode;
   }
 
@@ -93,31 +94,40 @@ class AdminProvider extends ChangeNotifier {
   /// Load stats only if admin module is unlocked and not yet loaded.
   Future<void> loadStatsIfNeeded() {
     if (!AppBootstrapController.instance
-        .isModuleUnlocked(AppBootstrapController.kAdmin)) return Future.value();
+        .isModuleUnlocked(AppBootstrapController.kAdmin)) {
+      return Future.value();
+    }
     return loadStats(force: false);
   }
 
   /// Load users only if admin module is unlocked and not yet loaded.
   Future<void> loadUsersIfNeeded() {
     if (!AppBootstrapController.instance
-        .isModuleUnlocked(AppBootstrapController.kAdmin)) return Future.value();
+        .isModuleUnlocked(AppBootstrapController.kAdmin)) {
+      return Future.value();
+    }
     return loadUsers(force: false);
   }
 
   /// Load system status only if system module is unlocked and not yet loaded.
   Future<void> loadSystemIfNeeded() {
     if (!AppBootstrapController.instance
-        .isModuleUnlocked(AppBootstrapController.kSystem)) return Future.value();
+        .isModuleUnlocked(AppBootstrapController.kSystem)) {
+      return Future.value();
+    }
     return loadSystemStatus(forceRefresh: false);
   }
 
   // ── Fixed Initialization - Single Source of Truth ─────────────────────────────
   Future<void> initializeIfNeeded() async {
     // Prevent duplicate initialization - FIXED
-    if (_isInitialized || _isInitializing || _userId.isEmpty || _userId == '0') return;
+    if (_isInitialized || _isInitializing || _userId.isEmpty || _userId == '0') {
+      return;
+    }
 
     _isInitializing = true;
-    ProductionLogger.info('[AdminProvider] Initializing data for user: $_userId');
+    ProductionLogger.info(
+        '[AdminProvider] Initializing data for user: $_userId');
 
     try {
       // Load all data in parallel - FIXED: prevents duplicate API calls
@@ -140,9 +150,11 @@ class AdminProvider extends ChangeNotifier {
   // ── Fixed Data Loading Methods ───────────────────────────────────────────────
   Future<void> loadStats({bool force = false}) async {
     // ── Bootstrap gate ───────────────────────────────────────────────────────
-    if (!force && !AppBootstrapController.instance
-        .isModuleUnlocked(AppBootstrapController.kAdmin)) {
-      ProductionLogger.info('[AdminProvider] Admin module locked — skipping loadStats');
+    if (!force &&
+        !AppBootstrapController.instance
+            .isModuleUnlocked(AppBootstrapController.kAdmin)) {
+      ProductionLogger.info(
+          '[AdminProvider] Admin module locked — skipping loadStats');
       return;
     }
 
@@ -180,9 +192,11 @@ class AdminProvider extends ChangeNotifier {
 
   Future<void> loadUsers({bool force = false}) async {
     // ── Bootstrap gate ───────────────────────────────────────────────────────
-    if (!force && !AppBootstrapController.instance
-        .isModuleUnlocked(AppBootstrapController.kAdmin)) {
-      ProductionLogger.info('[AdminProvider] Admin module locked — skipping loadUsers');
+    if (!force &&
+        !AppBootstrapController.instance
+            .isModuleUnlocked(AppBootstrapController.kAdmin)) {
+      ProductionLogger.info(
+          '[AdminProvider] Admin module locked — skipping loadUsers');
       return;
     }
 
@@ -221,9 +235,11 @@ class AdminProvider extends ChangeNotifier {
 
   Future<void> loadSystemStatus({bool forceRefresh = false}) async {
     // ── Bootstrap gate ───────────────────────────────────────────────────────
-    if (!forceRefresh && !AppBootstrapController.instance
-        .isModuleUnlocked(AppBootstrapController.kSystem)) {
-      ProductionLogger.info('[AdminProvider] System module locked — skipping loadSystemStatus');
+    if (!forceRefresh &&
+        !AppBootstrapController.instance
+            .isModuleUnlocked(AppBootstrapController.kSystem)) {
+      ProductionLogger.info(
+          '[AdminProvider] System module locked — skipping loadSystemStatus');
       return;
     }
 
@@ -283,14 +299,17 @@ class AdminProvider extends ChangeNotifier {
     _lastRefreshTime = now;
 
     // FIXED: replaced unsafe whenComplete with proper async handling
-    _notif!.fetchNotifications(
+    _notif!
+        .fetchNotifications(
       userId: _userId,
       showLoading: false,
       force: true,
-    ).then((_) {
+    )
+        .then((_) {
       _isRefreshing = false;
     }).catchError((e) {
-      ProductionLogger.error('[AdminProvider] _refreshNotificationsSafely failed', e);
+      ProductionLogger.error(
+          '[AdminProvider] _refreshNotificationsSafely failed', e);
       _isRefreshing = false;
     });
   }
@@ -436,7 +455,6 @@ class AdminProvider extends ChangeNotifier {
       );
 
       _refreshNotificationsSafely();
-
     } catch (e) {
       // Revert state on error
       _servicesStatus[moduleName] = _servicesStatus[moduleName] ?? false;
@@ -464,7 +482,6 @@ class AdminProvider extends ChangeNotifier {
       );
 
       _refreshNotificationsSafely();
-
     } catch (e) {
       // Revert state on error
       final currentValue = _systemSettings[settingName] ?? false;
@@ -491,16 +508,18 @@ class AdminProvider extends ChangeNotifier {
 
   String getUserNameById(int id) {
     return _users
-        .cast<AdminUser?>()
-        .firstWhere((u) => u?.id == id.toString(), orElse: () => null)
-        ?.displayName ?? '';
+            .cast<AdminUser?>()
+            .firstWhere((u) => u?.id == id.toString(), orElse: () => null)
+            ?.displayName ??
+        '';
   }
 
   String getUserEmailById(int id) {
     return _users
-        .cast<AdminUser?>()
-        .firstWhere((u) => u?.id == id.toString(), orElse: () => null)
-        ?.email ?? '';
+            .cast<AdminUser?>()
+            .firstWhere((u) => u?.id == id.toString(), orElse: () => null)
+            ?.email ??
+        '';
   }
 
   void _addSystemNotification({required String title, required String body}) {

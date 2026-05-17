@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_farm/core/utils/responsive.dart';
-import 'package:smart_farm/l10n/app_localizations.dart';
+import '../../../core/utils/responsive.dart';
 import '../providers/auth_provider.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:smart_farm/l10n/app_localizations.dart';
 import '../../../shared/widgets/sf_button.dart';
 import '../../../shared/widgets/sf_text_field.dart';
 
@@ -66,6 +65,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         );
 
     if (success) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.success_msg)),
       );
@@ -81,115 +81,118 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     final vPadding = Responsive.responsiveValue(context, 32.0, 40.0, 56.0);
     final cardPadding = Responsive.responsiveValue(context, 20.0, 24.0, 32.0);
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
+            padding:
+                EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 448),
               child: Container(
                 padding: EdgeInsets.all(cardPadding),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.cardBorder),
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 8,
+                      color: colorScheme.shadow.withValues(alpha: 0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     )
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                  // Logo
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(16),
+                    // Logo
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(Icons.eco_rounded,
+                          color: Colors.white, size: 38),
                     ),
-                    child: const Icon(Icons.eco_rounded,
-                        color: Colors.white, size: 38),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  Text(l10n.reset_password_title,
-                      style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textDark)),
-                  const SizedBox(height: 8),
-                  Text(l10n.reset_password_subtitle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 14, color: AppColors.textSubtle)),
-                  const SizedBox(height: 32),
+                    Text(l10n.reset_password_title,
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface)),
+                    const SizedBox(height: 8),
+                    Text(l10n.reset_password_subtitle,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 14, color: colorScheme.onSurfaceVariant)),
+                    const SizedBox(height: 32),
 
-                  SfTextField(
-                    controller: TextEditingController(text: widget.email),
-                    label: l10n.email,
-                    readOnly: true,
-                    enabled: false,
-                    hint: '',
-                  ),
-                  const SizedBox(height: 16),
-                  SfTextField(
-                    controller: _codeCtrl,
-                    hint: l10n.enter_code,
-                    label: l10n.verification_code,
-                    errorText: _codeError,
-                    onChanged: (_) => setState(() => _codeError = null),
-                  ),
-                  const SizedBox(height: 16),
-                  SfTextField(
-                    controller: _passCtrl,
-                    hint: l10n.enter_password,
-                    label: l10n.new_password,
-                    obscureText: _obscure,
-                    errorText: _passError,
-                    onChanged: (_) => setState(() => _passError = null),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                          _obscure
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: 20,
-                          color: AppColors.textSubtle),
-                      onPressed: () => setState(() => _obscure = !_obscure),
+                    SfTextField(
+                      controller: TextEditingController(text: widget.email),
+                      label: l10n.email,
+                      readOnly: true,
+                      enabled: false,
+                      hint: '',
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  SfTextField(
-                    controller: _confirmPassCtrl,
-                    hint: l10n.re_enter_password,
-                    label: l10n.confirm_new_password,
-                    obscureText: _obscure,
-                    errorText: _confirmError,
-                    onChanged: (_) => setState(() => _confirmError = null),
-                  ),
-                  const SizedBox(height: 24),
-                  SfPrimaryButton(
-                    label: l10n.reset_password,
-                    onPressed: () => _submit(l10n),
-                    isLoading: auth.isLoading,
-                  ),
-                  const SizedBox(height: 24),
-                  TextButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back, size: 16),
-                    label: Text(l10n.back_to_sign_in),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      textStyle: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w600),
+                    const SizedBox(height: 16),
+                    SfTextField(
+                      controller: _codeCtrl,
+                      hint: l10n.enter_code,
+                      label: l10n.verification_code,
+                      errorText: _codeError,
+                      onChanged: (_) => setState(() => _codeError = null),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    SfTextField(
+                      controller: _passCtrl,
+                      hint: l10n.enter_password,
+                      label: l10n.new_password,
+                      obscureText: _obscure,
+                      errorText: _passError,
+                      onChanged: (_) => setState(() => _passError = null),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                            _obscure
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: 20,
+                            color: colorScheme.onSurfaceVariant),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SfTextField(
+                      controller: _confirmPassCtrl,
+                      hint: l10n.re_enter_password,
+                      label: l10n.confirm_new_password,
+                      obscureText: _obscure,
+                      errorText: _confirmError,
+                      onChanged: (_) => setState(() => _confirmError = null),
+                    ),
+                    const SizedBox(height: 24),
+                    SfPrimaryButton(
+                      label: l10n.reset_password,
+                      onPressed: () => _submit(l10n),
+                      isLoading: auth.isLoading,
+                    ),
+                    const SizedBox(height: 24),
+                    TextButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back, size: 16),
+                      label: Text(l10n.back_to_sign_in),
+                      style: TextButton.styleFrom(
+                        foregroundColor: colorScheme.primary,
+                        textStyle: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

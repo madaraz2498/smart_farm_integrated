@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_farm/core/theme/app_colors.dart';
 import 'package:smart_farm/core/utils/responsive.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -17,10 +18,12 @@ class UserManagementDialogs {
       barrierDismissible: true,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) => Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: Responsive.responsiveValue(context, 300.0, 350.0, 400.0),
+              maxWidth:
+                  Responsive.responsiveValue(context, 300.0, 350.0, 400.0),
             ),
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -28,143 +31,153 @@ class UserManagementDialogs {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFECFDF5),
-                            borderRadius: BorderRadius.circular(10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECFDF5),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(Icons.person_add_alt_1_outlined,
+                                color: AppColors.primary, size: 24),
                           ),
-                          child: const Icon(Icons.person_add_alt_1_outlined,
-                              color: Color(0xFF10B981), size: 24),
-                        ),
-                        const SizedBox(width: 16),
-                        Text(
-                          l10n.add_new_admin,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF111827),
-                          ),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      onPressed: isLoading ? null : () => Navigator.pop(ctx),
-                      icon: const Icon(Icons.close, size: 20, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  l10n.email_address,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF374151),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: controller,
-                  enabled: !isLoading,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: 'e.g. ahmed@smartfarm.ai',
-                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                    filled: true,
-                    fillColor: const Color(0xFFF9FAFB),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF10B981), width: 1),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF10B981), width: 1.5),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: isLoading ? null : () => Navigator.pop(ctx),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: BorderSide(color: Colors.grey.shade200),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(l10n.cancel,
+                          const SizedBox(width: 16),
+                          Text(
+                            l10n.add_new_admin,
                             style: const TextStyle(
-                                color: Color(0xFF374151),
-                                fontWeight: FontWeight.w600)),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () async {
-                                final email = controller.text.trim();
-                                if (email.isEmpty) return;
-
-                                setState(() => isLoading = true);
-                                final provider = context.read<AdminProvider>();
-                                final success = await provider.promoteUserByEmail(email);
-                                setState(() => isLoading = false);
-
-                                if (success && context.mounted) {
-                                  Navigator.pop(ctx);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(l10n.user_promoted_success(email)),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                } else if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(provider.usersError ??
-                                          l10n.user_not_found_email),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF10B981),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF111827),
+                            ),
                           ),
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white),
-                              )
-                            : Text(l10n.add_admin,
-                                style: const TextStyle(fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: isLoading ? null : () => Navigator.pop(ctx),
+                        icon: const Icon(Icons.close,
+                            size: 20, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    l10n.email_address,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF374151),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: controller,
+                    enabled: !isLoading,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      hintText: 'e.g. ahmed@smartfarm.ai',
+                      hintStyle:
+                          TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                      filled: true,
+                      fillColor: const Color(0xFFF9FAFB),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: AppColors.primary, width: 1),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: Colors.grey.shade200, width: 1),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: AppColors.primary, width: 1.5),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed:
+                              isLoading ? null : () => Navigator.pop(ctx),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            side: BorderSide(color: Colors.grey.shade200),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(l10n.cancel,
+                              style: const TextStyle(
+                                  color: Color(0xFF374151),
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  final email = controller.text.trim();
+                                  if (email.isEmpty) return;
+
+                                  setState(() => isLoading = true);
+                                  final provider =
+                                      context.read<AdminProvider>();
+                                  final success =
+                                      await provider.promoteUserByEmail(email);
+                                  setState(() => isLoading = false);
+
+                                  if (success && context.mounted) {
+                                    Navigator.pop(ctx);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            l10n.user_promoted_success(email)),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  } else if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(provider.usersError ??
+                                            l10n.user_not_found_email),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white),
+                                )
+                              : Text(l10n.add_admin,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -220,7 +233,16 @@ class UserManagementDialogs {
               const SizedBox(height: 24),
               const Divider(),
               const SizedBox(height: 16),
-              ..._buildRoleBasedActions(context, authProvider, u, l10n, onPromote, onPromoteToSuperAdmin, onDemoteToFarmer, onToggleStatus, onDelete),
+              ..._buildRoleBasedActions(
+                  context,
+                  authProvider,
+                  u,
+                  l10n,
+                  onPromote,
+                  onPromoteToSuperAdmin,
+                  onDemoteToFarmer,
+                  onToggleStatus,
+                  onDelete),
             ],
           ),
         ),
@@ -251,77 +273,79 @@ class UserManagementDialogs {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 32),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF111827),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                description,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        side: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      child: Text(
-                        l10n.cancel,
-                        style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600),
-                      ),
-                    ),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        onConfirm();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  child: Icon(icon, color: color, size: 32),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  description,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        child: Text(
+                          l10n.cancel,
+                          style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontWeight: FontWeight.w600),
                         ),
                       ),
-                      child: Text(
-                        l10n.confirm_button,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          onConfirm();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          l10n.confirm_button,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -353,7 +377,7 @@ class UserManagementDialogs {
     // SUPER_ADMIN can do everything
     if (isSuperAdmin) {
       // Promote farmer to admin
-      if (targetIsFarmer && onPromote != null) {
+      if (targetIsFarmer) {
         actions.add(_buildDialogAction(
           context,
           icon: Icons.admin_panel_settings_outlined,
@@ -388,7 +412,7 @@ class UserManagementDialogs {
               description: 'This user will be granted super admin privileges.',
               icon: Icons.supervisor_account_outlined,
               color: Colors.purple,
-              onConfirm: () => onPromoteToSuperAdmin!(targetUser),
+              onConfirm: () => onPromoteToSuperAdmin(targetUser),
             );
           },
         ));
@@ -409,7 +433,7 @@ class UserManagementDialogs {
               description: 'This user will lose admin privileges.',
               icon: Icons.arrow_downward_outlined,
               color: Colors.orange,
-              onConfirm: () => onDemoteToFarmer!(targetUser),
+              onConfirm: () => onDemoteToFarmer(targetUser),
             );
           },
         ));
@@ -439,18 +463,23 @@ class UserManagementDialogs {
       // Toggle status for all users
       actions.add(_buildDialogAction(
         context,
-        icon: targetUser.isActive ? Icons.person_off_outlined : Icons.person_outline,
+        icon: targetUser.isActive
+            ? Icons.person_off_outlined
+            : Icons.person_outline,
         title: targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
         color: targetUser.isActive ? Colors.orange : Colors.green,
         onTap: () {
           Navigator.pop(context);
           _showActionConfirmationDialog(
             context,
-            title: targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
+            title:
+                targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
             description: targetUser.isActive
                 ? l10n.confirm_deactivate_desc
                 : l10n.confirm_activate_desc,
-            icon: targetUser.isActive ? Icons.person_off_outlined : Icons.person_outline,
+            icon: targetUser.isActive
+                ? Icons.person_off_outlined
+                : Icons.person_outline,
             color: targetUser.isActive ? Colors.orange : Colors.green,
             onConfirm: () => onToggleStatus(targetUser),
           );
@@ -482,18 +511,25 @@ class UserManagementDialogs {
         // Can toggle status for farmers
         actions.add(_buildDialogAction(
           context,
-          icon: targetUser.isActive ? Icons.person_off_outlined : Icons.person_outline,
-          title: targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
+          icon: targetUser.isActive
+              ? Icons.person_off_outlined
+              : Icons.person_outline,
+          title:
+              targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
           color: targetUser.isActive ? Colors.orange : Colors.green,
           onTap: () {
             Navigator.pop(context);
             _showActionConfirmationDialog(
               context,
-              title: targetUser.isActive ? l10n.deactivate_user : l10n.activate_user,
+              title: targetUser.isActive
+                  ? l10n.deactivate_user
+                  : l10n.activate_user,
               description: targetUser.isActive
                   ? l10n.confirm_deactivate_desc
                   : l10n.confirm_activate_desc,
-              icon: targetUser.isActive ? Icons.person_off_outlined : Icons.person_outline,
+              icon: targetUser.isActive
+                  ? Icons.person_off_outlined
+                  : Icons.person_outline,
               color: targetUser.isActive ? Colors.orange : Colors.green,
               onConfirm: () => onToggleStatus(targetUser),
             );
@@ -528,8 +564,10 @@ class UserManagementDialogs {
       child: Center(
         child: Text(
           u.displayName.isNotEmpty ? u.displayName[0].toUpperCase() : '?',
-          style: const TextStyle(
-              color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+              fontSize: 18),
         ),
       ),
     );
@@ -565,7 +603,8 @@ class UserManagementDialogs {
             const SizedBox(width: 16),
             Expanded(
               child: Text(title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 14)),
             ),
           ],
         ),
@@ -593,7 +632,7 @@ class _StatusBadge extends StatelessWidget {
             width: 6,
             height: 6,
             decoration: BoxDecoration(
-              color: isActive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+              color: isActive ? AppColors.primary : const Color(0xFFEF4444),
               shape: BoxShape.circle,
             ),
           ),
@@ -603,7 +642,7 @@ class _StatusBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: isActive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+              color: isActive ? AppColors.primary : const Color(0xFFEF4444),
             ),
           ),
         ],

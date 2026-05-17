@@ -42,7 +42,7 @@ class ReportsProvider extends ChangeNotifier {
   bool get isGenerating => _isLoading && _reports.isNotEmpty;
   String? get error => _error;
 
-  Future<void> load({bool force = false}) async {
+  Future<void> load({bool force = false, String period = 'all'}) async {
     // Skip if already loading or already loaded (unless forced by pull-to-refresh).
     if (_isLoading) return;
     if (_hasLoadedOnce && !force) {
@@ -62,10 +62,26 @@ class ReportsProvider extends ChangeNotifier {
         }),
       ]);
       _stats = results[0] as FarmerReportStats?;
-      final list = (results[1] as List).cast<FarmerReportItem>();
+      var list = (results[1] as List).cast<FarmerReportItem>();
+
+      // Apply local filtering based on period if necessary
+      if (period != 'all') {
+        final now = DateTime.now();
+        list = list.where((r) {
+          try {
+            final date = DateTime.parse(r.date);
+            if (period == 'month') {
+              return date.isAfter(now.subtract(const Duration(days: 30)));
+            } else if (period == 'quarter') {
+              return date.isAfter(now.subtract(const Duration(days: 90)));
+            }
+          } catch (_) {}
+          return true;
+        }).toList();
+      }
 
       list.sort((a, b) => b.date.compareTo(a.date));
-      _reports = list.take(3).toList();
+      _reports = list;
       _hasLoadedOnce = true;
     } catch (e) {
       _error = e.toString();

@@ -496,6 +496,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get date_range => 'النطاق الزمني';
 
   @override
+  String get all_time => 'كل الوقت';
+
+  @override
+  String get last_month => 'الشهر الماضي';
+
+  @override
+  String get last_3_months => 'آخر 3 أشهر';
+
+  @override
   String get last_30_days => 'آخر 30 يوم';
 
   @override
@@ -505,7 +514,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get last_90_days => 'آخر 90 يوم';
 
   @override
-  String get last_year => 'السنة الماضية';
+  String get last_year => 'آخر سنة';
 
   @override
   String get custom_range => 'نطاق مخصص';
@@ -1011,6 +1020,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get crop_recommendation_result => 'نتيجة التوصية';
+
+  @override
+  String get crop_vegetables => 'الخضروات';
+
+  @override
+  String get crop_fruits => 'الفواكه';
+
+  @override
+  String get crop_field_crops => 'المحاصيل الحقلية';
 
   @override
   String get crop_primary_crop => 'المحصول الأساسي';

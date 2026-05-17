@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:smart_farm/core/utils/responsive.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../providers/reports_provider.dart';
-import '../../../shared/theme/app_theme.dart';
 
 class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
@@ -13,7 +12,7 @@ class ReportsPage extends StatefulWidget {
 }
 
 class _ReportsPageState extends State<ReportsPage> {
-  String _selectedDateRange = 'All Time';
+  String? _selectedDateRange;
 
   @override
   void initState() {
@@ -22,9 +21,20 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_selectedDateRange == null) {
+      final l10n = AppLocalizations.of(context)!;
+      _selectedDateRange = l10n.all_time;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final prov = context.watch<ReportsProvider>();
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final pagePadding = Responsive.responsivePadding(context);
 
     return SafeArea(
@@ -33,7 +43,7 @@ class _ReportsPageState extends State<ReportsPage> {
           constraints: const BoxConstraints(maxWidth: 900),
           child: RefreshIndicator(
             onRefresh: () => prov.load(force: true),
-            color: AppColors.primary,
+            color: colorScheme.primary,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.all(pagePadding),
@@ -44,21 +54,12 @@ class _ReportsPageState extends State<ReportsPage> {
                   children: [
                     Text(
                       l10n.nav_reports,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textDark,
-                        letterSpacing: -0.5,
-                      ),
+                      style: textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       l10n.reports_subtitle,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSubtle,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: textTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -72,7 +73,7 @@ class _ReportsPageState extends State<ReportsPage> {
                         icon: Icons.description_outlined,
                         value: '${prov.stats?.totalReports ?? 0}',
                         label: l10n.total_reports,
-                        accent: AppColors.primary,
+                        accent: colorScheme.primary,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -81,7 +82,7 @@ class _ReportsPageState extends State<ReportsPage> {
                         icon: Icons.calendar_today_outlined,
                         value: '${prov.stats?.thisMonth ?? 0}',
                         label: l10n.this_month,
-                        accent: AppColors.info,
+                        accent: colorScheme.secondary,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -90,7 +91,7 @@ class _ReportsPageState extends State<ReportsPage> {
                         icon: Icons.trending_up_rounded,
                         value: prov.stats?.growth ?? 'N/A',
                         label: l10n.vs_last_month,
-                        accent: AppColors.warning,
+                        accent: colorScheme.tertiary,
                       ),
                     ),
                   ],
@@ -98,7 +99,20 @@ class _ReportsPageState extends State<ReportsPage> {
                 const SizedBox(height: 16),
 
                 // ── Filters Card ─────────────────────────────────────────
-                _SectionCard(
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: colorScheme.outline),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -107,59 +121,70 @@ class _ReportsPageState extends State<ReportsPage> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppColors.primarySurface,
-                              borderRadius: BorderRadius.circular(8),
+                              color: colorScheme.primaryContainer,
+                              shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.filter_list_rounded,
-                                color: AppColors.primary, size: 18),
+                            child: Icon(Icons.filter_list_rounded,
+                                color: colorScheme.primary, size: 18),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 12),
                           Text(
                             l10n.report_filters,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
-                              color: AppColors.textDark,
+                              color: colorScheme.onSurface,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Date Range',
+                      const SizedBox(height: 20),
+                      Text(
+                        l10n.date_range,
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSubtle,
+                          color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF9FAFB),
+                          color: colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.divider),
+                          border: Border.all(color: colorScheme.outline),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedDateRange,
                             isExpanded: true,
-                            icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                                color: AppColors.primary),
-                            items: ['All Time', 'Last Month', 'Last 3 Months']
-                                .map((s) => DropdownMenuItem(
-                              value: s,
-                              child: Text(s,
-                                  style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.textDark)),
-                            ))
+                            icon: Icon(Icons.keyboard_arrow_down_rounded,
+                                color: colorScheme.primary),
+                            items: [
+                              l10n.all_time,
+                              l10n.last_month,
+                              l10n.last_3_months
+                            ]
+                                .map<DropdownMenuItem<String>>(
+                                    (String s) => DropdownMenuItem<String>(
+                                          value: s,
+                                          child: Text(s,
+                                              style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500)),
+                                        ))
                                 .toList(),
-                            onChanged: (v) =>
-                                setState(() => _selectedDateRange = v ?? 'All Time'),
+                            onChanged: (v) {
+                              if (v != null) {
+                                setState(() => _selectedDateRange = v);
+                                // Map label to API period
+                                String period = 'all';
+                                if (v == l10n.last_month) period = 'month';
+                                if (v == l10n.last_3_months) period = 'quarter';
+                                prov.load(force: true, period: period);
+                              }
+                            },
                           ),
                         ),
                       ),
@@ -172,12 +197,12 @@ class _ReportsPageState extends State<ReportsPage> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.cardBorder),
+                    border: Border.all(color: colorScheme.outline),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
+                        color: colorScheme.shadow.withValues(alpha: 0.05),
                         blurRadius: 16,
                         offset: const Offset(0, 6),
                       ),
@@ -187,12 +212,12 @@ class _ReportsPageState extends State<ReportsPage> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primarySurface,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.description_outlined,
-                            color: AppColors.primary, size: 24),
+                        child: Icon(Icons.description_outlined,
+                            color: colorScheme.primary, size: 24),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -201,18 +226,18 @@ class _ReportsPageState extends State<ReportsPage> {
                           children: [
                             Text(
                               l10n.generated_reports,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
-                                color: AppColors.textDark,
+                                color: colorScheme.onSurface,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               l10n.download_reports_desc,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textSubtle,
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -230,7 +255,8 @@ class _ReportsPageState extends State<ReportsPage> {
                             content: Text(ok
                                 ? l10n.success_msg
                                 : (prov.error ?? l10n.error_msg)),
-                            backgroundColor: ok ? AppColors.primary : AppColors.error,
+                            backgroundColor:
+                                ok ? colorScheme.primary : colorScheme.error,
                           ));
                         },
                         label: l10n.generate_new_report,
@@ -242,10 +268,11 @@ class _ReportsPageState extends State<ReportsPage> {
 
                 // ── Report List / Empty State ────────────────────────────
                 if (prov.isLoading && prov.reports.isEmpty)
-                  const Center(
+                  Center(
                     child: Padding(
                       padding: EdgeInsets.all(40),
-                      child: CircularProgressIndicator(color: AppColors.primary),
+                      child:
+                          CircularProgressIndicator(color: colorScheme.primary),
                     ),
                   )
                 else if (prov.reports.isEmpty)
@@ -256,18 +283,18 @@ class _ReportsPageState extends State<ReportsPage> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(24),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primarySurface,
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.insert_drive_file_outlined,
-                                size: 48, color: AppColors.primary),
+                            child: Icon(Icons.insert_drive_file_outlined,
+                                size: 48, color: colorScheme.primary),
                           ),
                           const SizedBox(height: 16),
                           Text(
                             l10n.no_reports_yet,
-                            style: const TextStyle(
-                              color: AppColors.textMid,
+                            style: TextStyle(
+                              color: colorScheme.onSurface,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
@@ -282,60 +309,40 @@ class _ReportsPageState extends State<ReportsPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(l10n.nav_reports, style: AppTextStyles.pageTitle),
+                          Text(l10n.nav_reports,
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface)),
                           const SizedBox(height: 4),
-                          Text(l10n.reports_subtitle, style: AppTextStyles.pageSubtitle),
+                          Text(l10n.reports_subtitle,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: colorScheme.onSurfaceVariant)),
                         ],
                       ),
                       const Spacer(),
                       Text(
                         '${prov.reports.length} reports',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSubtle,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                    ...prov.reports.map((r) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _ReportListItem(report: r),
-                    )),
-                  ],
+                  ...prov.reports.map((r) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _ReportListItem(report: r),
+                      )),
+                ],
                 const SizedBox(height: 100),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-// ── Section Card ──────────────────────────────────────────────────────────────
-
-class _SectionCard extends StatelessWidget {
-  final Widget child;
-  const _SectionCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: child,
     );
   }
 }
@@ -357,15 +364,18 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.cardBorder),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -385,20 +395,12 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textDark,
-            ),
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.textSubtle,
-              fontWeight: FontWeight.w500,
-            ),
+            style: textTheme.bodySmall,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -423,26 +425,27 @@ class _GenerateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return IntrinsicWidth(
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape: const StadiumBorder(),
         ),
         child: isGenerating
-            ? const SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(
-              strokeWidth: 2, color: Colors.white),
-        )
+            ? SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: colorScheme.onPrimary),
+              )
             : Text(label,
-            style: const TextStyle(
-                fontWeight: FontWeight.w700, fontSize: 13)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
       ),
     );
   }
@@ -487,9 +490,10 @@ class _ReportListItemState extends State<_ReportListItem> {
     });
 
     if (path == null && prov.error != null) {
+      final colorScheme = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(prov.error!),
-        backgroundColor: AppColors.error,
+        backgroundColor: colorScheme.error,
       ));
       prov.clearError();
     }
@@ -500,9 +504,10 @@ class _ReportListItemState extends State<_ReportListItem> {
     await prov.openLocalReport(_localPath!);
     if (!mounted) return;
     if (prov.error != null) {
+      final colorScheme = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(prov.error!),
-        backgroundColor: AppColors.error,
+        backgroundColor: colorScheme.error,
       ));
       prov.clearError();
     }
@@ -511,6 +516,8 @@ class _ReportListItemState extends State<_ReportListItem> {
   @override
   Widget build(BuildContext context) {
     final prov = context.read<ReportsProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return GestureDetector(
       // Tap container → open if downloaded, else download first then open
@@ -528,16 +535,16 @@ class _ReportListItemState extends State<_ReportListItem> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: _isDownloaded
-                ? AppColors.primary.withValues(alpha: 0.3)
-                : AppColors.cardBorder,
+                ? colorScheme.primary.withValues(alpha: 0.3)
+                : colorScheme.outlineVariant,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: colorScheme.shadow.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -549,15 +556,15 @@ class _ReportListItemState extends State<_ReportListItem> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: _isDownloaded
-                    ? AppColors.primary.withValues(alpha: 0.12)
-                    : AppColors.primarySurface,
+                    ? colorScheme.primary.withValues(alpha: 0.12)
+                    : colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 _isDownloaded
                     ? Icons.picture_as_pdf_rounded
                     : Icons.description_outlined,
-                color: AppColors.primary,
+                color: colorScheme.primary,
                 size: 20,
               ),
             ),
@@ -568,29 +575,22 @@ class _ReportListItemState extends State<_ReportListItem> {
                 children: [
                   Text(
                     widget.report.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: AppColors.textDark,
-                    ),
+                    style: textTheme.titleSmall
+                        ?.copyWith(color: colorScheme.onSurface),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     widget.report.date,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSubtle,
-                    ),
+                    style: textTheme.bodySmall,
                   ),
                   if (_isDownloaded)
                     Padding(
                       padding: const EdgeInsets.only(top: 3),
                       child: Text(
                         'Tap to open',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.primary.withValues(alpha: 0.8),
-                          fontWeight: FontWeight.w600,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -601,40 +601,40 @@ class _ReportListItemState extends State<_ReportListItem> {
             if (!_isDownloaded)
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
+                  color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: _isDownloading
-                    ? const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                )
+                    ? Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      )
                     : IconButton(
-                  icon: const Icon(Icons.download_rounded,
-                      color: AppColors.primary, size: 20),
-                  onPressed: () => _download(prov),
-                  padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(),
-                  tooltip: 'Download',
-                ),
+                        icon: Icon(Icons.download_rounded,
+                            color: colorScheme.primary, size: 20),
+                        onPressed: () => _download(prov),
+                        padding: const EdgeInsets.all(8),
+                        constraints: const BoxConstraints(),
+                        tooltip: 'Download',
+                      ),
               )
             else
-            // Open icon when downloaded
+              // Open icon when downloaded
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.open_in_new_rounded,
-                      color: AppColors.primary, size: 20),
+                  icon: Icon(Icons.open_in_new_rounded,
+                      color: colorScheme.primary, size: 20),
                   onPressed: () => _open(prov),
                   padding: const EdgeInsets.all(8),
                   constraints: const BoxConstraints(),
@@ -647,9 +647,3 @@ class _ReportListItemState extends State<_ReportListItem> {
     );
   }
 }
-
-
-// TODO
-// TODO 1. fix download url
-// TODO 2. remove export all button
-// TODO 3. make sure the date range is working correctly

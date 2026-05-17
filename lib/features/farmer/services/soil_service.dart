@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/soil_models.dart';
@@ -17,8 +16,9 @@ class SoilService {
       final data = await _c.postForm('/soil/analyze-soil', req.toForm());
       ProductionLogger.info('response: $data');
       return SoilAnalysisResponse.fromJson(_asMap(data));
-    } on ApiException { rethrow; }
-    catch (e) {
+    } on ApiException {
+      rethrow;
+    } catch (e) {
       ProductionLogger.info('error: $e');
       throw const ApiException('Soil analysis failed.');
     }
@@ -33,5 +33,3 @@ class SoilService {
     throw const ApiException('Invalid soil response format.');
   }
 }
-
-

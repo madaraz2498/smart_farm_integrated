@@ -19,9 +19,9 @@ ThemeData get darkTheme {
 
     // ── Brand ────────────────────────────────────────────────────────────────
     primary: AppColors.primary,
-    onPrimary: Colors.white,
-    primaryContainer: const Color(0xFF0F3823), // dark-tinted green container
-    onPrimaryContainer: const Color(0xFF6EE7B7),
+    onPrimary: Colors.black, // Dark text on green background
+    primaryContainer: const Color(0xFF14532D), // dark-tinted green container
+    onPrimaryContainer: const Color(0xFFBBF7D0),
 
     // ── Secondary ────────────────────────────────────────────────────────────
     secondary: c.onSurfaceVariant,
@@ -30,7 +30,7 @@ ThemeData get darkTheme {
     onSecondaryContainer: c.onSurface,
 
     // ── Tertiary (admin accent) ───────────────────────────────────────────────
-    tertiary: const Color(0xFFFF8A50),          // lighter version for dark mode
+    tertiary: const Color(0xFFFF8A50), // lighter version for dark mode
     onTertiary: const Color(0xFF4A1500),
     tertiaryContainer: const Color(0xFF6B2E00),
     onTertiaryContainer: const Color(0xFFFFDBCA),
@@ -44,7 +44,7 @@ ThemeData get darkTheme {
     // ── Surface ───────────────────────────────────────────────────────────────
     surface: c.surface,
     onSurface: c.onSurface,
-    surfaceVariant: c.surfaceVariant,
+    surfaceContainerHighest: c.surfaceVariant,
     onSurfaceVariant: c.onSurfaceVariant,
     inverseSurface: c.inverseSurface,
     onInverseSurface: c.onInverseSurface,
@@ -53,12 +53,6 @@ ThemeData get darkTheme {
     // ── Outline ──────────────────────────────────────────────────────────────
     outline: c.outline,
     outlineVariant: c.outlineVariant,
-
-    // ── Background ───────────────────────────────────────────────────────────
-    // ignore: deprecated_member_use
-    background: c.background,
-    // ignore: deprecated_member_use
-    onBackground: c.onBackground,
 
     // ── Misc ─────────────────────────────────────────────────────────────────
     shadow: const Color(0x29000000),
@@ -70,6 +64,7 @@ ThemeData get darkTheme {
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: colorScheme,
+    textTheme: buildTextTheme(colorScheme),
 
     // ── Scaffold ──────────────────────────────────────────────────────────────
     scaffoldBackgroundColor: c.background,
@@ -112,9 +107,10 @@ ThemeData get darkTheme {
         }),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.disabled)) return c.onSurfaceVariant;
-          return Colors.white;
+          return Colors.black; // Dark text on green background
         }),
-        overlayColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.1)),
+        overlayColor:
+            WidgetStateProperty.all(Colors.black.withValues(alpha: 0.1)),
         minimumSize: WidgetStateProperty.all(
           const Size(double.infinity, AppDimensions.buttonHeight),
         ),
@@ -124,7 +120,7 @@ ThemeData get darkTheme {
           ),
         ),
         textStyle: WidgetStateProperty.all(
-          const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         elevation: WidgetStateProperty.all(0),
       ),
@@ -197,29 +193,35 @@ ThemeData get darkTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimensions.radiusInput),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimensions.radiusInput),
-        borderSide: const BorderSide(color: Color(0xFFF87171)),
+        borderSide: const BorderSide(color: AppColors.error),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimensions.radiusInput),
-        borderSide: const BorderSide(color: Color(0xFFF87171), width: 2),
+        borderSide: const BorderSide(color: AppColors.error, width: 1.5),
       ),
       hintStyle: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        color: c.onSurfaceVariant.withValues(alpha: 0.5),
-      ),
-      labelStyle: TextStyle(
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: FontWeight.w400,
         color: c.onSurfaceVariant,
       ),
+      labelStyle: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: c.onSurfaceVariant,
+      ),
+      floatingLabelStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.primary,
+      ),
       errorStyle: const TextStyle(
         fontSize: 12,
-        color: Color(0xFFF87171),
+        fontWeight: FontWeight.w500,
+        color: AppColors.error,
       ),
     ),
 
@@ -227,7 +229,7 @@ ThemeData get darkTheme {
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) return Colors.white;
-        return const Color(0xFF161F1B);
+        return c.onSurface;
       }),
       trackColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) return AppColors.primary;
@@ -248,7 +250,7 @@ ThemeData get darkTheme {
         if (states.contains(WidgetState.selected)) return AppColors.primary;
         return Colors.transparent;
       }),
-      checkColor: WidgetStateProperty.all(Colors.white),
+      checkColor: WidgetStateProperty.all(Colors.black),
       side: BorderSide(color: c.outline, width: 1.5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimensions.radiusXS),
@@ -402,8 +404,5 @@ ThemeData get darkTheme {
     splashFactory: InkRipple.splashFactory,
     splashColor: AppColors.primary.withValues(alpha: 0.1),
     highlightColor: Colors.transparent,
-
-    // ── Text Theme ────────────────────────────────────────────────────────────
-    textTheme: buildTextTheme(isDark: true),
   );
 }

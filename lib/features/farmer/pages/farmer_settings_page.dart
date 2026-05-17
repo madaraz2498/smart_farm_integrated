@@ -8,7 +8,7 @@ import '../../../features/auth/providers/auth_provider.dart';
 import '../../../features/notifications/providers/notification_provider.dart';
 import '../../../features/notifications/models/notification_model.dart';
 import '../../../providers/locale_provider.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:smart_farm/core/theme/app_dimensions.dart';
 import '../../../core/theme/theme_controller.dart';
 
 class FarmerSettingsPage extends StatefulWidget {
@@ -43,7 +43,7 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
       setState(() {
         _emailNotificationsFarmer = s.emailNotificationsFarmer;
         _analysisCompletionAlerts = s.analysisCompletionAlerts;
-        _weeklyReportSummary      = s.weeklyReportSummary;
+        _weeklyReportSummary = s.weeklyReportSummary;
       });
     }
   }
@@ -56,21 +56,24 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
     setState(() => _savingSettings = true);
 
     final success =
-    await context.read<NotificationProvider>().updateFarmerSettings(
-      userId: userId,
-      updatedSettings: FarmerNotificationSettings(
-        emailNotificationsFarmer: _emailNotificationsFarmer,
-        analysisCompletionAlerts: _analysisCompletionAlerts,
-        weeklyReportSummary:      _weeklyReportSummary,
-      ),
-    );
+        await context.read<NotificationProvider>().updateFarmerSettings(
+              userId: userId,
+              updatedSettings: FarmerNotificationSettings(
+                emailNotificationsFarmer: _emailNotificationsFarmer,
+                analysisCompletionAlerts: _analysisCompletionAlerts,
+                weeklyReportSummary: _weeklyReportSummary,
+              ),
+            );
 
     if (mounted) {
       setState(() => _savingSettings = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-            success ? l10n.notification_settings_saved : l10n.failed_to_save_changes),
-        backgroundColor: success ? AppColors.primary : AppColors.error,
+        content: Text(success
+            ? l10n.notification_settings_saved
+            : l10n.failed_to_save_changes),
+        backgroundColor: success
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
       ));
     }
@@ -92,6 +95,7 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
     final l10n = AppLocalizations.of(context)!;
     final localeProvider = Provider.of<LocaleProvider>(context);
     final hPadding = Responsive.responsivePadding(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SafeArea(
       child: RefreshIndicator(
@@ -99,30 +103,34 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
           await context.read<AuthProvider>().loadUserProfile();
           await _loadSettings();
         },
-        color: AppColors.primary,
+        color: colorScheme.primary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(hPadding, 16, hPadding, 32),
           child: Center(
               child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                // ── Page header ───────────────────────────────────────────────
-                Row(children: [
-                  const Icon(Icons.settings_outlined,
-                      color: AppColors.primary, size: 24),
-                  const SizedBox(width: 12),
-                  Text(l10n.settings, style: AppTextStyles.pageTitle),
-                ]),
-                const SizedBox(height: 4),
-                Text(l10n.manage_account_preferences,
-                    style: AppTextStyles.pageSubtitle),
-                const SizedBox(height: 24),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              // ── Page header ───────────────────────────────────────────────
+              Row(children: [
+                Icon(Icons.settings_outlined,
+                    color: colorScheme.primary, size: 24),
+                const SizedBox(width: 12),
+                Text(l10n.settings,
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface)),
+              ]),
+              const SizedBox(height: 4),
+              Text(l10n.manage_account_preferences,
+                  style: TextStyle(
+                      fontSize: 14, color: colorScheme.onSurfaceVariant)),
+              const SizedBox(height: 24),
 
-                // ── Theme ─────────────────────────────────────────────────────
-                ValueListenableBuilder<ThemeMode>(
+              // ── Theme ─────────────────────────────────────────────────────
+              ValueListenableBuilder<ThemeMode>(
                   valueListenable: ThemeController.themeNotifier,
                   builder: (context, themeMode, _) {
                     final isDark = themeMode == ThemeMode.dark;
@@ -153,94 +161,91 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
                         },
                       ),
                     ]);
-                  }
+                  }),
+              const SizedBox(height: 20),
+
+              // ── Language ──────────────────────────────────────────────────
+              _SectionCard(children: [
+                _SectionHeader(
+                    icon: Icons.language_rounded, title: l10n.language),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: colorScheme.tertiary,
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusMid),
+                      border: Border.all(color: colorScheme.outline)),
+                  child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                    value: localeProvider.locale.languageCode,
+                    isExpanded: true,
+                    style:
+                        TextStyle(fontSize: 14, color: colorScheme.onSurface),
+                    items: const [
+                      DropdownMenuItem(value: 'en', child: Text('English')),
+                      DropdownMenuItem(
+                          value: 'ar', child: Text('Arabic (العربية)')),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) localeProvider.setLocale(Locale(v));
+                    },
+                  )),
                 ),
-                const SizedBox(height: 20),
+              ]),
+              const SizedBox(height: 20),
 
-                // ── Language ──────────────────────────────────────────────────
-                _SectionCard(children: [
-                  _SectionHeader(
-                      icon: Icons.language_rounded, title: l10n.language),
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius:
-                        BorderRadius.circular(AppSizes.radiusMid),
-                        border: Border.all(color: AppColors.cardBorder)),
-                    child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: localeProvider.locale.languageCode,
-                          isExpanded: true,
-                          style: const TextStyle(
-                              fontSize: 14, color: AppColors.textDark),
-                          items: const [
-                            DropdownMenuItem(value: 'en', child: Text('English')),
-                            DropdownMenuItem(
-                                value: 'ar',
-                                child: Text('Arabic (العربية)')),
-                          ],
-                          onChanged: (v) {
-                            if (v != null) localeProvider.setLocale(Locale(v));
-                          },
-                        )),
+              // ── Notification settings ─────────────────────────────────────
+              _SectionCard(children: [
+                _SectionHeader(
+                    icon: Icons.notifications_outlined,
+                    title: l10n.notifications),
+                const SizedBox(height: 8),
+
+                // 1. Email notifications
+                _ToggleRow(
+                  icon: Icons.email_outlined,
+                  label: l10n.email_notifications,
+                  subtitle: l10n.email_notifications_desc,
+                  value: _emailNotificationsFarmer,
+                  disabled: _savingSettings,
+                  onChanged: (v) =>
+                      _onToggle(() => _emailNotificationsFarmer = v),
+                ),
+                Divider(height: 1, color: colorScheme.outline),
+
+                // 2. Analysis completion alerts
+                _ToggleRow(
+                  icon: Icons.analytics_outlined,
+                  label: l10n.analysis_completion_alerts,
+                  subtitle: l10n.analysis_completion_alerts_desc,
+                  value: _analysisCompletionAlerts,
+                  disabled: _savingSettings,
+                  onChanged: (v) =>
+                      _onToggle(() => _analysisCompletionAlerts = v),
+                ),
+                Divider(height: 1, color: colorScheme.outline),
+
+                // 3. Weekly report summary
+                _ToggleRow(
+                  icon: Icons.summarize_outlined,
+                  label: l10n.weekly_report_summary,
+                  subtitle: l10n.weekly_report_summary_desc,
+                  value: _weeklyReportSummary,
+                  disabled: _savingSettings,
+                  onChanged: (v) => _onToggle(() => _weeklyReportSummary = v),
+                ),
+
+                if (_savingSettings)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 10),
+                    child: LinearProgressIndicator(),
                   ),
-                ]),
-                const SizedBox(height: 20),
-
-                // ── Notification settings ─────────────────────────────────────
-                _SectionCard(children: [
-                  _SectionHeader(
-                      icon: Icons.notifications_outlined,
-                      title: l10n.notifications),
-                  const SizedBox(height: 8),
-
-                  // 1. Email notifications
-                  _ToggleRow(
-                    icon: Icons.email_outlined,
-                    label: l10n.email_notifications,
-                    subtitle: l10n.email_notifications_desc,
-                    value: _emailNotificationsFarmer,
-                    disabled: _savingSettings,
-                    onChanged: (v) =>
-                        _onToggle(() => _emailNotificationsFarmer = v),
-                  ),
-                  const Divider(height: 1, color: AppColors.cardBorder),
-
-                  // 2. Analysis completion alerts
-                  _ToggleRow(
-                    icon: Icons.analytics_outlined,
-                    label: l10n.analysis_completion_alerts,
-                    subtitle: l10n.analysis_completion_alerts_desc,
-                    value: _analysisCompletionAlerts,
-                    disabled: _savingSettings,
-                    onChanged: (v) =>
-                        _onToggle(() => _analysisCompletionAlerts = v),
-                  ),
-                  const Divider(height: 1, color: AppColors.cardBorder),
-
-                  // 3. Weekly report summary
-                  _ToggleRow(
-                    icon: Icons.summarize_outlined,
-                    label: l10n.weekly_report_summary,
-                    subtitle: l10n.weekly_report_summary_desc,
-                    value: _weeklyReportSummary,
-                    disabled: _savingSettings,
-                    onChanged: (v) =>
-                        _onToggle(() => _weeklyReportSummary = v),
-                  ),
-
-                  if (_savingSettings)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: LinearProgressIndicator(),
-                    ),
-                ]),
-                ]),
-              )),
+              ]),
+            ]),
+          )),
         ),
       ),
     );
@@ -252,27 +257,27 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
 class _ThemeOption extends StatelessWidget {
   const _ThemeOption(
       {required this.label,
-        required this.value,
-        required this.groupValue,
-        required this.onChanged});
+      required this.value,
+      required this.groupValue,
+      required this.onChanged});
   final String label, value, groupValue;
   final ValueChanged<String?> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isSelected = value == groupValue;
     return InkWell(
       onTap: () => onChanged(value),
-      borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+      borderRadius: BorderRadius.circular(AppDimensions.radiusMid),
       child: Container(
-        padding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMid),
           border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.cardBorder),
+              color: isSelected ? colorScheme.primary : colorScheme.outline),
           color: isSelected
-              ? AppColors.primarySurface.withValues(alpha: 0.5)
+              ? colorScheme.primaryContainer.withValues(alpha: 0.5)
               : Colors.transparent,
         ),
         child: Row(children: [
@@ -280,17 +285,15 @@ class _ThemeOption extends StatelessWidget {
             value: value,
             groupValue: groupValue,
             onChanged: onChanged,
-            activeColor: AppColors.primary,
+            activeColor: colorScheme.primary,
             visualDensity: VisualDensity.compact,
           ),
           const SizedBox(width: 8),
           Text(label,
               style: TextStyle(
                 fontSize: 14,
-                fontWeight:
-                isSelected ? FontWeight.w600 : FontWeight.normal,
-                color:
-                isSelected ? AppColors.primary : AppColors.textDark,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected ? colorScheme.primary : colorScheme.onSurface,
               )),
         ]),
       ),
@@ -302,22 +305,24 @@ class _SectionCard extends StatelessWidget {
   const _SectionCard({required this.children});
   final List<Widget> children;
   @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6)
-        ]),
-    child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children),
-  );
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
+          border: Border.all(color: colorScheme.outline),
+          boxShadow: [
+            BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.05),
+                blurRadius: 6)
+          ]),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, children: children),
+    );
+  }
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -325,18 +330,24 @@ class _SectionHeader extends StatelessWidget {
   final IconData icon;
   final String title;
   @override
-  Widget build(BuildContext context) => Row(children: [
-    Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-            color: AppColors.primarySurface,
-            borderRadius:
-            BorderRadius.circular(AppSizes.radiusMid)),
-        child: Icon(icon, color: AppColors.primary, size: 18)),
-    const SizedBox(width: 12),
-    Text(title, style: AppTextStyles.cardTitle),
-  ]);
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(children: [
+      Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMid)),
+          child: Icon(icon, color: colorScheme.primary, size: 18)),
+      const SizedBox(width: 12),
+      Text(title,
+          style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface)),
+    ]);
+  }
 }
 
 class _ToggleRow extends StatelessWidget {
@@ -357,33 +368,35 @@ class _ToggleRow extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10),
-    child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-      if (icon != null) ...[
-        Icon(icon, size: 20, color: AppColors.textSubtle),
-        const SizedBox(width: 12),
-      ],
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.textDark)),
-            if (subtitle != null)
-              Text(subtitle!,
-                  style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSubtle,
-                      height: 1.4)),
-          ],
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        if (icon != null) ...[
+          Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+        ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: TextStyle(fontSize: 14, color: colorScheme.onSurface)),
+              if (subtitle != null)
+                Text(subtitle!,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.4)),
+            ],
+          ),
         ),
-      ),
-      Switch(
-          value: value,
-          onChanged: disabled ? null : onChanged,
-          activeColor: AppColors.primary),
-    ]),
-  );
+        Switch(
+            value: value,
+            onChanged: disabled ? null : onChanged,
+            activeThumbColor: colorScheme.primary),
+      ]),
+    );
+  }
 }

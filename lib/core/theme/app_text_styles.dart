@@ -1,155 +1,149 @@
 import 'package:flutter/material.dart';
 
 // =============================================================================
-// AppTextStyles — Semantic text style constants for Smart Farm AI
-//
-// GUIDELINES:
-//  1. Prefer Theme.of(context).textTheme.XXXX inside widgets — those are
-//     already color-adapted to the current brightness.
-//  2. Use the static constants below ONLY in places where a BuildContext is
-//     not available, or when you need the raw style for a TextTheme definition.
-//  3. Never hardcode Color in widget text styles — use theme tokens instead.
-//
-// HIERARCHY MAP (matches Material 3 naming):
-//   displayLarge  32 / w400 → hero numbers, splash titles
-//   displayMedium 28 / w400 → section heroes
-//   displaySmall  24 / w400 → sub-section heroes
-//   headlineLarge 26 / w600 → page titles
-//   headlineMedium 22 / w600 → card headings, dialog titles
-//   headlineSmall 18 / w600 → sub-headings
-//   titleLarge    20 / w500 → app bar, prominent labels
-//   titleMedium   16 / w500 → list primary text
-//   titleSmall    14 / w500 → secondary labels
-//   bodyLarge     16 / w400 → body copy
-//   bodyMedium    14 / w400 → descriptions, secondary body
-//   bodySmall     12 / w400 → captions, helper text
-//   labelLarge    16 / w600 → buttons
-//   labelMedium   14 / w500 → chips, tags
-//   labelSmall    12 / w500 → overlines, badges, table headers
+// AppTextStyles — semantic helpers only (NO COLORS HERE)
 // =============================================================================
 
 abstract final class AppTextStyles {
-  // Tab bar / table header
+  static const TextStyle pageTitle = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.5,
+  );
+
+  static const TextStyle pageSubtitle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+  );
+
+  static const TextStyle cardLabel = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.2,
+  );
+
+  static const TextStyle label = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+  );
+
   static const TextStyle tableHeader = TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.8,
   );
 
-  // Chip / tag
   static const TextStyle chip = TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w500,
   );
 
-  // Convenience: for done/strikethrough task state
   static const TextStyle strikethrough = TextStyle(
     fontSize: 16,
-    fontWeight: FontWeight.w400,
     decoration: TextDecoration.lineThrough,
     overflow: TextOverflow.ellipsis,
+  );
+
+  static const TextStyle cardTitle = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+  );
+
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
   );
 }
 
 // =============================================================================
-// TextTheme factories
-// Called once by light_theme.dart / dark_theme.dart.
-// Colors use explicit values here because TextTheme is color-adapted
-// by the framework through DefaultTextStyle inheritance — do not apply
-// colorScheme here; let the theme engine handle it via onSurface.
+// TextTheme — NOW BASED ON ColorScheme ✅
 // =============================================================================
 
-TextTheme buildTextTheme({required bool isDark}) {
-  final textPrimary = isDark ? const Color(0xFFFFFCFC) : const Color(0xFF161F1B);
-  final textSecondary = isDark ? const Color(0xFFC6C6C6) : const Color(0xFF3A4640);
-  final textDisabled = isDark ? const Color(0xFF6E6E6E) : const Color(0xFF9CA3AF);
-  final strikeColor = isDark ? const Color(0xFFA0A0A0) : const Color(0xFF6A6A6A);
-
+TextTheme buildTextTheme(ColorScheme cs) {
   return TextTheme(
-    // ── Display ──────────────────────────────────────────────────────────────
+    // Display
     displayLarge: TextStyle(
       fontSize: 32,
-      fontWeight: FontWeight.w400,
-      color: textPrimary,
+      fontWeight: FontWeight.w800,
+      color: cs.onSurface,
+      letterSpacing: -1,
     ),
     displayMedium: TextStyle(
       fontSize: 28,
-      fontWeight: FontWeight.w400,
-      color: textPrimary,
+      fontWeight: FontWeight.w800,
+      color: cs.onSurface,
     ),
     displaySmall: TextStyle(
       fontSize: 24,
-      fontWeight: FontWeight.w400,
-      color: textPrimary,
+      fontWeight: FontWeight.w700,
+      color: cs.onSurface,
     ),
 
-    // ── Headline ─────────────────────────────────────────────────────────────
+    // Headlines
     headlineLarge: TextStyle(
       fontSize: 26,
       fontWeight: FontWeight.w700,
-      color: textPrimary,
+      color: cs.onSurface,
     ),
     headlineMedium: TextStyle(
       fontSize: 22,
       fontWeight: FontWeight.w700,
-      color: textPrimary,
+      color: cs.onSurface,
     ),
     headlineSmall: TextStyle(
       fontSize: 18,
-      fontWeight: FontWeight.w600,
-      color: textPrimary,
+      fontWeight: FontWeight.w700,
+      color: cs.onSurface,
     ),
 
-    // ── Title ────────────────────────────────────────────────────────────────
+    // Titles
     titleLarge: TextStyle(
       fontSize: 20,
-      fontWeight: FontWeight.w500,
-      color: textPrimary,
+      fontWeight: FontWeight.w600,
+      color: cs.onSurface,
     ),
     titleMedium: TextStyle(
       fontSize: 16,
-      fontWeight: FontWeight.w500,
-      color: textPrimary,
+      fontWeight: FontWeight.w600,
+      color: cs.onSurface,
     ),
     titleSmall: TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w500,
-      color: textSecondary,
+      color: cs.onSurfaceVariant,
     ),
 
-    // ── Body ─────────────────────────────────────────────────────────────────
+    // Body
     bodyLarge: TextStyle(
       fontSize: 16,
-      fontWeight: FontWeight.w400,
-      color: textPrimary,
+      height: 1.5,
+      color: cs.onSurface,
     ),
     bodyMedium: TextStyle(
       fontSize: 14,
-      fontWeight: FontWeight.w400,
-      color: textSecondary,
+      height: 1.5,
+      color: cs.onSurface,
     ),
     bodySmall: TextStyle(
       fontSize: 12,
-      fontWeight: FontWeight.w400,
-      color: textDisabled,
+      color: cs.onSurfaceVariant,
     ),
 
-    // ── Label ────────────────────────────────────────────────────────────────
+    // Labels
     labelLarge: TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w600,
-      color: textPrimary,
+      color: cs.onPrimary, // for buttons
     ),
     labelMedium: TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w500,
-      color: textPrimary,
+      color: cs.onSurface,
     ),
     labelSmall: TextStyle(
       fontSize: 12,
       fontWeight: FontWeight.w500,
-      color: textDisabled,
-      letterSpacing: 0.6,
+      color: cs.onSurfaceVariant,
     ),
   );
 }

@@ -8,7 +8,6 @@ import 'package:smart_farm/l10n/app_localizations.dart';
 import 'package:smart_farm/features/notifications/providers/notification_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../shared/theme/app_theme.dart';
 import '../models/report_model.dart';
 import '../providers/report_provider.dart';
 import '../utils/label_mapper.dart';
@@ -39,6 +38,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
     final currentYear = DateTime.now().year.toString();
     final w = MediaQuery.sizeOf(context).width;
     final pagePadding = (w * 0.04).clamp(16.0, 24.0);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SafeArea(
       child: Center(
@@ -46,97 +46,102 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
           constraints: const BoxConstraints(maxWidth: 900),
           child: RefreshIndicator(
             onRefresh: () => provider.fetchAllReports(),
-            color: AppColors.primary,
+            color: colorScheme.primary,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.all(pagePadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-            // Header Section
-            Row(children: [
-              const Icon(Icons.bar_chart_rounded,
-                  color: AppColors.primary, size: 24),
-              const SizedBox(width: 12),
-              Text(l10n.nav_reports, style: AppTextStyles.pageTitle),
-            ]),
-            const SizedBox(height: 4),
-            Text(
-                isAr
-                    ? 'تحليل مقاييس النظام والنمو لعام $currentYear'
-                    : 'System metrics and growth analysis for $currentYear',
-                style: AppTextStyles.pageSubtitle),
-            const SizedBox(height: 24),
+                  // Header Section
+                  Row(children: [
+                    Icon(Icons.bar_chart_rounded,
+                        color: colorScheme.primary, size: 24),
+                    const SizedBox(width: 12),
+                    Text(l10n.nav_reports,
+                        style: Theme.of(context).textTheme.headlineSmall),
+                  ]),
+                  const SizedBox(height: 4),
+                  Text(
+                      isAr
+                          ? 'تحليل مقاييس النظام والنمو لعام $currentYear'
+                          : 'System metrics and growth analysis for $currentYear',
+                      style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 24),
 
-            // Filter Section
-            _buildFilterCard(
-              context,
-              provider,
-              l10n,
-              isAr,
-            ),
-            const SizedBox(height: 24),
-
-            // Main Content
-            if (provider.isLoading)
-              const Center(
-                  child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 100),
-                child: CircularProgressIndicator(),
-              ))
-            else if (provider.error != null)
-              Center(
-                  child: Column(
-                children: [
-                  const Icon(Icons.error_outline,
-                      size: 48, color: AppColors.error),
-                  const SizedBox(height: 16),
-                  Text('Failed to load reports: ${provider.error}'),
-                  TextButton(
-                    onPressed: () => provider.fetchAllReports(),
-                    child: const Text('Retry'),
+                  // Filter Section
+                  _buildFilterCard(
+                    context,
+                    provider,
+                    l10n,
+                    isAr,
+                    colorScheme,
                   ),
-                ],
-              ))
-            else ...[
-              _buildChartCard(
-                title: isAr
-                    ? 'الاستخدام حسب الخدمة ($currentYear)'
-                    : 'Usage by Service ($currentYear)',
-                subtitle: isAr
-                    ? 'إجمالي الاستخدام لكل خدمة'
-                    : 'Total counts per service',
-                chart: ServiceUsageBarChart(data: provider.usageList),
-              ),
-              const SizedBox(height: 24),
-              _buildChartCard(
-                title: isAr
-                    ? 'نمو المستخدمين ($currentYear)'
-                    : 'User Growth ($currentYear)',
-                subtitle: isAr
-                    ? 'التسجيلات الجديدة شهرياً'
-                    : 'Monthly new registrations',
-                chart: UserGrowthLineChart(data: provider.growthList),
-              ),
-              const SizedBox(height: 24),
-              _buildChartCard(
-                title: isAr
-                    ? 'النشاط اليومي ($currentYear)'
-                    : 'Daily Activity ($currentYear)',
-                subtitle: isAr
-                    ? 'النشاط في آخر 7 أيام'
-                    : 'Active interactions in the last 7 days',
-                chart: DailyActivityLineChart(data: provider.activityList),
-              ),
-              const SizedBox(height: 24),
-              _buildGeneratedReportsCard(
-                context: context,
-                provider: provider,
-                notifProvider: notifProvider,
-                l10n: l10n,
-              ),
-              const SizedBox(height: 40),
-            ],
+                  const SizedBox(height: 24),
+
+                  // Main Content
+                  if (provider.isLoading)
+                    const Center(
+                        child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 100),
+                      child: CircularProgressIndicator(),
+                    ))
+                  else if (provider.error != null)
+                    Center(
+                        child: Column(
+                      children: [
+                        Icon(Icons.error_outline,
+                            size: 48, color: colorScheme.error),
+                        const SizedBox(height: 16),
+                        Text('Failed to load reports: ${provider.error}',
+                            style: TextStyle(color: colorScheme.onSurface)),
+                        TextButton(
+                          onPressed: () => provider.fetchAllReports(),
+                          child: Text('Retry',
+                              style: TextStyle(color: colorScheme.primary)),
+                        ),
+                      ],
+                    ))
+                  else ...[
+                    _buildChartCard(
+                      title: isAr
+                          ? 'الاستخدام حسب الخدمة ($currentYear)'
+                          : 'Usage by Service ($currentYear)',
+                      subtitle: isAr
+                          ? 'إجمالي الاستخدام لكل خدمة'
+                          : 'Total counts per service',
+                      chart: ServiceUsageBarChart(data: provider.usageList),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildChartCard(
+                      title: isAr
+                          ? 'نمو المستخدمين ($currentYear)'
+                          : 'User Growth ($currentYear)',
+                      subtitle: isAr
+                          ? 'التسجيلات الجديدة شهرياً'
+                          : 'Monthly new registrations',
+                      chart: UserGrowthLineChart(data: provider.growthList),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildChartCard(
+                      title: isAr
+                          ? 'النشاط اليومي ($currentYear)'
+                          : 'Daily Activity ($currentYear)',
+                      subtitle: isAr
+                          ? 'النشاط في آخر 7 أيام'
+                          : 'Active interactions in the last 7 days',
+                      chart:
+                          DailyActivityLineChart(data: provider.activityList),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildGeneratedReportsCard(
+                      context: context,
+                      provider: provider,
+                      notifProvider: notifProvider,
+                      l10n: l10n,
+                    ),
+                    const SizedBox(height: 40),
+                  ],
                 ],
               ),
             ),
@@ -147,58 +152,59 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
   }
 
   Widget _buildFilterCard(BuildContext context, AdminReportProvider provider,
-      AppLocalizations l10n, bool isAr) {
+      AppLocalizations l10n, bool isAr, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.filter_list_rounded,
-                  color: AppColors.primary, size: 20),
+              Icon(Icons.filter_list_rounded,
+                  color: colorScheme.primary, size: 20),
               const SizedBox(width: 8),
-              Text(l10n.report_filters, style: AppTextStyles.cardTitle),
+              Text(l10n.report_filters,
+                  style: Theme.of(context).textTheme.titleMedium),
             ],
           ),
           const SizedBox(height: 16),
-          Text(l10n.date_range, style: AppTextStyles.label),
+          Text(l10n.date_range, style: Theme.of(context).textTheme.labelMedium),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: provider.selectedRange,
+            dropdownColor: colorScheme.surface,
+            style: TextStyle(color: colorScheme.onSurface),
             decoration: InputDecoration(
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.cardBorder),
+                borderSide: BorderSide(color: colorScheme.outlineVariant),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.cardBorder),
+                borderSide: BorderSide(color: colorScheme.outlineVariant),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: AppColors.primary, width: 1.5),
+                borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
               ),
               filled: true,
-              fillColor: AppColors.background,
+              fillColor: colorScheme.surface,
             ),
-            items: [
-              DropdownMenuItem(
-                  value: 'last_7_days', child: Text(l10n.last_7_days)),
-              DropdownMenuItem(
-                  value: 'last_30_days', child: Text(l10n.last_30_days)),
-              DropdownMenuItem(value: 'last_year', child: Text(l10n.last_year)),
-            ],
-            onChanged: (value) {
-              if (value != null) provider.setRange(value);
+            items: ['last_7_days', 'last_30_days', 'last_year', 'all_time']
+                .map((r) => DropdownMenuItem(
+                      value: r,
+                      child: Text(LabelMapper.getLocalizedRange(r, l10n)),
+                    ))
+                .toList(),
+            onChanged: (val) {
+              if (val != null) provider.setRange(val);
             },
           ),
         ],
@@ -212,12 +218,13 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
     required NotificationProvider notifProvider,
     required AppLocalizations l10n,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,16 +232,9 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.generated_reports, style: AppTextStyles.cardTitle),
-                  const SizedBox(height: 4),
-                  Text(l10n.download_historical_reports,
-                      style: AppTextStyles.caption),
-                ],
-              ),
-              const Icon(Icons.history_rounded, color: AppColors.textDisabled),
+              Text(l10n.generated_reports,
+                  style: Theme.of(context).textTheme.titleMedium),
+              Icon(Icons.history_rounded, color: colorScheme.onSurfaceVariant),
             ],
           ),
           const SizedBox(height: 24),
@@ -252,18 +252,18 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15)),
                 elevation: 0,
               ),
               child: provider.isGenerating
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2, color: colorScheme.onPrimary),
                     )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -288,6 +288,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                     url: report['url'] as String,
                     time: report['time'] as DateTime,
                     l10n: l10n,
+                    colorScheme: colorScheme,
                   ),
                 );
               }).toList(),
@@ -299,6 +300,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
               time: DateTime(2025, 3, 20),
               l10n: l10n,
               isMock: true,
+              colorScheme: colorScheme,
             ),
         ],
       ),
@@ -310,6 +312,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
     required String url,
     required DateTime time,
     required AppLocalizations l10n,
+    required ColorScheme colorScheme,
     bool isMock = false,
   }) {
     final fileName = url.split('/').last;
@@ -318,7 +321,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -326,11 +329,11 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: colorScheme.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.picture_as_pdf_rounded,
-                color: AppColors.primary, size: 20),
+            child: Icon(Icons.picture_as_pdf_rounded,
+                color: colorScheme.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -340,14 +343,18 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                 Text(fileName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w500)),
-                Text('${isMock ? "2.4 MB" : "PDF"} • $formattedDate',
-                    style: AppTextStyles.caption),
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: colorScheme.onSurface)),
+                Text(formattedDate,
+                    style: TextStyle(
+                        fontSize: 12, color: colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
           IconButton(
+            icon: Icon(Icons.download_rounded, color: colorScheme.primary),
             onPressed: isMock
                 ? null
                 : () async {
@@ -357,7 +364,6 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                           mode: LaunchMode.externalApplication);
                     }
                   },
-            icon: const Icon(Icons.download_rounded, color: AppColors.primary),
           ),
         ],
       ),
@@ -369,33 +375,29 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
     required String subtitle,
     required Widget chart,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: colorScheme.shadow.withValues(alpha: 0.03),
+            blurRadius: 15,
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTextStyles.cardTitle),
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 4),
-          Text(subtitle, style: AppTextStyles.caption),
-          const SizedBox(height: 32),
-          // Fixed height and AspectRatio to prevent stretching/overlap
-          AspectRatio(
-            aspectRatio: 1.7,
-            child: chart,
-          ),
+          Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 24),
+          SizedBox(height: 250, child: chart),
         ],
       ),
     );
@@ -413,6 +415,7 @@ class ServiceUsageBarChart extends StatelessWidget {
     if (data.isEmpty) return const Center(child: Text('No data available'));
     final l10n = AppLocalizations.of(context)!;
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
+    final colorScheme = Theme.of(context).colorScheme;
 
     final maxVal =
         data.map((e) => e.count).fold(0, (p, c) => c > p ? c : p).toDouble();
@@ -424,7 +427,8 @@ class ServiceUsageBarChart extends StatelessWidget {
         maxY: maxY,
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (_) => AppColors.textDark.withValues(alpha: 0.9),
+            getTooltipColor: (_) =>
+                colorScheme.inverseSurface.withValues(alpha: 0.9),
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final label = LabelMapper.getLocalizedService(
                   data[groupIndex].service, l10n);
@@ -434,15 +438,15 @@ class ServiceUsageBarChart extends StatelessWidget {
 
               return BarTooltipItem(
                 '$formattedLabel\n',
-                const TextStyle(
-                    color: Colors.white,
+                TextStyle(
+                    color: colorScheme.onInverseSurface,
                     fontWeight: FontWeight.bold,
                     fontSize: 14),
                 children: [
                   TextSpan(
                     text: '${l10n.total}: ${rod.toY.toInt()}',
-                    style: const TextStyle(
-                        color: AppColors.primary,
+                    style: TextStyle(
+                        color: colorScheme.primary,
                         fontSize: 13,
                         fontWeight: FontWeight.bold),
                   ),
@@ -462,7 +466,9 @@ class ServiceUsageBarChart extends StatelessWidget {
                 final index = value.toInt();
                 if (index < 0 ||
                     index >= data.length ||
-                    value != index.toDouble()) return const SizedBox();
+                    value != index.toDouble()) {
+                  return const SizedBox();
+                }
                 final rawLabel = data[index].service;
                 final localizedLabel =
                     LabelMapper.getLocalizedService(rawLabel, l10n);
@@ -479,8 +485,8 @@ class ServiceUsageBarChart extends StatelessWidget {
                       child: Text(
                         localizedLabel,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            color: AppColors.textSubtle,
+                        style: TextStyle(
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 9,
                             fontWeight: FontWeight.w500),
                       ),
@@ -505,7 +511,7 @@ class ServiceUsageBarChart extends StatelessWidget {
             barRods: [
               BarChartRodData(
                 toY: e.value.count.toDouble(),
-                color: AppColors.primary,
+                color: colorScheme.primary,
                 width: 22,
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(6)),
@@ -530,13 +536,15 @@ class UserGrowthLineChart extends StatelessWidget {
     if (data.isEmpty) return const Center(child: Text('No data available'));
     final l10n = AppLocalizations.of(context)!;
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
+    final colorScheme = Theme.of(context).colorScheme;
 
     return LineChart(
       LineChartData(
         minY: 0,
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (_) => AppColors.textDark.withValues(alpha: 0.9),
+            getTooltipColor: (_) =>
+                colorScheme.inverseSurface.withValues(alpha: 0.9),
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
                 final month = LabelMapper.getLocalizedMonth(
@@ -547,8 +555,9 @@ class UserGrowthLineChart extends StatelessWidget {
 
                 return LineTooltipItem(
                   '$label: ${spot.y.toInt()} ${l10n.registered}',
-                  const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                  TextStyle(
+                      color: colorScheme.onInverseSurface,
+                      fontWeight: FontWeight.bold),
                 );
               }).toList();
             },
@@ -566,15 +575,17 @@ class UserGrowthLineChart extends StatelessWidget {
                 final index = value.toInt();
                 if (index < 0 ||
                     index >= data.length ||
-                    value != index.toDouble()) return const SizedBox();
+                    value != index.toDouble()) {
+                  return const SizedBox();
+                }
                 final label =
                     LabelMapper.getLocalizedMonth(data[index].month, l10n);
 
                 return Directionality(
                   textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
                   child: Text(label,
-                      style: const TextStyle(
-                          color: AppColors.textSubtle, fontSize: 10)),
+                      style: TextStyle(
+                          color: colorScheme.onSurfaceVariant, fontSize: 10)),
                 );
               },
             ),
@@ -592,7 +603,7 @@ class UserGrowthLineChart extends StatelessWidget {
             isCurved: true,
             curveSmoothness: 0.4,
             preventCurveOverShooting: true,
-            color: AppColors.primary,
+            color: colorScheme.primary,
             barWidth: 4,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: true),
@@ -600,8 +611,8 @@ class UserGrowthLineChart extends StatelessWidget {
               show: true,
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withValues(alpha: 0.2),
-                  AppColors.primary.withValues(alpha: 0.0),
+                  colorScheme.primary.withValues(alpha: 0.2),
+                  colorScheme.primary.withValues(alpha: 0.0),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -628,13 +639,14 @@ class DailyActivityLineChart extends StatelessWidget {
     if (data.isEmpty) return const Center(child: Text('No data available'));
     final l10n = AppLocalizations.of(context)!;
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
+    final colorScheme = Theme.of(context).colorScheme;
 
     return LineChart(
       LineChartData(
         minY: 0,
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (_) => AppColors.textDark,
+            getTooltipColor: (_) => colorScheme.inverseSurface,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
                 final day =
@@ -644,8 +656,9 @@ class DailyActivityLineChart extends StatelessWidget {
 
                 return LineTooltipItem(
                   '$label: ${spot.y.toInt()}',
-                  const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                  TextStyle(
+                      color: colorScheme.onInverseSurface,
+                      fontWeight: FontWeight.bold),
                 );
               }).toList();
             },
@@ -663,15 +676,17 @@ class DailyActivityLineChart extends StatelessWidget {
                 final index = value.toInt();
                 if (index < 0 ||
                     index >= data.length ||
-                    value != index.toDouble()) return const SizedBox();
+                    value != index.toDouble()) {
+                  return const SizedBox();
+                }
                 final label =
                     LabelMapper.getLocalizedDay(data[index].day, l10n);
 
                 return Directionality(
                   textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
                   child: Text(label,
-                      style: const TextStyle(
-                          color: AppColors.textSubtle, fontSize: 10)),
+                      style: TextStyle(
+                          color: colorScheme.onSurfaceVariant, fontSize: 10)),
                 );
               },
             ),
@@ -689,7 +704,7 @@ class DailyActivityLineChart extends StatelessWidget {
             isCurved: true,
             curveSmoothness: 0.4,
             preventCurveOverShooting: true,
-            color: AppColors.primary,
+            color: colorScheme.primary,
             barWidth: 5,
             isStrokeCapRound: true,
             dotData: FlDotData(
@@ -702,9 +717,9 @@ class DailyActivityLineChart extends StatelessWidget {
                         .toDouble();
                 return FlDotCirclePainter(
                   radius: isPeak ? 6 : 3,
-                  color: isPeak ? AppColors.adminAccent : AppColors.primary,
+                  color: isPeak ? colorScheme.tertiary : colorScheme.primary,
                   strokeWidth: 2,
-                  strokeColor: Colors.white,
+                  strokeColor: colorScheme.surface,
                 );
               },
             ),

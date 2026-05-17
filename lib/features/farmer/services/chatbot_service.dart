@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../models/chatbot_models.dart';
@@ -31,13 +30,16 @@ class ChatbotService {
     }
   }
 
-  Future<List<ChatHistoryItem>> getHistory(String userId, {String? sessionId}) async {
+  Future<List<ChatHistoryItem>> getHistory(String userId,
+      {String? sessionId}) async {
     try {
       final String path = '/chatbot/chat-history/$userId';
-      final Map<String, String>? query = sessionId != null ? {'session_id': sessionId} : null;
-      
+      final Map<String, String>? query =
+          sessionId != null ? {'session_id': sessionId} : null;
+
       final data = await _c.get(path, query: query);
-      final listData = _extractList(data, keys: const ['history', 'messages', 'data']);
+      final listData =
+          _extractList(data, keys: const ['history', 'messages', 'data']);
       if (listData != null) {
         return listData
             .map((e) => ChatHistoryItem.fromJson(e as Map<String, dynamic>))
@@ -57,7 +59,8 @@ class ChatbotService {
   Future<List<ChatSession>> getUserSessions(String userId) async {
     try {
       final data = await _c.get('/chatbot/user-sessions/$userId');
-      final listData = _extractList(data, keys: const ['sessions', 'chat_sessions', 'data']);
+      final listData =
+          _extractList(data, keys: const ['sessions', 'chat_sessions', 'data']);
       if (listData != null) {
         return listData
             .map((e) => ChatSession.fromJson(e as Map<String, dynamic>))
@@ -76,7 +79,8 @@ class ChatbotService {
 
   Future<void> renameSession(String sessionId, String newTitle) async {
     try {
-      await _c.patchForm('/chatbot/rename-session/$sessionId', {'new_title': newTitle});
+      await _c.patchForm(
+          '/chatbot/rename-session/$sessionId', {'new_title': newTitle});
     } catch (e) {
       throw const ApiException('Failed to rename session.');
     }

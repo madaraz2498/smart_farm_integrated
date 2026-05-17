@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../utils/production_logger.dart';
 
@@ -87,37 +86,39 @@ class NetworkUtils {
   }) async {
     final timeout = timeoutSeconds ?? _defaultTimeout;
     final retries = maxRetries ?? _maxRetries;
-    
+
     for (int attempt = 0; attempt <= retries; attempt++) {
       try {
         ProductionLogger.api('Request: $url (attempt ${attempt + 1})');
-        
-        final response = await requestFn()
-            .timeout(Duration(seconds: timeout), onTimeout: () {
+
+        final response = await requestFn().timeout(Duration(seconds: timeout),
+            onTimeout: () {
           throw TimeoutException('Request timeout after ${timeout}s', null);
         });
-        
+
         ProductionLogger.api('Response: ${response.statusCode} for $url');
-        
+
         // Don't retry on client errors (4xx)
         if (response.statusCode >= 400 && response.statusCode < 500) {
           return response;
         }
-        
+
         // Success response
         if (response.statusCode >= 200 && response.statusCode < 300) {
           return response;
         }
-        
+
         // Server error, retry if we have attempts left
         if (attempt < retries) {
-          ProductionLogger.warning('Server error ${response.statusCode}, retrying...', response.body);
-          await Future.delayed(_retryDelay * (attempt + 1)); // Exponential backoff
+          ProductionLogger.warning(
+              'Server error ${response.statusCode}, retrying...',
+              response.body);
+          await Future.delayed(
+              _retryDelay * (attempt + 1)); // Exponential backoff
           continue;
         }
-        
+
         return response;
-        
       } catch (e) {
         ProductionLogger.error('Request failed (attempt ${attempt + 1}): $e');
 
@@ -134,17 +135,19 @@ class NetworkUtils {
         await Future.delayed(_retryDelay * (attempt + 1));
       }
     }
-    
+
     throw Exception('Max retries exceeded for $url');
   }
 
   /// Check if device is online (basic connectivity check)
   static Future<bool> isOnline() async {
     try {
-      final response = await http.get(
-        Uri.parse('https://dns.google/resolve?name=google.com'),
-      ).timeout(const Duration(seconds: 5));
-      
+      final response = await http
+          .get(
+            Uri.parse('https://dns.google/resolve?name=google.com'),
+          )
+          .timeout(const Duration(seconds: 5));
+
       return response.statusCode == 200;
     } catch (e) {
       ProductionLogger.warning('Connectivity check failed: $e');
@@ -156,9 +159,9 @@ class NetworkUtils {
 class TimeoutException implements Exception {
   final String message;
   final dynamic cause;
-  
+
   const TimeoutException(this.message, this.cause);
-  
+
   @override
   String toString() => 'TimeoutException: $message';
 }

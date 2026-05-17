@@ -8,7 +8,7 @@ import 'package:smart_farm/l10n/app_localizations.dart';
 
 import '../../features/auth/providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
-import '../../shared/theme/app_theme.dart';
+import 'package:smart_farm/core/theme/app_dimensions.dart';
 import '../../core/network/api_client.dart';
 
 IconData _icon(String name) => switch (name) {
@@ -39,6 +39,7 @@ class AppSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final nav = context.watch<NavigationProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
     final isAdmin = auth.isAdmin;
 
     final content = _SidebarContent(
@@ -49,15 +50,15 @@ class AppSidebar extends StatelessWidget {
     );
 
     if (insideDrawer) {
-      return Drawer(backgroundColor: AppColors.surface, child: content);
+      return Drawer(backgroundColor: colorScheme.surface, child: content);
     }
 
     return Container(
-      width: AppSizes.sidebarWidth,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border:
-            Border(right: BorderSide(color: AppColors.cardBorder, width: 1.33)),
+      width: AppDimensions.sidebarWidth,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+            right: BorderSide(color: colorScheme.outlineVariant, width: 1.33)),
       ),
       child: content,
     );
@@ -80,6 +81,7 @@ class _SidebarContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(children: [
       _SidebarHeader(isAdmin: isAdmin, userName: userName),
@@ -89,11 +91,11 @@ class _SidebarContent extends StatelessWidget {
           alignment: isRtl ? Alignment.centerRight : Alignment.centerLeft,
           child: Text(
             isAdmin ? l10n.admin_panel : l10n.main_menu,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.2,
-                color: AppColors.textSubtle),
+                color: colorScheme.onSurfaceVariant),
           ),
         ),
       ),
@@ -180,22 +182,24 @@ class _SidebarHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
     final imgUrl = user?.profileImg;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        border:
-            Border(bottom: BorderSide(color: AppColors.primaryDark, width: 1)),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+        border: Border(
+            bottom: BorderSide(color: colorScheme.outlineVariant, width: 1)),
       ),
       child: Row(children: [
         Container(
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(AppSizes.radiusMid),
+            color: colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
             image: imgUrl != null && imgUrl.isNotEmpty
                 ? DecorationImage(
                     image: NetworkImage(imgUrl.startsWith('http')
@@ -209,7 +213,7 @@ class _SidebarHeader extends StatelessWidget {
                   isAdmin
                       ? Icons.admin_panel_settings_rounded
                       : Icons.eco_rounded,
-                  color: Colors.white,
+                  color: colorScheme.primary,
                   size: 24,
                 )
               : null,
@@ -218,15 +222,18 @@ class _SidebarHeader extends StatelessWidget {
         Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Smart Farm AI',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700)),
+          Text('Smart Farm AI',
+              style: textTheme.titleSmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              )),
           const SizedBox(height: 2),
           Text(userName,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              )),
         ])),
       ]),
     );
@@ -251,16 +258,23 @@ class _NavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final isLong = label.length > 20;
+    // Selected item has a subtle primary (green) background, text/icon remains primary
+    final fg = colorScheme.primary;
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(99),
+      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(99),
+          color: isSelected
+              ? colorScheme.primary.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(children: [
           if (svgAsset != null)
@@ -268,37 +282,39 @@ class _NavTile extends StatelessWidget {
                 width: 20,
                 height: 20,
                 colorFilter: ColorFilter.mode(
-                    isSelected ? Colors.white : AppColors.primary,
+                    isSelected ? fg : colorScheme.onSurfaceVariant,
                     BlendMode.srcIn))
           else
             Icon(icon,
-                size: 20, color: isSelected ? Colors.white : AppColors.primary),
-          const SizedBox(width: 12),
-          Flexible(
-              child: Text(label,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      fontSize: isLong ? 12.5 : 14,
-                      color: isSelected ? Colors.white : AppColors.textDark,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w400))),
-          if (badge != null) ...[
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Colors.white.withValues(alpha: 0.25)
-                    : AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(4),
+                size: 20,
+                color: isSelected ? fg : colorScheme.onSurfaceVariant),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.labelMedium?.copyWith(
+                fontSize: isLong ? 12 : 14,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? fg : colorScheme.onSurface,
               ),
-              child: Text(badge!,
-                  style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected ? Colors.white : AppColors.primary)),
             ),
-          ],
+          ),
+          if (badge != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                  color: isSelected
+                      ? colorScheme.primary.withValues(alpha: 0.2)
+                      : colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(6)),
+              child: Text(badge!,
+                  style: textTheme.labelSmall?.copyWith(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.primary)),
+            ),
         ]),
       ),
     );

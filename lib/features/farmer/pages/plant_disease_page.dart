@@ -7,7 +7,7 @@ import 'package:smart_farm/features/farmer/models/scan_status.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
 import '../models/plant_models.dart';
 import '../providers/plant_provider.dart';
-import '../../../shared/theme/app_theme.dart';
+import 'package:smart_farm/core/theme/app_dimensions.dart';
 import '../../../shared/widgets/sf_button.dart';
 import '../../../shared/widgets/sf_image_picker_card.dart';
 
@@ -36,14 +36,14 @@ class _PlantDiseasePageState extends State<PlantDiseasePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined,
-                  color: AppColors.primary),
+              leading: Icon(Icons.photo_library_outlined,
+                  color: Theme.of(ctx).colorScheme.primary),
               title: const Text('Gallery'),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined,
-                  color: AppColors.primary),
+              leading: Icon(Icons.camera_alt_outlined,
+                  color: Theme.of(ctx).colorScheme.primary),
               title: const Text('Camera'),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
@@ -55,8 +55,7 @@ class _PlantDiseasePageState extends State<PlantDiseasePage> {
 
     setState(() => _isPicking = true);
     try {
-      final img = await _picker.pickImage(
-          source: source, imageQuality: 85);
+      final img = await _picker.pickImage(source: source, imageQuality: 85);
       if (img != null) setState(() => _picked = img);
     } finally {
       setState(() => _isPicking = false);
@@ -66,6 +65,7 @@ class _PlantDiseasePageState extends State<PlantDiseasePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final hPadding = Responsive.responsivePadding(context);
     return Consumer<PlantProvider>(builder: (context, prov, _) {
       return SafeArea(
@@ -74,7 +74,7 @@ class _PlantDiseasePageState extends State<PlantDiseasePage> {
             setState(() => _picked = null);
             prov.reset();
           },
-          color: AppColors.primary,
+          color: colorScheme.primary,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(hPadding, 16, hPadding, 32),
@@ -84,121 +84,49 @@ class _PlantDiseasePageState extends State<PlantDiseasePage> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-              Text(l10n.nav_plant_disease, style: AppTextStyles.pageTitle),
-              const SizedBox(height: 4),
-              Text(l10n.plant_disease_desc, style: AppTextStyles.pageSubtitle),
-              const SizedBox(height: 20),
-              _UploadCard(
-                pickedImage: _picked,
-                isLoading: prov.isLoading,
-                onPick: _pick,
-                onAnalyze: () {
-                  if (_picked != null) {
-                    prov.analyze(
-                      _picked!,
-                      lang: Localizations.localeOf(context).languageCode,
-                    );
-                  }
-                },
-                chooseLabel: l10n.choose_image,
-                analyzeLabel: l10n.analyze_plant,
-              ),
-              if (prov.status == ScanStatus.result && prov.result != null) ...[
-                const SizedBox(height: 20),
-                _PlantResultCard(result: prov.result!, l10n: l10n),
-              ],
-              if (prov.status == ScanStatus.error && prov.error != null) ...[
-                const SizedBox(height: 20),
-                SfErrorBanner(prov.error!),
-              ],
-            ]),
-              )),
-            ),
+                    Text(l10n.nav_plant_disease,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface)),
+                    const SizedBox(height: 4),
+                    Text(l10n.plant_disease_desc,
+                        style: TextStyle(
+                            fontSize: 14, color: colorScheme.onSurfaceVariant)),
+                    const SizedBox(height: 20),
+                    SfImagePickerCard(
+                      title: l10n.nav_plant_disease,
+                      icon: Icons.eco_outlined,
+                      analyzeLabel: l10n.analyze_plant,
+                      isLoading: prov.isLoading,
+                      pickedImage: _picked,
+                      onPickImage: _pick,
+                      accentColor: colorScheme.primary, // Green for plant
+                      onAnalyze: () {
+                        if (_picked != null) {
+                          prov.analyze(
+                            _picked!,
+                            lang: Localizations.localeOf(context).languageCode,
+                          );
+                        }
+                      },
+                    ),
+                    if (prov.status == ScanStatus.result &&
+                        prov.result != null) ...[
+                      const SizedBox(height: 20),
+                      _PlantResultCard(result: prov.result!, l10n: l10n),
+                    ],
+                    if (prov.status == ScanStatus.error &&
+                        prov.error != null) ...[
+                      const SizedBox(height: 20),
+                      SfErrorBanner(prov.error!),
+                    ],
+                  ]),
+            )),
           ),
+        ),
       );
     });
-  }
-}
-
-class _UploadCard extends StatelessWidget {
-  const _UploadCard({
-    required this.pickedImage,
-    required this.isLoading,
-    required this.onPick,
-    required this.onAnalyze,
-    required this.chooseLabel,
-    required this.analyzeLabel,
-  });
-
-  final XFile? pickedImage;
-  final bool isLoading;
-  final VoidCallback onPick;
-  final VoidCallback onAnalyze;
-  final String chooseLabel;
-  final String analyzeLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12)],
-            ),
-            child: const Icon(Icons.eco_outlined, color: Colors.white, size: 30),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            height: 150,
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.cardBorder, style: BorderStyle.solid),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: pickedImage != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        File(pickedImage!.path),
-                        width: 170,
-                        height: 95,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : const Icon(Icons.image_outlined, color: AppColors.textDisabled, size: 44),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(child: SfOutlineButton(label: chooseLabel, onPressed: isLoading ? null : onPick)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SfPrimaryButton(
-                  label: analyzeLabel,
-                  onPressed: pickedImage != null && !isLoading ? onAnalyze : null,
-                  isLoading: isLoading,
-                ),
-              ),
-            ],
-          )
-        ],
-      ),
-    );
   }
 }
 
@@ -209,6 +137,7 @@ class _PlantResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final cropName = (result.cropType?.isNotEmpty ?? false)
         ? result.cropType!
         : _extractCrop(result.prediction);
@@ -216,16 +145,20 @@ class _PlantResultCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        border: Border.all(color: AppColors.cardBorder),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
+        border: Border.all(color: colorScheme.outline),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(
           children: [
-            const CircleAvatar(radius: 4, backgroundColor: AppColors.error),
+            CircleAvatar(radius: 4, backgroundColor: colorScheme.error),
             const SizedBox(width: 8),
-            Text(l10n.analysis_result, style: AppTextStyles.cardTitle),
+            Text(l10n.analysis_result,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface)),
           ],
         ),
         const SizedBox(height: 14),
@@ -233,14 +166,16 @@ class _PlantResultCard extends StatelessWidget {
           icon: Icons.eco_outlined,
           label: 'Crop',
           value: cropName,
-          color: AppColors.primary,
+          color: colorScheme.primary,
+          colorScheme: colorScheme,
         ),
         const SizedBox(height: 10),
         _statusBox(
           icon: Icons.error_outline,
           label: 'Status',
           value: result.condition,
-          color: result.isHealthy ? AppColors.primary : AppColors.error,
+          color: result.isHealthy ? colorScheme.primary : colorScheme.error,
+          colorScheme: colorScheme,
         ),
         const SizedBox(height: 10),
         Container(
@@ -248,14 +183,21 @@ class _PlantResultCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.cardBorder),
+            border: Border.all(color: colorScheme.outline),
           ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Confidence', style: TextStyle(fontSize: 13, color: AppColors.textSubtle)),
-                Text('${(result.confidence * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w700)),
+                Text('Confidence',
+                    style: TextStyle(
+                        fontSize: 13, color: colorScheme.onSurfaceVariant)),
+                Text('${(result.confidence * 100).toStringAsFixed(0)}%',
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w700)),
               ],
             ),
             const SizedBox(height: 8),
@@ -264,16 +206,24 @@ class _PlantResultCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: result.confidence.clamp(0, 1),
                 minHeight: 8,
-                backgroundColor: const Color(0xFFE5E7EB),
-                valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation(colorScheme.primary),
               ),
             ),
           ]),
         ),
         const SizedBox(height: 10),
-        _detailsBox(icon: Icons.chat_bubble_outline, label: l10n.description, value: result.description ?? '--'),
+        _detailsBox(
+            icon: Icons.chat_bubble_outline,
+            label: l10n.description,
+            value: result.description ?? '--',
+            colorScheme: colorScheme),
         const SizedBox(height: 10),
-        _detailsBox(icon: Icons.health_and_safety_outlined, label: l10n.treatment, value: result.treatment ?? '--'),
+        _detailsBox(
+            icon: Icons.health_and_safety_outlined,
+            label: l10n.treatment,
+            value: result.treatment ?? '--',
+            colorScheme: colorScheme),
       ]),
     );
   }
@@ -283,6 +233,7 @@ class _PlantResultCard extends StatelessWidget {
     required String label,
     required String value,
     required Color color,
+    required ColorScheme colorScheme,
   }) {
     return Container(
       width: double.infinity,
@@ -300,9 +251,14 @@ class _PlantResultCard extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSubtle)),
-            Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: color)),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12, color: colorScheme.onSurfaceVariant)),
+            Text(value,
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w700, color: color)),
           ]),
         ),
       ]),
@@ -313,23 +269,31 @@ class _PlantResultCard extends StatelessWidget {
     required IconData icon,
     required String label,
     required String value,
+    required ColorScheme colorScheme,
   }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.cardBorder),
+        border: Border.all(color: colorScheme.outline),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(icon, size: 16, color: AppColors.textSubtle),
+        Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
         const SizedBox(width: 8),
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: const TextStyle(fontSize: 14, color: AppColors.textSubtle, height: 1.4),
+              style: TextStyle(
+                  fontSize: 14,
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.4),
               children: [
-                TextSpan(text: '$label: ', style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                TextSpan(
+                    text: '$label: ',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface)),
                 TextSpan(text: value),
               ],
             ),

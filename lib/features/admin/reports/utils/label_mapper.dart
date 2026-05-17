@@ -9,24 +9,36 @@ class LabelMapper {
     if (cleanLabel.contains('plant') ||
         cleanLabel.contains('disease') ||
         cleanLabel.contains('نبات') ||
-        cleanLabel.contains('ﺕﺎﺒﻨﻟﺍ')) return l10n.plant_disease;
+        cleanLabel.contains('ﺕﺎﺒﻨﻟﺍ')) {
+      return l10n.plant_disease;
+    }
     if (cleanLabel.contains('animal') ||
         cleanLabel.contains('weight') ||
         cleanLabel.contains('حيوان') ||
-        cleanLabel.contains('ﺔﻴﺷﺎﻤﻟﺍ')) return l10n.animal_weight;
+        cleanLabel.contains('ﺔﻴﺷﺎﻤﻟﺍ')) {
+      return l10n.animal_weight;
+    }
     if (cleanLabel.contains('crop') ||
         cleanLabel.contains('محاصيل') ||
-        cleanLabel.contains('ﻞﻴﺻﺎﺤﻤﻟﺍ')) return l10n.crop_recommendation;
+        cleanLabel.contains('ﻞﻴﺻﺎﺤﻤﻟﺍ')) {
+      return l10n.crop_recommendation;
+    }
     if (cleanLabel.contains('soil') ||
         cleanLabel.contains('تربة') ||
-        cleanLabel.contains('ﺔﺑﺮﺘﻟﺍ')) return l10n.soil_analysis;
+        cleanLabel.contains('ﺔﺑﺮﺘﻟﺍ')) {
+      return l10n.soil_analysis;
+    }
     if (cleanLabel.contains('fruit') ||
         cleanLabel.contains('فاكهة') ||
-        cleanLabel.contains('ﺔﻬﻛﺎﻔﻟﺍ')) return l10n.fruit_quality;
+        cleanLabel.contains('ﺔﻬﻛﺎﻔﻟﺍ')) {
+      return l10n.fruit_quality;
+    }
     if (cleanLabel.contains('chat') ||
         cleanLabel.contains('مساعد') ||
         cleanLabel.contains('بوت') ||
-        cleanLabel.contains('ﻲﻛﺬﻟﺍ')) return l10n.chatbot;
+        cleanLabel.contains('ﻲﻛﺬﻟﺍ')) {
+      return l10n.chatbot;
+    }
 
     return apiLabel;
   }
@@ -82,5 +94,22 @@ class LabelMapper {
     }
 
     return day;
+  }
+
+  static String getLocalizedRange(String range, AppLocalizations l10n) {
+    switch (range.toLowerCase().trim()) {
+      case 'last_7_days':
+        return l10n.last_7_days;
+      case 'last_30_days':
+        return l10n.last_30_days;
+      case 'last_90_days':
+        return l10n.last_90_days;
+      case 'last_year':
+        return l10n.last_year;
+      case 'all_time':
+        return l10n.all_time;
+      default:
+        return range;
+    }
   }
 }

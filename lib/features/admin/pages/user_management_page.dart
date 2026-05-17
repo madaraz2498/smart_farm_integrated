@@ -56,9 +56,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
                     children: [
                       _buildHeader(context, l10n),
                       const SizedBox(height: 32),
-                      AdminStatCards(cards: _buildSummaryCards(provider, l10n)),
+                      AdminStatCards(
+                          cards: _buildSummaryCards(
+                              provider, l10n, Theme.of(context).colorScheme)),
                       const SizedBox(height: 32),
-                      _buildSearchField(l10n),
+                      _buildSearchField(l10n, Theme.of(context).colorScheme),
                       const SizedBox(height: 24),
                       UserListTable(
                         users: provider.users,
@@ -70,8 +72,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
                           user,
                           authProvider: authProvider,
                           onPromote: (u) => provider.promoteToAdmin(u.email),
-                          onPromoteToSuperAdmin: (u) => provider.promoteToSuperAdmin(u.email),
-                          onDemoteToFarmer: (u) => provider.demoteToFarmer(u.email),
+                          onPromoteToSuperAdmin: (u) =>
+                              provider.promoteToSuperAdmin(u.email),
+                          onDemoteToFarmer: (u) =>
+                              provider.demoteToFarmer(u.email),
                           onToggleStatus: (u) => u.isActive
                               ? provider.deactivateUser(u.id)
                               : provider.activateUser(u.id),
@@ -90,6 +94,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Wrap(
       alignment: WrapAlignment.spaceBetween,
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -101,7 +106,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
           children: [
             Text(
               l10n.user_management,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface),
             ),
             const SizedBox(height: 4),
             Column(
@@ -109,27 +117,31 @@ class _UserManagementPageState extends State<UserManagementPage> {
               children: [
                 Text(
                   l10n.manage_users_roles_permissions,
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  style: TextStyle(
+                      fontSize: 14, color: colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.shade200),
+                    border: Border.all(
+                        color: colorScheme.primary.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.security_outlined, size: 10, color: Colors.blue.shade700),
+                      Icon(Icons.security_outlined,
+                          size: 10, color: colorScheme.primary),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           'You Are Super Admin',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.black,
+                            color: colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -147,8 +159,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
           icon: const Icon(Icons.person_add_outlined, size: 18),
           label: Text(l10n.add_admin),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF53B175),
-            foregroundColor: Colors.white,
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -158,19 +170,22 @@ class _UserManagementPageState extends State<UserManagementPage> {
     );
   }
 
-  Widget _buildSearchField(AppLocalizations l10n) {
+  Widget _buildSearchField(AppLocalizations l10n, ColorScheme colorScheme) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: TextField(
         onChanged: (v) => setState(() => _searchQuery = v),
+        style: TextStyle(color: colorScheme.onSurface),
         decoration: InputDecoration(
           hintText: l10n.search_users_hint,
-          prefixIcon: const Icon(Icons.search, size: 20),
+          hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+          prefixIcon:
+              Icon(Icons.search, size: 20, color: colorScheme.onSurfaceVariant),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -180,10 +195,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   List<StatCardData> _buildSummaryCards(
-      AdminProvider provider, AppLocalizations l10n) {
+      AdminProvider provider, AppLocalizations l10n, ColorScheme colorScheme) {
     final allUsers = provider.users;
-    final visibleUsers = allUsers.where((u) => u.role.toLowerCase() != 'super_admin').toList();
-    
+    final visibleUsers =
+        allUsers.where((u) => u.role.toLowerCase() != 'super_admin').toList();
+
     final activeCount = visibleUsers.where((u) => u.isActive).length;
     final totalVisibleCount = visibleUsers.length;
     final adminCount =
@@ -209,7 +225,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
         label: 'Farmers',
         value: '$farmerCount',
         svgPath: AppAssets.activeUsers,
-        color: const Color(0xFF10B981),
+        color: colorScheme.primary,
       ),
       StatCardData(
         label: l10n.inactive_users_label,
