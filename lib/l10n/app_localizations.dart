@@ -1184,6 +1184,12 @@ abstract class AppLocalizations {
   /// **'Active'**
   String get active;
 
+  /// No description provided for @inactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get inactive;
+
   /// No description provided for @admin_dashboard.
   ///
   /// In en, this message translates to:
@@ -2023,6 +2029,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Inquiry'**
   String get inquiry;
+
+  /// No description provided for @view_profile.
+  ///
+  /// In en, this message translates to:
+  /// **'View Profile'**
+  String get view_profile;
+
+  /// No description provided for @user_activity.
+  ///
+  /// In en, this message translates to:
+  /// **'User Activity'**
+  String get user_activity;
+
+  /// No description provided for @deactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get deactivate;
+
+  /// No description provided for @activate.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate'**
+  String get activate;
+
+  /// No description provided for @delete_user_btn.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete User'**
+  String get delete_user_btn;
+
+  /// No description provided for @daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get daily;
+
+  /// No description provided for @weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get weekly;
+
+  /// No description provided for @monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get monthly;
+
+  /// No description provided for @no_activity_yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No activity yet'**
+  String get no_activity_yet;
 
   /// No description provided for @other.
   ///

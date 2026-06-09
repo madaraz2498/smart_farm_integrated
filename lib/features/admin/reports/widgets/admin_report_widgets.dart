@@ -15,6 +15,8 @@ class AdminChartCard extends StatelessWidget {
   final Widget child;
   final double height;
   final List<Widget>? actions;
+  final IconData? icon;
+  final Color? iconColor;
 
   const AdminChartCard({
     super.key,
@@ -23,6 +25,8 @@ class AdminChartCard extends StatelessWidget {
     required this.child,
     this.height = 350,
     this.actions,
+    this.icon,
+    this.iconColor,
   });
 
   @override
@@ -50,14 +54,33 @@ class AdminChartCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(title, style: textTheme.titleLarge),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 4),
-                    Text(subtitle!, style: textTheme.bodySmall),
+                  if (icon != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: iconColor ?? colorScheme.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 12),
                   ],
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(subtitle!,
+                            style: textTheme.bodySmall
+                                ?.copyWith(color: Colors.grey.shade500)),
+                      ],
+                    ],
+                  ),
                 ],
               ),
               if (actions != null) Row(children: actions!),
@@ -93,6 +116,8 @@ class UserGrowthChart extends StatelessWidget {
     return AdminChartCard(
       title: l10n.user_growth,
       subtitle: l10n.new_user_registrations,
+      icon: Icons.trending_up_outlined,
+      iconColor: const Color(0xFF6366F1),
       child: data.isEmpty
           ? const Center(child: Text('No growth data available'))
           : LineChart(
@@ -168,23 +193,51 @@ class ServiceDistributionChart extends StatelessWidget {
   final List<ServiceUsage> data;
   const ServiceDistributionChart({super.key, required this.data});
 
+  Color _getServiceColor(String service, int index) {
+    final s = service.toLowerCase();
+
+    // Exact mapping based on keywords (English & Arabic)
+    if (s.contains('crop') || s.contains('محاصيل')) {
+      return const Color(0xFF8B5CF6); // Purple
+    }
+    if (s.contains('animal') || s.contains('حيوان')) {
+      return const Color(0xFF0EA5E9); // Blue
+    }
+    if (s.contains('plant') || s.contains('نبات')) {
+      return const Color(0xFF22C55E); // Green
+    }
+    if (s.contains('soil') || s.contains('تربة')) {
+      return const Color(0xFFF97316); // Orange
+    }
+    if (s.contains('fruit') || s.contains('فاكهة')) {
+      return const Color(0xFFE11D48); // Pink/Red
+    }
+    if (s.contains('chat') || s.contains('دردشة')) {
+      return const Color(0xFFF59E0B); // Amber
+    }
+
+    // Robust Fallback: Never use gray. Use a vibrant color palette based on index.
+    final List<Color> fallbackPalette = [
+      const Color(0xFF8B5CF6), // Purple
+      const Color(0xFF0EA5E9), // Blue
+      const Color(0xFF22C55E), // Green
+      const Color(0xFFF97316), // Orange
+      const Color(0xFFE11D48), // Pink/Red
+      const Color(0xFFF59E0B), // Amber
+    ];
+
+    return fallbackPalette[index % fallbackPalette.length];
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final List<Color> colors = [
-      colorScheme.primary,
-      const Color(0xFF66BB6A),
-      const Color(0xFF81C784),
-      const Color(0xFFA5D6A7),
-      const Color(0xFFC8E6C9),
-      const Color(0xFFE8F5E9),
-    ];
 
     return AdminChartCard(
       title: l10n.service_distribution,
       subtitle: l10n.usage_by_ai_service,
+      icon: Icons.memory_outlined,
+      iconColor: const Color(0xFF8B5CF6),
       child: data.isEmpty
           ? const Center(child: Text('No service usage data'))
           : Row(
@@ -195,7 +248,7 @@ class ServiceDistributionChart extends StatelessWidget {
                     PieChartData(
                       sectionsSpace: 2,
                       centerSpaceRadius: 40,
-                      sections: _buildSections(colors),
+                      sections: _buildSections(l10n),
                     ),
                   ),
                 ),
@@ -206,7 +259,7 @@ class ServiceDistributionChart extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: _buildLegend(l10n, colors),
+                      children: _buildLegend(l10n),
                     ),
                   ),
                 ),
@@ -215,44 +268,46 @@ class ServiceDistributionChart extends StatelessWidget {
     );
   }
 
-  List<PieChartSectionData> _buildSections(List<Color> colors) {
+  List<PieChartSectionData> _buildSections(AppLocalizations l10n) {
     return List.generate(data.length, (i) {
+      final item = data[i];
       return PieChartSectionData(
-        value: data[i].count.toDouble(),
-        color: colors[i % colors.length],
+        value: item.count.toDouble(),
+        color: _getServiceColor(item.service, i),
         radius: 35,
         showTitle: false,
       );
     });
   }
 
-  List<Widget> _buildLegend(AppLocalizations l10n, List<Color> colors) {
+  List<Widget> _buildLegend(AppLocalizations l10n) {
     final total = data.fold(0, (sum, e) => sum + e.count);
     return List.generate(data.length, (i) {
       final item = data[i];
       final pct =
-          total > 0 ? (item.count / total * 100).toStringAsFixed(0) : '0';
+          total > 0 ? (item.count / total * 100).toStringAsFixed(1) : '0';
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
             Container(
-              width: 10,
-              height: 10,
+              width: 8,
+              height: 8,
               decoration: BoxDecoration(
-                  color: colors[i % colors.length], shape: BoxShape.circle),
+                  color: _getServiceColor(item.service, i),
+                  shape: BoxShape.circle),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 LabelMapper.getLocalizedService(item.service, l10n),
                 style:
-                    const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                    const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             Text('$pct%',
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                style: const TextStyle(fontSize: 10, color: Colors.grey)),
           ],
         ),
       );
@@ -282,6 +337,8 @@ class WeeklyActivityChart extends StatelessWidget {
     return AdminChartCard(
       title: l10n.daily_activity,
       subtitle: l10n.platform_activity_past_week,
+      icon: Icons.bar_chart_outlined,
+      iconColor: const Color(0xFF10B981),
       child: data.isEmpty
           ? const Center(child: Text('No activity data available'))
           : BarChart(

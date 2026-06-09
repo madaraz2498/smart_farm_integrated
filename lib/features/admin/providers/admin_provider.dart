@@ -36,12 +36,26 @@ class AdminProvider extends ChangeNotifier {
 
   // Users state
   List<AdminUser> _users = [];
+  int _totalUsersCount = 0;
+  int _activeUsersCount = 0;
   bool _usersLoading = false;
   String? _usersError;
 
   // System state
-  Map<String, bool> _servicesStatus = {};
-  Map<String, bool> _systemSettings = {};
+  Map<String, bool?> _servicesStatus = {
+    'plant_disease': true,
+    'animal_weight': true,
+    'crop_rec': true,
+    'soil_analysis': true,
+    'fruit_quality': true,
+    'chatbot': true,
+  };
+  Map<String, bool?> _systemSettings = {
+    'email_notifications': true,
+    'maintenance_mode': false,
+    'auto_backup': true,
+  };
+  SystemStatus? _statusDetails;
   bool _systemLoading = false;
 
   // Getters for backward compatibility
@@ -53,8 +67,9 @@ class AdminProvider extends ChangeNotifier {
   bool get usersLoading => _usersLoading;
   String? get usersError => _usersError;
 
-  Map<String, bool> get servicesStatus => Map.unmodifiable(_servicesStatus);
-  Map<String, bool> get systemSettings => Map.unmodifiable(_systemSettings);
+  Map<String, bool?> get servicesStatus => Map.unmodifiable(_servicesStatus);
+  Map<String, bool?> get systemSettings => Map.unmodifiable(_systemSettings);
+  SystemStatus? get statusDetails => _statusDetails;
   bool get systemLoading => _systemLoading;
 
   /// Update dependencies (called from ProxyProvider).
@@ -121,7 +136,10 @@ class AdminProvider extends ChangeNotifier {
   // ── Fixed Initialization - Single Source of Truth ─────────────────────────────
   Future<void> initializeIfNeeded() async {
     // Prevent duplicate initialization - FIXED
-    if (_isInitialized || _isInitializing || _userId.isEmpty || _userId == '0') {
+    if (_isInitialized ||
+        _isInitializing ||
+        _userId.isEmpty ||
+        _userId == '0') {
       return;
     }
 
@@ -178,6 +196,15 @@ class AdminProvider extends ChangeNotifier {
         fetcher: () => _svc.getDashboardStats(),
         force: force,
       );
+
+      // Fallback: If stats returned 0 users but we have a cached user count, use it.
+      if (_stats != null && _stats!.totalUsers == 0 && _totalUsersCount > 0) {
+        _stats = _stats!.copyWith(
+          totalUsers: _totalUsersCount,
+          activeUsers: _activeUsersCount,
+        );
+      }
+
       _statsError = null;
     } on ApiException catch (e) {
       _statsError = e.message;
@@ -221,6 +248,17 @@ class AdminProvider extends ChangeNotifier {
         force: force,
       );
       _users = data.users;
+      _totalUsersCount = data.totalUsers;
+      _activeUsersCount = data.activeUsers;
+
+      // If stats are already loaded but users count is 0, update it from here
+      if (_stats != null && _stats!.totalUsers == 0 && _totalUsersCount > 0) {
+        _stats = _stats!.copyWith(
+          totalUsers: _totalUsersCount,
+          activeUsers: _activeUsersCount,
+        );
+      }
+
       _usersError = null;
     } on ApiException catch (e) {
       _usersError = e.message;
@@ -238,8 +276,6 @@ class AdminProvider extends ChangeNotifier {
     if (!forceRefresh &&
         !AppBootstrapController.instance
             .isModuleUnlocked(AppBootstrapController.kSystem)) {
-      ProductionLogger.info(
-          '[AdminProvider] System module locked — skipping loadSystemStatus');
       return;
     }
 
@@ -247,40 +283,118 @@ class AdminProvider extends ChangeNotifier {
     if (_systemLoading) return;
 
     _systemLoading = true;
-    notifyListeners(); // FIXED: ensure UI updates
+    notifyListeners();
 
     try {
-      // Use cache for system status
-      final status = await _cache.execute(
+      debugPrint(
+          '--- [AdminProvider] START loadSystemStatus (force: $forceRefresh) ---');
+
+      // 1. Fetch System Status Details (Uptime, Response Time, etc.)
+      final statusRaw = await _cache.execute(
         key: 'system_status',
         fetcher: () => _svc.getSystemStatus(),
         forceRefresh: forceRefresh,
       );
+      debugPrint('API RESPONSE (Status) => $statusRaw');
 
-      // Use cache for system settings
-      final settingsList = await _cache.execute(
+      // 2. Fetch AI Models Status (For Toggles)
+      final aiModelsRaw = await _cache.execute(
+        key: 'ai_models_status',
+        fetcher: () => _svc.getAiModelsStatus(),
+        forceRefresh: forceRefresh,
+      );
+      debugPrint('API RESPONSE (AI Models) => $aiModelsRaw');
+
+      // 3. Fetch System Settings (Maintenance, Backups, etc.)
+      final settingsRaw = await _cache.execute(
         key: 'system_settings',
         fetcher: () => _svc.getSystemSettings(),
         forceRefresh: forceRefresh,
       );
+      debugPrint('API RESPONSE (Settings) => $settingsRaw');
 
-      // Process services status
-      if (status['services'] is Map) {
-        _servicesStatus = Map<String, bool>.from(status['services']);
+      // --- PARSING PHASE ---
+
+      // Parsing AI Models into _servicesStatus
+      if (aiModelsRaw is List) {
+        final Map<String, bool> parsedServices = {};
+        for (final dynamic item in aiModelsRaw) {
+          if (item is Map) {
+            final modelName = item['model_name']?.toString() ?? '';
+            final status = item['status']?.toString().toLowerCase() ?? '';
+            final normalizedKey = _normalizeServiceKey(modelName);
+            if (normalizedKey.isNotEmpty) {
+              parsedServices[normalizedKey] = (status == 'online');
+            }
+          }
+        }
+        _servicesStatus = {..._servicesStatus, ...parsedServices};
+        debugPrint('PARSED SERVICES => $_servicesStatus');
       }
 
-      // Convert List<SystemSetting> to Map<String, bool>
-      final settingsMap = <String, bool>{};
-      for (final setting in settingsList) {
-        settingsMap[setting.key] = setting.isOnline;
+      // Parsing System Settings into _systemSettings
+      if (settingsRaw is List) {
+        final Map<String, bool> parsedSettings = {};
+        for (final dynamic item in settingsRaw) {
+          if (item is SystemSetting) {
+            parsedSettings[item.key] = item.isOnline;
+          } else if (item is Map) {
+            final key = item['key']?.toString() ?? '';
+            final status = item['status']?.toString().toLowerCase() ?? '';
+            if (key.isNotEmpty) {
+              parsedSettings[key] = (status == 'online');
+            }
+          }
+        }
+        _systemSettings = {..._systemSettings, ...parsedSettings};
+        debugPrint('PARSED SETTINGS => $_systemSettings');
       }
-      _systemSettings = settingsMap;
-    } catch (e) {
-      ProductionLogger.info('[AdminProvider] loadSystemStatus error: $e');
+
+      // Parsing System Cards Details
+      // Note: _ApiParser should be defined or replaced with appropriate parsing logic
+      _statusDetails =
+          SystemStatus.fromJson(Map<String, dynamic>.from(statusRaw));
+
+      debugPrint('--- [AdminProvider] END loadSystemStatus (Success) ---');
+    } catch (e, stack) {
+      ProductionLogger.error(
+          '[AdminProvider] loadSystemStatus CRITICAL ERROR', e);
+      debugPrint('CRITICAL ERROR StackTrace: $stack');
+
+      // Fallback: If data is null, initialize with empty but non-null maps to stop Loading Indicators
+      if (_servicesStatus.isEmpty) {
+        _servicesStatus = {
+          'plant_disease': false,
+          'animal_weight': false,
+          'crop_rec': false,
+          'soil_analysis': false,
+          'fruit_quality': false,
+          'chatbot': false,
+        };
+      }
+      if (_systemSettings.isEmpty) {
+        _systemSettings = {
+          'email_notifications': false,
+          'maintenance_mode': false,
+          'auto_backup': false,
+        };
+      }
     } finally {
       _systemLoading = false;
-      notifyListeners(); // FIXED: ensure UI updates
+      notifyListeners();
     }
+  }
+
+  /// Normalizes API service keys to match UI keys
+  String _normalizeServiceKey(String key) {
+    final k = key.toLowerCase();
+    if (k.contains('plant') || k.contains('disease')) return 'plant_disease';
+    if (k.contains('animal') || k.contains('weight')) return 'animal_weight';
+    if (k.contains('crop') || k.contains('recommendation')) return 'crop_rec';
+    if (k.contains('soil')) return 'soil_analysis';
+    if (k.contains('fruit') || k.contains('quality')) return 'fruit_quality';
+    if (k.contains('chatbot')) return 'chatbot';
+    return key;
   }
 
   // ── Fixed Notification Refresh with Throttling ───────────────────────────────
@@ -435,7 +549,12 @@ class AdminProvider extends ChangeNotifier {
   }
 
   Future<void> toggleService(String moduleName) async {
+    final oldState = _servicesStatus[moduleName];
     try {
+      // Don't set to null to avoid UI flickering/loading spinner
+      // Just keep old state until API responds
+      notifyListeners();
+
       final res = await _svc.toggleService(moduleName);
       final rawStatus = (res['new_status'] ?? 'updated').toString();
       final serviceName = (res['service'] ?? moduleName).toString();
@@ -443,7 +562,7 @@ class AdminProvider extends ChangeNotifier {
 
       // Update local state immediately for responsive UI
       _servicesStatus[moduleName] = isOnline;
-      notifyListeners(); // FIXED: ensure UI updates
+      notifyListeners();
 
       invalidateSystemCache();
 
@@ -457,39 +576,43 @@ class AdminProvider extends ChangeNotifier {
       _refreshNotificationsSafely();
     } catch (e) {
       // Revert state on error
-      _servicesStatus[moduleName] = _servicesStatus[moduleName] ?? false;
-      notifyListeners(); // FIXED: ensure UI updates
+      _servicesStatus[moduleName] = oldState;
+      notifyListeners();
 
       ProductionLogger.error('[AdminProvider] toggleService failed', e);
-      rethrow;
+      // Removed rethrow to prevent app crash and keep UI stable
     }
   }
 
-  Future<void> toggleSystemSetting(String settingName) async {
+  Future<void> toggleSystemSetting(String key) async {
+    final oldState = _systemSettings[key];
     try {
-      await _svc.toggleSystemSetting(settingName);
+      // Don't set to null to avoid UI flickering
+      notifyListeners();
 
-      // Update local state immediately for responsive UI
-      final currentValue = _systemSettings[settingName] ?? false;
-      _systemSettings[settingName] = !currentValue;
-      notifyListeners(); // FIXED: ensure UI updates
+      await _svc.toggleSystemSetting(key);
 
+      // Invalidate and reload to get true state from server
       invalidateSystemCache();
-
-      _addSystemNotification(
-        title: 'System Setting Changed',
-        body: 'Setting ($settingName) has been updated.',
-      );
-
-      _refreshNotificationsSafely();
+      await loadSystemStatus(forceRefresh: true);
     } catch (e) {
-      // Revert state on error
-      final currentValue = _systemSettings[settingName] ?? false;
-      _systemSettings[settingName] = currentValue;
-      notifyListeners(); // FIXED: ensure UI updates
-
+      _systemSettings[key] = oldState;
+      notifyListeners();
       ProductionLogger.error('[AdminProvider] toggleSystemSetting failed', e);
-      rethrow;
+    }
+  }
+
+  Future<List<UserActivity>> getUserActivity(String userId,
+      {String period = 'all'}) async {
+    try {
+      return await _cache.execute(
+        key: 'user_activity_${userId}_$period',
+        fetcher: () => _svc.getUserActivity(userId, period: period),
+        forceRefresh: true,
+      );
+    } catch (e) {
+      ProductionLogger.error('[AdminProvider] getUserActivity failed', e);
+      return [];
     }
   }
 

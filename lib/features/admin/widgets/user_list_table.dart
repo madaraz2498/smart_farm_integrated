@@ -47,12 +47,25 @@ class _UserListTableState extends State<UserListTable> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isSuperAdmin = widget.authProvider.isSuperAdmin;
+
     final filteredUsers = widget.users.where((u) {
       final q = widget.searchQuery.toLowerCase();
-      final isSuperAdmin = u.role.toLowerCase() == 'super_admin';
+      final targetRole = u.role.toLowerCase();
+      final targetIsSuperAdmin = targetRole == 'super_admin';
+      final targetIsAdmin = targetRole == 'admin';
+
+      // 1. Filter out Super Admins from the list for everyone
+      if (targetIsSuperAdmin) return false;
+
+      // 2. Regular Admin should only see Farmers (not other Admins)
+      if (!isSuperAdmin && targetIsAdmin) return false;
+
+      // 3. Search query
       final matchesSearch = u.displayName.toLowerCase().contains(q) ||
           u.email.toLowerCase().contains(q);
-      return !isSuperAdmin && matchesSearch;
+
+      return matchesSearch;
     }).toList();
 
     return Align(
@@ -235,19 +248,11 @@ class _UserListTableState extends State<UserListTable> {
           Expanded(
             flex: 1,
             child: Center(
-              child: TextButton(
+              child: IconButton(
+                icon: const Icon(Icons.more_vert,
+                    size: 18, color: Colors.black54),
                 onPressed: () => widget.onEdit(u),
-                style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFFF3F4F6),
-                  foregroundColor: Colors.black87,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
-                child: Text(l10n.edit,
-                    style: const TextStyle(
-                        fontSize: 10, fontWeight: FontWeight.w600)),
+                tooltip: l10n.edit,
               ),
             ),
           ),
@@ -301,6 +306,25 @@ class _RoleBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!user.isActive) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: const Text(
+          'inactive',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFFEF4444),
+          ),
+        ),
+      );
+    }
+
     final roleLower = user.role.toLowerCase();
 
     if (roleLower == 'super_admin') {
@@ -385,7 +409,9 @@ class _StatusBadge extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            isActive ? 'Active' : 'Inactive',
+            isActive
+                ? AppLocalizations.of(context)!.active
+                : AppLocalizations.of(context)!.inactive,
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,

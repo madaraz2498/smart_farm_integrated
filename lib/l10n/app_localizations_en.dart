@@ -568,6 +568,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get active => 'Active';
 
   @override
+  String get inactive => 'Inactive';
+
+  @override
   String get admin_dashboard => 'Admin Dashboard';
 
   @override
@@ -1001,6 +1004,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inquiry => 'Inquiry';
+
+  @override
+  String get view_profile => 'View Profile';
+
+  @override
+  String get user_activity => 'User Activity';
+
+  @override
+  String get deactivate => 'Deactivate';
+
+  @override
+  String get activate => 'Activate';
+
+  @override
+  String get delete_user_btn => 'Delete User';
+
+  @override
+  String get daily => 'Daily';
+
+  @override
+  String get weekly => 'Weekly';
+
+  @override
+  String get monthly => 'Monthly';
+
+  @override
+  String get no_activity_yet => 'No activity yet';
 
   @override
   String get other => 'Other';

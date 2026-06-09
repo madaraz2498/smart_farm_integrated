@@ -183,11 +183,11 @@ List<String> _extractItems(dynamic v) {
   return const [];
 }
 
-List<String> _asList(dynamic v) {
-  if (v is List) return v.map((e) => e.toString()).toList();
-  if (v is String && v.isNotEmpty) return [v];
-  return const [];
-}
+// List<String> _asList(dynamic v) {
+//   if (v is List) return v.map((e) => e.toString()).toList();
+//   if (v is String && v.isNotEmpty) return [v];
+//   return const [];
+// }
 
 class CropDailyGuide {
   const CropDailyGuide({

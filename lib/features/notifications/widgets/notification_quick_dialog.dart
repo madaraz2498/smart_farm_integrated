@@ -44,140 +44,147 @@ class _NotificationQuickDialogState extends State<NotificationQuickDialog> {
     final screenH = MediaQuery.sizeOf(context).height;
     final dialogW = screenW < 360 ? screenW * 0.92 : 320.0;
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 360,
-          maxHeight: screenH * 0.7,
-        ),
-        child: SizedBox(
-          width: dialogW,
-          child: Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: colorScheme.shadow.withValues(alpha: 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      behavior: HitTestBehavior.opaque,
+      child: Center(
+        child: GestureDetector(
+          onTap: () {}, // Prevent closing when tapping inside the dialog
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 360,
+              maxHeight: screenH * 0.7,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        l10n.notifications,
-                        style: textTheme.titleMedium,
-                      ),
-                      if (provider.unreadCount > 0)
-                        TextButton(
-                          onPressed: () {
-                            final userId =
-                                context.read<AuthProvider>().currentUser?.id;
-                            if (userId != null) {
-                              provider.markAllAsRead(userId: userId);
-                            }
-                          },
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            l10n.mark_all_as_read,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+            child: SizedBox(
+              width: dialogW,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.shadow.withValues(alpha: 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                Divider(height: 1, color: colorScheme.outlineVariant),
-
-                // List
-                if (provider.isLoading)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 30),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                else if (notifications.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 30),
-                    child: Center(
-                      child: Column(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(Icons.notifications_none_rounded,
-                              size: 40,
-                              color: colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.5)),
-                          const SizedBox(height: 10),
-                          Text(l10n.no_notifications,
-                              style: textTheme.bodySmall),
+                          Text(
+                            l10n.notifications,
+                            style: textTheme.titleMedium,
+                          ),
+                          if (provider.unreadCount > 0)
+                            TextButton(
+                              onPressed: () {
+                                final userId =
+                                    context.read<AuthProvider>().currentUser?.id;
+                                if (userId != null) {
+                                  provider.markAllAsRead(userId: userId);
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                l10n.mark_all_as_read,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
-                  )
-                else
-                  Flexible(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      padding: EdgeInsets.zero,
-                      itemCount: notifications.length,
-                      separatorBuilder: (_, __) =>
-                          Divider(height: 1, color: colorScheme.outlineVariant),
-                      itemBuilder: (context, index) {
-                        final item = notifications[index];
-                        return _NotificationItem(
-                          item: item,
-                          onTap: item.isRead
-                              ? null
-                              : () => context
-                                  .read<NotificationProvider>()
-                                  .markAsRead(item.id),
-                        );
-                      },
-                    ),
-                  ),
+                    Divider(height: 1, color: colorScheme.outlineVariant),
 
-                // Footer
-                Divider(height: 1, color: colorScheme.outlineVariant),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const NotificationsScreen()),
-                        );
-                      },
-                      child: Text(
-                        l10n.view_all_notifications,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                          fontSize: 13,
+                    // List
+                    if (provider.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 30),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (notifications.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 30),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(Icons.notifications_none_rounded,
+                                  size: 40,
+                                  color: colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.5)),
+                              const SizedBox(height: 10),
+                              Text(l10n.no_notifications,
+                                  style: textTheme.bodySmall),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      Flexible(
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          padding: EdgeInsets.zero,
+                          itemCount: notifications.length,
+                          separatorBuilder: (_, __) =>
+                              Divider(height: 1, color: colorScheme.outlineVariant),
+                          itemBuilder: (context, index) {
+                            final item = notifications[index];
+                            return _NotificationItem(
+                              item: item,
+                              onTap: item.isRead
+                                  ? null
+                                  : () => context
+                                      .read<NotificationProvider>()
+                                      .markAsRead(item.id),
+                            );
+                          },
+                        ),
+                      ),
+
+                    // Footer
+                    Divider(height: 1, color: colorScheme.outlineVariant),
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const NotificationsScreen()),
+                            );
+                          },
+                          child: Text(
+                            l10n.view_all_notifications,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

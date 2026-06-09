@@ -139,26 +139,38 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
                           icon: Icons.palette_outlined,
                           title: l10n.theme_preference),
                       const SizedBox(height: 20),
-                      _ThemeOption(
-                        label: l10n.light_mode,
-                        value: 'light',
+                      RadioGroup<String>(
                         groupValue: isDark ? 'dark' : 'light',
                         onChanged: (v) {
                           if (v == 'light' && isDark) {
                             ThemeController.toggleTheme();
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _ThemeOption(
-                        label: l10n.dark_mode,
-                        value: 'dark',
-                        groupValue: isDark ? 'dark' : 'light',
-                        onChanged: (v) {
-                          if (v == 'dark' && !isDark) {
+                          } else if (v == 'dark' && !isDark) {
                             ThemeController.toggleTheme();
                           }
                         },
+                        child: Builder(builder: (context) {
+                          return Column(
+                            children: [
+                              _ThemeOption(
+                                label: l10n.light_mode,
+                                value: 'light',
+                                isSelected: !isDark,
+                                onTap: () {
+                                  if (isDark) ThemeController.toggleTheme();
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              _ThemeOption(
+                                label: l10n.dark_mode,
+                                value: 'dark',
+                                isSelected: isDark,
+                                onTap: () {
+                                  if (!isDark) ThemeController.toggleTheme();
+                                },
+                              ),
+                            ],
+                          );
+                        }),
                       ),
                     ]);
                   }),
@@ -255,20 +267,21 @@ class _FarmerSettingsPageState extends State<FarmerSettingsPage> {
 // ── Reusable widgets ──────────────────────────────────────────────────────────
 
 class _ThemeOption extends StatelessWidget {
-  const _ThemeOption(
-      {required this.label,
-      required this.value,
-      required this.groupValue,
-      required this.onChanged});
-  final String label, value, groupValue;
-  final ValueChanged<String?> onChanged;
+  const _ThemeOption({
+    required this.label,
+    required this.value,
+    required this.isSelected,
+    required this.onTap,
+  });
+  final String label, value;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isSelected = value == groupValue;
     return InkWell(
-      onTap: () => onChanged(value),
+      onTap: onTap,
       borderRadius: BorderRadius.circular(AppDimensions.radiusMid),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -283,8 +296,6 @@ class _ThemeOption extends StatelessWidget {
         child: Row(children: [
           Radio<String>(
             value: value,
-            groupValue: groupValue,
-            onChanged: onChanged,
             activeColor: colorScheme.primary,
             visualDensity: VisualDensity.compact,
           ),
@@ -393,9 +404,14 @@ class _ToggleRow extends StatelessWidget {
           ),
         ),
         Switch(
-            value: value,
-            onChanged: disabled ? null : onChanged,
-            activeThumbColor: colorScheme.primary),
+          value: value,
+          onChanged: disabled ? null : onChanged,
+          activeThumbColor: Colors.white,
+          activeTrackColor: colorScheme.primary,
+          inactiveThumbColor: Colors.grey.shade400,
+          inactiveTrackColor: Colors.grey.shade200,
+          trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+        ),
       ]),
     );
   }

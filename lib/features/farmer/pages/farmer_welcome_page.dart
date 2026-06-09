@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -25,6 +26,14 @@ class FarmerWelcomePage extends StatefulWidget {
 }
 
 class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
+  late DashboardProvider _dashboardProvider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,7 +44,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
 
   @override
   void dispose() {
-    context.read<DashboardProvider>().markPageInactive();
+    _dashboardProvider.markPageInactive();
     super.dispose();
   }
 
@@ -45,7 +54,7 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
     if (userId == null) return;
 
     // Mark page as active so dashboard provider can start loading
-    context.read<DashboardProvider>().markPageActive();
+    _dashboardProvider.markPageActive();
 
     // LocationProvider._init() already runs on construction and fetches GPS
     // in the background. DashboardProvider auto-loads once coordinates arrive
@@ -147,15 +156,13 @@ class _FarmerWelcomePageState extends State<FarmerWelcomePage> {
           final userId = authProvider.currentUser?.id;
           if (userId == null) return;
 
-          // Refresh GPS first so dashboard gets updated coordinates.
-          await locationProvider.refreshLocation();
-          if (!mounted) return;
-
-          // Run all secondary refreshes concurrently.
+          // Run all refreshes concurrently.
           await Future.wait([
+            authProvider.loadUserProfile(),
+            locationProvider.refreshLocation(),
             dashboardProvider.refresh(),
-            reportsProvider.load(),
-            messageProvider.fetchMessages(userId),
+            reportsProvider.load(force: true),
+            messageProvider.fetchMessages(userId, force: true),
           ]);
         },
         color: colorScheme.primary,
@@ -395,7 +402,7 @@ class _WeatherCardCompact extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final isRtl = Directionality.of(context) == TextDirection;
+    final isRtl = Directionality.of(context) == ui.TextDirection.rtl;
 
     final cleanHumidity = _formatPercent(humidity);
     final cleanWind = _formatWind(wind, l10n);

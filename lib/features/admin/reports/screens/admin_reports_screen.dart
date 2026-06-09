@@ -176,7 +176,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
           Text(l10n.date_range, style: Theme.of(context).textTheme.labelMedium),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: provider.selectedRange,
+            initialValue: provider.selectedRange,
             dropdownColor: colorScheme.surface,
             style: TextStyle(color: colorScheme.onSurface),
             decoration: InputDecoration(
@@ -321,7 +321,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant,
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

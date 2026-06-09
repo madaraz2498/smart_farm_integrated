@@ -57,49 +57,59 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
                   .read<AdminMessageProvider>()
                   .fetchMessages(force: true),
               color: colorScheme.primary,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(pagePadding),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l10n.messages,
-                            style: AppTextStyles.pageTitle
-                                .copyWith(color: colorScheme.onSurface)),
-                        const SizedBox(height: 16),
-                        _AdminHeader(
-                          count: provider.messages.length,
-                          pendingCount: provider.pendingCount,
+            child: provider.isLoading && provider.messages.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverPadding(
+                        padding: EdgeInsets.all(pagePadding),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(l10n.messages,
+                                  style: AppTextStyles.pageTitle
+                                      .copyWith(color: colorScheme.onSurface)),
+                              const SizedBox(height: 16),
+                              _AdminHeader(
+                                count: provider.messages.length,
+                                pendingCount: provider.pendingCount,
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: provider.isLoading && provider.messages.isEmpty
-                        ? const Center(child: CircularProgressIndicator())
-                        : provider.messages.isEmpty
-                            ? _buildEmptyState(l10n)
-                            : ListView.separated(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: pagePadding),
-                                itemCount: provider.messages.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 16),
-                                itemBuilder: (context, index) {
-                                  final msg = provider.messages[index];
-                                  return _MessageCard(
+                      ),
+                      if (provider.messages.isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _buildEmptyState(l10n),
+                        )
+                      else
+                        SliverPadding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: pagePadding, vertical: 16),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final msg = provider.messages[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: _MessageCard(
                                     message: msg,
                                     onReply: () =>
                                         _showReplyDialog(context, msg),
                                     onDelete: () =>
                                         _confirmDelete(context, msg.id),
-                                  );
-                                },
-                              ),
+                                  ),
+                                );
+                              },
+                              childCount: provider.messages.length,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                ],
-              ),
             ),
           ),
         ),

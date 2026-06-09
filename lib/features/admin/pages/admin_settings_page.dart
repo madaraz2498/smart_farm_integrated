@@ -68,7 +68,14 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
             constraints: const BoxConstraints(maxWidth: 900),
             child: RefreshIndicator(
               onRefresh: () async {
-                await context.read<AuthProvider>().loadUserProfile();
+                final userId = context.read<AuthProvider>().currentUser?.id;
+                await Future.wait([
+                  context.read<AuthProvider>().loadUserProfile(),
+                  if (userId != null)
+                    context
+                        .read<NotificationProvider>()
+                        .fetchAdminSettings(userId: userId),
+                ]);
               },
               color: colorScheme.primary,
               child: SingleChildScrollView(
@@ -365,7 +372,11 @@ class _AdminSettingsPageState extends State<AdminSettingsPage> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: colorScheme.primary,
+            activeThumbColor: Colors.white,
+            activeTrackColor: colorScheme.primary,
+            inactiveThumbColor: Colors.grey.shade400,
+            inactiveTrackColor: Colors.grey.shade200,
+            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ],
       ),

@@ -496,7 +496,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get date_range => 'النطاق الزمني';
 
   @override
-  String get all_time => 'كل الوقت';
+  String get all_time => 'الكل';
 
   @override
   String get last_month => 'الشهر الماضي';
@@ -566,6 +566,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get active => 'نشط';
+
+  @override
+  String get inactive => 'غير نشط';
 
   @override
   String get admin_dashboard => 'لوحة تحكم المسؤول';
@@ -999,6 +1002,33 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get inquiry => 'استفسار';
+
+  @override
+  String get view_profile => 'عرض الملف الشخصي';
+
+  @override
+  String get user_activity => 'نشاط المستخدم';
+
+  @override
+  String get deactivate => 'إلغاء التفعيل';
+
+  @override
+  String get activate => 'تفعيل';
+
+  @override
+  String get delete_user_btn => 'حذف المستخدم';
+
+  @override
+  String get daily => 'يومي';
+
+  @override
+  String get weekly => 'أسبوعي';
+
+  @override
+  String get monthly => 'شهري';
+
+  @override
+  String get no_activity_yet => 'لا يوجد نشاط بعد';
 
   @override
   String get other => 'أخرى';

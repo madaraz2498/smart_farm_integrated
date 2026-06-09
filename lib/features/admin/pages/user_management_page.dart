@@ -47,7 +47,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
               constraints: const BoxConstraints(maxWidth: 900),
               child: RefreshIndicator(
                 onRefresh: () => provider.loadUsers(force: true),
-                color: const Color(0xFF4F46E5),
+                color: Theme.of(context).colorScheme.primary,
                 child: SingleChildScrollView(
                   padding: EdgeInsets.all(pagePadding),
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -57,8 +57,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       _buildHeader(context, l10n),
                       const SizedBox(height: 32),
                       AdminStatCards(
-                          cards: _buildSummaryCards(
-                              provider, l10n, Theme.of(context).colorScheme)),
+                          cards: _buildSummaryCards(provider, l10n,
+                              Theme.of(context).colorScheme, authProvider)),
                       const SizedBox(height: 32),
                       _buildSearchField(l10n, Theme.of(context).colorScheme),
                       const SizedBox(height: 24),
@@ -95,6 +95,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
   Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
     final colorScheme = Theme.of(context).colorScheme;
+    final auth = context.read<AuthProvider>();
+    final isSuperAdmin = auth.isSuperAdmin;
+
     return Wrap(
       alignment: WrapAlignment.spaceBetween,
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -125,20 +128,32 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.1),
+                    color: isSuperAdmin
+                        ? colorScheme.primary.withValues(alpha: 0.1)
+                        : colorScheme.secondary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                        color: colorScheme.primary.withValues(alpha: 0.2)),
+                        color: isSuperAdmin
+                            ? colorScheme.primary.withValues(alpha: 0.2)
+                            : colorScheme.secondary.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.security_outlined,
-                          size: 10, color: colorScheme.primary),
+                      Icon(
+                          isSuperAdmin
+                              ? Icons.security_outlined
+                              : Icons.admin_panel_settings_outlined,
+                          size: 10,
+                          color: isSuperAdmin
+                              ? colorScheme.primary
+                              : colorScheme.secondary),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          'You Are Super Admin',
+                          isSuperAdmin
+                              ? 'You Are Super Admin'
+                              : 'You Are Admin',
                           style: TextStyle(
                             fontSize: 12,
                             color: colorScheme.onSurface,
@@ -154,18 +169,19 @@ class _UserManagementPageState extends State<UserManagementPage> {
             ),
           ],
         ),
-        ElevatedButton.icon(
-          onPressed: () => UserManagementDialogs.showAddUser(context),
-          icon: const Icon(Icons.person_add_outlined, size: 18),
-          label: Text(l10n.add_admin),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        if (isSuperAdmin)
+          ElevatedButton.icon(
+            onPressed: () => UserManagementDialogs.showAddUser(context),
+            icon: const Icon(Icons.person_add_outlined, size: 18),
+            label: Text(l10n.add_admin),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -194,11 +210,20 @@ class _UserManagementPageState extends State<UserManagementPage> {
     );
   }
 
-  List<StatCardData> _buildSummaryCards(
-      AdminProvider provider, AppLocalizations l10n, ColorScheme colorScheme) {
+  List<StatCardData> _buildSummaryCards(AdminProvider provider,
+      AppLocalizations l10n, ColorScheme colorScheme, AuthProvider auth) {
     final allUsers = provider.users;
-    final visibleUsers =
-        allUsers.where((u) => u.role.toLowerCase() != 'super_admin').toList();
+    final isSuperAdmin = auth.isSuperAdmin;
+
+    // Super Admin sees Admins and Farmers. Regular Admin only manages Farmers.
+    final visibleUsers = allUsers.where((u) {
+      final role = u.role.toLowerCase();
+      if (isSuperAdmin) {
+        return role != 'super_admin';
+      } else {
+        return role == 'farmer';
+      }
+    }).toList();
 
     final activeCount = visibleUsers.where((u) => u.isActive).length;
     final totalVisibleCount = visibleUsers.length;
@@ -208,19 +233,25 @@ class _UserManagementPageState extends State<UserManagementPage> {
         visibleUsers.where((u) => u.role.toLowerCase() == 'farmer').length;
     final inactiveCount = totalVisibleCount - activeCount;
 
-    return [
+    List<StatCardData> cards = [
       StatCardData(
         label: l10n.total_users_label,
         value: '$totalVisibleCount',
         svgPath: AppAssets.totalUsers,
         color: const Color(0xFF6366F1),
       ),
-      StatCardData(
+    ];
+
+    if (isSuperAdmin) {
+      cards.add(StatCardData(
         label: 'Admins',
         value: '$adminCount',
         svgPath: AppAssets.admin,
         color: const Color(0xFF7C3AED),
-      ),
+      ));
+    }
+
+    cards.addAll([
       StatCardData(
         label: 'Farmers',
         value: '$farmerCount',
@@ -233,6 +264,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
         svgPath: AppAssets.inactiveUsers,
         color: const Color(0xFFEF4444),
       ),
-    ];
+    ]);
+
+    return cards;
   }
 }

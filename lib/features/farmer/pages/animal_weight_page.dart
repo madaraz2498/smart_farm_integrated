@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +7,6 @@ import 'package:smart_farm/l10n/app_localizations.dart';
 import '../models/animal_models.dart';
 import '../providers/animal_provider.dart';
 import 'package:smart_farm/core/theme/app_dimensions.dart';
-import '../../../shared/widgets/sf_button.dart';
 import '../../../shared/widgets/sf_image_picker_card.dart';
 
 class AnimalWeightPage extends StatefulWidget {

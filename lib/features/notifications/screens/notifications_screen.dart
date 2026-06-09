@@ -158,6 +158,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             constraints: const BoxConstraints(maxWidth: 900),
             child: RefreshIndicator(
               onRefresh: _onRefresh,
+              color: colorScheme.primary,
               child: provider.isLoading
                   ? ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -181,6 +182,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                       : provider.notifications.isEmpty
                           ? _buildEmptyState(l10n)
                           : ListView.separated(
+                              physics: const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.all(16),
                               itemCount: provider.notifications.length,
                               separatorBuilder: (_, __) =>

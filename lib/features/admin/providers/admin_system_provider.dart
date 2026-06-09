@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/request_cache.dart';
 import '../../../core/utils/production_logger.dart';
 import '../services/admin_service.dart';
+import '../models/admin_models.dart';
 import '../../notifications/providers/notification_provider.dart';
 
 /// Dedicated provider for system settings and services
@@ -18,6 +19,7 @@ class AdminSystemProvider extends ChangeNotifier {
   // State management
   Map<String, bool> _servicesStatus = {};
   Map<String, bool> _systemSettings = {};
+  SystemStatus? _statusDetails;
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _isInitializing = false;
@@ -37,6 +39,7 @@ class AdminSystemProvider extends ChangeNotifier {
   // Getters
   Map<String, bool> get servicesStatus => Map.unmodifiable(_servicesStatus);
   Map<String, bool> get systemSettings => Map.unmodifiable(_systemSettings);
+  SystemStatus? get statusDetails => _statusDetails;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
 
@@ -81,9 +84,16 @@ class AdminSystemProvider extends ChangeNotifier {
 
     try {
       // Use cache for system status
-      final status = await _cache.execute(
-        key: 'system_status',
+      final statusData = await _cache.execute(
+        key: 'system_status_raw',
         fetcher: () => _svc.getSystemStatus(),
+        forceRefresh: forceRefresh,
+      );
+
+      // Fetch structured details for the cards
+      _statusDetails = await _cache.execute(
+        key: 'system_status_details',
+        fetcher: () => _svc.getSystemStatusDetails(),
         forceRefresh: forceRefresh,
       );
 
@@ -95,8 +105,8 @@ class AdminSystemProvider extends ChangeNotifier {
       );
 
       // Process services status
-      if (status['services'] is Map) {
-        _servicesStatus = Map<String, bool>.from(status['services']);
+      if (statusData['services'] is Map) {
+        _servicesStatus = Map<String, bool>.from(statusData['services']);
       }
 
       // Convert List<SystemSetting> to Map<String, bool>

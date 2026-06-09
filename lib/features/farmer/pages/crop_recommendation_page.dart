@@ -8,7 +8,6 @@ import '../providers/crop_provider.dart';
 import 'package:smart_farm/core/theme/app_colors.dart';
 import 'package:smart_farm/core/theme/app_dimensions.dart';
 import '../../../shared/widgets/sf_button.dart';
-import '../../../shared/widgets/sf_text_field.dart';
 import '../../../shared/widgets/sf_image_picker_card.dart';
 
 class CropRecommendationPage extends StatefulWidget {
@@ -21,6 +20,8 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
   String? _cityName;
   String? _soilType;
   String? _validErr;
+  final TextEditingController _cityController = TextEditingController();
+  final FocusNode _cityFocusNode = FocusNode();
 
   final List<String> _egyptGovernorates = [
     'Cairo',
@@ -54,10 +55,13 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
 
   @override
   void dispose() {
+    _cityController.dispose();
+    _cityFocusNode.dispose();
     super.dispose();
   }
 
   bool _validate(AppLocalizations l10n) {
+    _cityName = _cityController.text.trim();
     if (_cityName == null || _cityName!.isEmpty) {
       setState(() => _validErr = l10n.field_required);
       return false;
@@ -87,7 +91,6 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
       {'value': 'Sandy', 'label': l10n.soil_sandy},
       {'value': 'Loamy', 'label': l10n.soil_loamy},
       {'value': 'Clay', 'label': l10n.soil_clay},
-      {'value': 'Silty', 'label': l10n.soil_silty},
     ];
 
     return Consumer<CropProvider>(builder: (context, prov, _) {
@@ -96,6 +99,7 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
           onRefresh: () async {
             setState(() {
               _cityName = null;
+              _cityController.clear();
               _soilType = 'Sandy';
               _validErr = null;
             });
@@ -111,16 +115,39 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(l10n.nav_crop_recommendation,
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface)),
-                    const SizedBox(height: 4),
-                    Text(l10n.soil_get_recommendation,
-                        style: TextStyle(
-                            fontSize: 14, color: colorScheme.onSurfaceVariant)),
-                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer,
+                            borderRadius:
+                                BorderRadius.circular(AppDimensions.radiusMid),
+                          ),
+                          child: Icon(Icons.eco_outlined,
+                              color: colorScheme.primary, size: 24),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(l10n.nav_crop_recommendation,
+                                  style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface)),
+                              Text(l10n.soil_get_recommendation,
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      color: colorScheme.onSurfaceVariant)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
                     // ── Form card ──────────────────────────────────────────────────
                     Container(
@@ -140,23 +167,11 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(children: [
-                              Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                      color: colorScheme.primaryContainer,
-                                      borderRadius: BorderRadius.circular(
-                                          AppDimensions.radiusMid)),
-                                  child: Icon(Icons.eco_outlined,
-                                      color: colorScheme.primary, size: 20)),
-                              const SizedBox(width: 12),
-                              Text(l10n.crop_input_parameters,
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.onSurface)),
-                            ]),
+                            Text(l10n.crop_input_parameters,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface)),
                             const SizedBox(height: 20),
                             Row(
                               children: [
@@ -171,40 +186,112 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
                                               fontWeight: FontWeight.w600,
                                               color: colorScheme.onSurface)),
                                       const SizedBox(height: 8),
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16),
-                                        decoration: BoxDecoration(
-                                          color: colorScheme
-                                              .surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(
-                                              AppDimensions.radiusMid),
-                                          border: Border.all(
-                                              color: colorScheme.outline),
-                                        ),
-                                        child: DropdownButtonHideUnderline(
-                                          child: DropdownButton<String>(
-                                            value: _cityName,
-                                            hint: Text(l10n.crop_city_hint,
-                                                style: TextStyle(
-                                                    color: colorScheme
-                                                        .onSurfaceVariant,
-                                                    fontSize: 14)),
-                                            isExpanded: true,
-                                            items: _egyptGovernorates
-                                                .map((city) => DropdownMenuItem(
-                                                      value: city,
-                                                      child: Text(city,
+                                      RawAutocomplete<String>(
+                                        textEditingController: _cityController,
+                                        focusNode: _cityFocusNode,
+                                        optionsBuilder: (textEditingValue) {
+                                          if (textEditingValue.text.isEmpty) {
+                                            return const Iterable<
+                                                String>.empty();
+                                          }
+                                          return _egyptGovernorates.where(
+                                              (city) => city
+                                                  .toLowerCase()
+                                                  .contains(textEditingValue
+                                                      .text
+                                                      .toLowerCase()));
+                                        },
+                                        onSelected: (selection) {
+                                          _cityController.text = selection;
+                                          _cityName = selection;
+                                        },
+                                        fieldViewBuilder: (context, controller,
+                                            focusNode, onFieldSubmitted) {
+                                          return TextField(
+                                            controller: controller,
+                                            focusNode: focusNode,
+                                            onSubmitted: (value) =>
+                                                onFieldSubmitted(),
+                                            style: TextStyle(
+                                                color: colorScheme.onSurface,
+                                                fontSize: 14),
+                                            decoration: InputDecoration(
+                                              hintText: l10n.crop_city_hint,
+                                              hintStyle: TextStyle(
+                                                  color: colorScheme
+                                                      .onSurfaceVariant,
+                                                  fontSize: 14),
+                                              filled: true,
+                                              fillColor: colorScheme
+                                                  .surfaceContainerHighest,
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 12),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        AppDimensions
+                                                            .radiusMid),
+                                                borderSide: BorderSide(
+                                                    color: colorScheme.outline),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        AppDimensions
+                                                            .radiusMid),
+                                                borderSide: BorderSide(
+                                                    color: colorScheme.outline),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        AppDimensions
+                                                            .radiusMid),
+                                                borderSide: BorderSide(
+                                                    color: colorScheme.primary,
+                                                    width: 1.5),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        optionsViewBuilder:
+                                            (context, onSelected, options) {
+                                          return Align(
+                                            alignment: Alignment.topLeft,
+                                            child: Material(
+                                              elevation: 4.0,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      AppDimensions.radiusMid),
+                                              child: ConstrainedBox(
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        maxHeight: 200,
+                                                        maxWidth: 250),
+                                                child: ListView.builder(
+                                                  padding: EdgeInsets.zero,
+                                                  shrinkWrap: true,
+                                                  itemCount: options.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    final option = options
+                                                        .elementAt(index);
+                                                    return ListTile(
+                                                      title: Text(option,
                                                           style: TextStyle(
                                                               color: colorScheme
                                                                   .onSurface)),
-                                                    ))
-                                                .toList(),
-                                            onChanged: (v) =>
-                                                setState(() => _cityName = v),
-                                          ),
-                                        ),
+                                                      onTap: () =>
+                                                          onSelected(option),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
@@ -223,6 +310,7 @@ class _CropRecommendationPageState extends State<CropRecommendationPage> {
                                       const SizedBox(height: 8),
                                       Container(
                                         width: double.infinity,
+                                        height: 50, // Match TextField height
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 16),
                                         decoration: BoxDecoration(

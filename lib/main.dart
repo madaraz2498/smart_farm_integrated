@@ -57,10 +57,13 @@ void main() async {
         ChangeNotifierProvider(create: (_) => LocationProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
 
-        // Auth gets NotificationProvider
-        ChangeNotifierProxyProvider<NotificationProvider, AuthProvider>(
+        // Auth gets NotificationProvider + LocaleProvider
+        ChangeNotifierProxyProvider2<NotificationProvider, LocaleProvider,
+            AuthProvider>(
           create: (_) => AuthProvider(),
-          update: (_, notif, auth) => auth!..updateNotificationProvider(notif),
+          update: (_, notif, locale, auth) => auth!
+            ..updateNotificationProvider(notif)
+            ..updateLocaleProvider(locale),
         ),
 
         // Dashboard gets Auth + Location + Locale (critical for main view)

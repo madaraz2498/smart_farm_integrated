@@ -29,7 +29,8 @@ class _ApiParser {
 
   /// Safely parse a response that could be either a List or Map containing a list
   /// Returns a List if possible, otherwise empty List
-  static List<T> parseAsList<T>(dynamic data, T Function(Map<String, dynamic>) fromJson) {
+  static List<T> parseAsList<T>(
+      dynamic data, T Function(Map<String, dynamic>) fromJson) {
     if (data is List) {
       return data.map((e) => fromJson(e as Map<String, dynamic>)).toList();
     }
@@ -37,7 +38,9 @@ class _ApiParser {
       // Check for common list container keys
       for (final key in ['data', 'users', 'results', 'items']) {
         if (data[key] is List) {
-          return (data[key] as List).map((e) => fromJson(e as Map<String, dynamic>)).toList();
+          return (data[key] as List)
+              .map((e) => fromJson(e as Map<String, dynamic>))
+              .toList();
         }
       }
     }
@@ -190,6 +193,22 @@ class AdminService {
     }
   }
 
+  Future<List<UserActivity>> getUserActivity(String userId,
+      {String period = 'all'}) async {
+    final path = '/admin/users/user-activity-details/$userId';
+    ProductionLogger.info('GET $path?period=$period');
+    try {
+      final data = await _c.get(path, query: {'period': period});
+      ProductionLogger.info('getUserActivity response: $data');
+      return _ApiParser.parseAsList<UserActivity>(data, UserActivity.fromJson);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      ProductionLogger.error('load_user_activity', e);
+      throw ApiException('Failed to load user activity.');
+    }
+  }
+
   Future<void> demoteToFarmer(String email) async {
     const path = '/admin/users/demote-to-farmer';
     ProductionLogger.info('POST $path  query: {email: $email}');
@@ -259,6 +278,20 @@ class AdminService {
 
   // ── System ────────────────────────────────────────────────────────────────
 
+  Future<SystemStatus> getSystemStatusDetails() async {
+    const path = '/admin/system/admin/system/status';
+    ProductionLogger.info('GET $path');
+    try {
+      final data = await _c.get(path);
+      return SystemStatus.fromJson(_ApiParser.parseAsMap(data));
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      ProductionLogger.error('load_system_status_details', e);
+      throw ApiException('Failed to load system status details.');
+    }
+  }
+
   Future<Map<String, dynamic>> getSystemStatus() async {
     const path = '/admin/system/admin/system/status';
     ProductionLogger.info('GET $path');
@@ -278,8 +311,9 @@ class AdminService {
     try {
       final data = await _c.get(path);
       ProductionLogger.info('getSystemSettings response: $data');
-      
-      return _ApiParser.parseAsList<SystemSetting>(data, SystemSetting.fromJson);
+
+      return _ApiParser.parseAsList<SystemSetting>(
+          data, SystemSetting.fromJson);
     } catch (e) {
       ProductionLogger.info('getSystemSettings non-critical: $e');
       return [];
@@ -307,6 +341,22 @@ class AdminService {
     } catch (e) {
       ProductionLogger.error('toggle_service', e);
       throw ApiException('Failed to toggle service.');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAiModelsStatus() async {
+    const path = '/admin/system/admin/system/ai-models';
+    ProductionLogger.info('GET $path');
+    try {
+      final data = await _c.get(path);
+      ProductionLogger.info('getAiModelsStatus response: $data');
+      if (data is List) {
+        return List<Map<String, dynamic>>.from(data);
+      }
+      return [];
+    } catch (e) {
+      ProductionLogger.error('get_ai_models_status', e);
+      return [];
     }
   }
 

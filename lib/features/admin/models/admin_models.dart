@@ -16,20 +16,45 @@ class DashboardStats {
   });
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) {
-    // Support optional {"data": {...}} wrapper
-    final j = json['data'] is Map ? json['data'] as Map<String, dynamic> : json;
+    // Support multiple common wrappers: "data", "summary", "statistics", or "stats"
+    final j = json['data'] is Map
+        ? json['data'] as Map<String, dynamic>
+        : json['summary'] is Map
+            ? json['summary'] as Map<String, dynamic>
+            : json['statistics'] is Map
+                ? json['statistics'] as Map<String, dynamic>
+                : json['stats'] is Map
+                    ? json['stats'] as Map<String, dynamic>
+                    : json;
+
     return DashboardStats(
-      totalAnalyses: _i(j['total_analyses'] ?? j['analyses_count'] ?? 0),
-      totalUsers: _i(j['total_users'] ?? j['users_count'] ?? 0),
-      activeUsers: _i(j['active_users'] ?? j['active_count'] ?? 0),
-      totalAdmins: _i(j['total_admins'] ?? j['admins_count'] ?? 0),
-      aiServicesOnline:
-          _i(j['ai_services_online'] ?? j['active_services'] ?? 6),
+      totalAnalyses: _i(j['total_analyses'] ??
+          j['analyses_count'] ??
+          j['total'] ??
+          j['analyses'] ??
+          0),
+      totalUsers: _i(j['total_users'] ??
+          j['users_count'] ??
+          j['users'] ??
+          j['total_registered'] ??
+          0),
+      activeUsers: _i(j['active_users'] ??
+          j['active_count'] ??
+          j['active'] ??
+          j['online_users'] ??
+          0),
+      totalAdmins:
+          _i(j['total_admins'] ?? j['admins_count'] ?? j['admins'] ?? 0),
+      aiServicesOnline: _i(j['ai_services_online'] ??
+          j['active_services'] ??
+          j['services_online'] ??
+          6),
       mostUsedService: j['most_used_service'] as String? ??
           j['top_service'] as String? ??
+          j['most_used'] as String? ??
           'Plant Disease',
-      analysesGrowth: j['analyses_growth'] as String? ?? '+0%',
-      usersGrowth: j['users_growth'] as String? ?? '+0%',
+      analysesGrowth: (j['analyses_growth'] ?? j['growth'] ?? '+0%').toString(),
+      usersGrowth: (j['users_growth'] ?? j['user_growth'] ?? '+0%').toString(),
     );
   }
 
@@ -40,6 +65,28 @@ class DashboardStats {
       aiServicesOnline;
   final String mostUsedService;
   final String? analysesGrowth, usersGrowth;
+
+  DashboardStats copyWith({
+    int? totalAnalyses,
+    int? totalUsers,
+    int? activeUsers,
+    int? totalAdmins,
+    int? aiServicesOnline,
+    String? mostUsedService,
+    String? analysesGrowth,
+    String? usersGrowth,
+  }) {
+    return DashboardStats(
+      totalAnalyses: totalAnalyses ?? this.totalAnalyses,
+      totalUsers: totalUsers ?? this.totalUsers,
+      activeUsers: activeUsers ?? this.activeUsers,
+      totalAdmins: totalAdmins ?? this.totalAdmins,
+      aiServicesOnline: aiServicesOnline ?? this.aiServicesOnline,
+      mostUsedService: mostUsedService ?? this.mostUsedService,
+      analysesGrowth: analysesGrowth ?? this.analysesGrowth,
+      usersGrowth: usersGrowth ?? this.usersGrowth,
+    );
+  }
 
   String get formattedAnalyses => _fmt(totalAnalyses);
   String get formattedUsers => _fmt(totalUsers);
@@ -96,16 +143,35 @@ class AdminUser {
     this.createdAt,
   });
 
-  factory AdminUser.fromJson(Map<String, dynamic> j) => AdminUser(
-        id: (j['id'] ?? j['user_id'] ?? 0).toString(),
-        username: j['username'] as String? ?? j['name'] as String? ?? '',
-        email: j['email'] as String? ?? '',
-        isActive: j['is_active'] as bool? ?? true,
-        role: j['role'] as String? ?? 'Farmer',
-        isAdmin: j['is_admin'] as bool? ?? false,
-        profileImg: j['profile_img'] as String?,
-        createdAt: j['created_at'] as String?,
-      );
+  factory AdminUser.fromJson(Map<String, dynamic> j) {
+    final rawActive = j['is_active'];
+    final status = (j['status'] as String? ?? '').toLowerCase();
+    final roleStr = (j['role'] as String? ?? '').toLowerCase();
+
+    bool active = true;
+    if (rawActive is bool) {
+      active = rawActive;
+    } else if (rawActive is int) {
+      active = rawActive == 1;
+    } else if (status == 'inactive' ||
+        status == 'disabled' ||
+        roleStr == 'inactive') {
+      active = false;
+    } else if (status == 'active') {
+      active = true;
+    }
+
+    return AdminUser(
+      id: (j['id'] ?? j['user_id'] ?? 0).toString(),
+      username: j['username'] as String? ?? j['name'] as String? ?? '',
+      email: j['email'] as String? ?? '',
+      isActive: active,
+      role: j['role'] as String? ?? 'Farmer',
+      isAdmin: j['is_admin'] as bool? ?? false,
+      profileImg: j['profile_img'] as String?,
+      createdAt: j['created_at'] as String?,
+    );
+  }
 
   final String id, username, email, role;
   final bool isActive, isAdmin;
@@ -120,6 +186,7 @@ class AdminUser {
     if (isAdmin) return 'Admin';
     return role;
   }
+
   bool get isSuperAdmin => role.toLowerCase() == 'super_admin';
   String get statusLabel => isActive ? 'Active' : 'Inactive';
 
@@ -166,6 +233,68 @@ class SystemSetting {
 
   Map<String, bool> toSettingsMap() {
     return {key: isOnline};
+  }
+}
+
+class UserActivity {
+  final String date;
+  final String activity;
+  final String status;
+
+  const UserActivity({
+    required this.date,
+    required this.activity,
+    required this.status,
+  });
+
+  factory UserActivity.fromJson(Map<String, dynamic> json) {
+    return UserActivity(
+      date: json['date'] as String? ?? '',
+      activity: json['activity'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+    );
+  }
+}
+
+class SystemStatus {
+  final String status;
+  final String uptime;
+  final String responseTime;
+  final String dbStatus;
+  final String dbStorage;
+  final int dbConnections;
+  final String aiActive;
+  final String aiAccuracy;
+  final String aiRequests;
+
+  const SystemStatus({
+    required this.status,
+    required this.uptime,
+    required this.responseTime,
+    required this.dbStatus,
+    required this.dbStorage,
+    required this.dbConnections,
+    required this.aiActive,
+    required this.aiAccuracy,
+    required this.aiRequests,
+  });
+
+  factory SystemStatus.fromJson(Map<String, dynamic> json) {
+    final sys = json['system'] ?? {};
+    final db = json['database'] ?? {};
+    final ai = json['ai_models_summary'] ?? {};
+
+    return SystemStatus(
+      status: sys['status']?.toString() ?? 'Unknown',
+      uptime: sys['uptime']?.toString() ?? '0h 0m',
+      responseTime: sys['response_time']?.toString() ?? '0ms',
+      dbStatus: db['status']?.toString() ?? 'Unknown',
+      dbStorage: db['storage_used']?.toString() ?? '0 kB',
+      dbConnections: (db['connections'] as num?)?.toInt() ?? 0,
+      aiActive: ai['active']?.toString() ?? '0 / 0',
+      aiAccuracy: ai['avg_accuracy']?.toString() ?? '0%',
+      aiRequests: ai['total_requests']?.toString() ?? '0',
+    );
   }
 }
 

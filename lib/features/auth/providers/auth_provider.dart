@@ -3,10 +3,12 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../../../core/network/token_storage.dart';
+import '../../../core/theme/theme_controller.dart';
 import '../../../core/utils/production_logger.dart';
 import '../../../shared/models/user_model.dart';
 import '../../notifications/providers/notification_provider.dart';
 import '../../notifications/models/notification_model.dart';
+import '../../../providers/locale_provider.dart';
 import '../services/auth_service.dart';
 
 export '../services/auth_service.dart' show AuthResult;
@@ -20,9 +22,14 @@ class AuthProvider extends ChangeNotifier {
 
   final AuthService _svc = AuthService.instance;
   NotificationProvider? _notif;
+  LocaleProvider? _localeProvider;
 
   void updateNotificationProvider(NotificationProvider? notif) {
     _notif = notif;
+  }
+
+  void updateLocaleProvider(LocaleProvider? localeProv) {
+    _localeProvider = localeProv;
   }
 
   AuthStatus _status = AuthStatus.unknown;
@@ -37,7 +44,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _loading;
   String? get errorMsg => _error;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
-  bool get isAdmin => _user?.role == UserRole.admin || _user?.role == UserRole.superAdmin;
+  bool get isAdmin =>
+      _user?.role == UserRole.admin || _user?.role == UserRole.superAdmin;
   bool get isSuperAdmin => _user?.role == UserRole.superAdmin;
   String get displayName => _user?.displayName ?? 'Farmer';
 
@@ -53,12 +61,25 @@ class AuthProvider extends ChangeNotifier {
       if (u != null) {
         _user = u;
         _status = AuthStatus.authenticated;
+
+        // Load user-specific theme
+        await ThemeController.loadThemeForUser(u.id);
+
+        // Load user-specific locale
+        if (_localeProvider != null) {
+          await _localeProvider!.loadLocaleForUser(u.id);
+        }
+
         notifyListeners();
 
         // Background refresh to sync latest profile data from backend
         loadUserProfile();
       } else {
         _status = AuthStatus.unauthenticated;
+        await ThemeController.resetToDefault();
+        if (_localeProvider != null) {
+          await _localeProvider!.resetToDefault();
+        }
         notifyListeners();
       }
     } catch (e) {
@@ -256,9 +277,13 @@ class AuthProvider extends ChangeNotifier {
           email: email.trim().toLowerCase(), password: password.trim());
       _apply(r);
 
-      // After login, restore the locally-persisted profile image
-      if (r.success) {
+      // After login, restore the locally-persisted profile image and load theme
+      if (r.success && r.user != null) {
         _localProfileImage = await TokenStorage.getLocalImage();
+        await ThemeController.loadThemeForUser(r.user!.id);
+        if (_localeProvider != null) {
+          await _localeProvider!.loadLocaleForUser(r.user!.id);
+        }
         notifyListeners();
       }
 
@@ -282,7 +307,7 @@ class AuthProvider extends ChangeNotifier {
     _begin();
     try {
       final r =
-      await _svc.register(name: name, email: email, password: password);
+          await _svc.register(name: name, email: email, password: password);
       _apply(r);
 
       if (r.success) {
@@ -293,8 +318,7 @@ class AuthProvider extends ChangeNotifier {
         );
 
         final id = _user?.id;
-        if (id != null && id.isNotEmpty) {
-        }
+        if (id != null && id.isNotEmpty) {}
       }
 
       return r;
@@ -317,6 +341,13 @@ class AuthProvider extends ChangeNotifier {
     _user = null;
     _error = null;
     _status = AuthStatus.unauthenticated;
+
+    // Reset theme to light on logout
+    await ThemeController.resetToDefault();
+    if (_localeProvider != null) {
+      await _localeProvider!.resetToDefault();
+    }
+
     // _localProfileImage intentionally NOT cleared —
     // it will be reloaded on next login from TokenStorage.getLocalImage()
     notifyListeners();

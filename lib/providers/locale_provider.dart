@@ -4,20 +4,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocaleProvider extends ChangeNotifier {
   static const String _localeKey = 'selected_locale';
   Locale _locale = const Locale('en');
+  String? _currentUserId;
 
   Locale get locale => _locale;
 
   LocaleProvider() {
+    // Initial load will use global key if exists, otherwise default 'en'
     _loadLocale();
   }
 
   Future<void> _loadLocale() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? languageCode = prefs.getString(_localeKey);
+    final String key = _currentUserId != null ? '${_localeKey}_$_currentUserId' : _localeKey;
+    final String? languageCode = prefs.getString(key);
+    
     if (languageCode != null) {
       _locale = Locale(languageCode);
-      notifyListeners();
+    } else {
+      _locale = const Locale('en');
     }
+    notifyListeners();
+  }
+
+  Future<void> loadLocaleForUser(String userId) async {
+    _currentUserId = userId;
+    await _loadLocale();
   }
 
   Future<void> setLocale(Locale locale) async {
@@ -25,7 +36,14 @@ class LocaleProvider extends ChangeNotifier {
     
     _locale = locale;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_localeKey, locale.languageCode);
+    final String key = _currentUserId != null ? '${_localeKey}_$_currentUserId' : _localeKey;
+    await prefs.setString(key, locale.languageCode);
+    notifyListeners();
+  }
+
+  Future<void> resetToDefault() async {
+    _currentUserId = null;
+    _locale = const Locale('en');
     notifyListeners();
   }
 

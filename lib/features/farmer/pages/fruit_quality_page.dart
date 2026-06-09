@@ -135,9 +135,9 @@ class _FruitResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final gradeColor = result.grade == 'A'
+    final gradeColor = (result.grade == 'A' || result.grade == 'Grade A')
         ? colorScheme.primary
-        : result.grade == 'B'
+        : (result.grade == 'B' || result.grade == 'Grade B')
             ? colorScheme.tertiary
             : colorScheme.error;
 
