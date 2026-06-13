@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:smart_farm/l10n/app_localizations.dart';
@@ -40,7 +41,8 @@ class SfImagePickerCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
               color: colorScheme.shadow.withValues(alpha: 0.03), blurRadius: 12)
@@ -82,20 +84,29 @@ class SfImagePickerCard extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: pickedImage != null
-                    ? Image.file(File(pickedImage!.path),
-                        width: double.infinity, height: 180, fit: BoxFit.cover)
+                    ? (kIsWeb
+                        ? Image.network(pickedImage!.path,
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover)
+                        : Image.file(File(pickedImage!.path),
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover))
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.image_outlined,
-                              color: colorScheme.onSurface.withValues(alpha: 0.3),
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.3),
                               size: 48),
                           const SizedBox(height: 12),
                           Text(
                             l10n.choose_image,
                             style: TextStyle(
                               fontSize: 14,
-                              color: colorScheme.onSurface.withValues(alpha: 0.6),
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.6),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -104,7 +115,8 @@ class SfImagePickerCard extends StatelessWidget {
                             'PNG, JPG, WEBP',
                             style: TextStyle(
                               fontSize: 12,
-                              color: colorScheme.onSurface.withValues(alpha: 0.4),
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.4),
                             ),
                           ),
                         ],
@@ -151,7 +163,8 @@ class _DashedBorderPainter extends CustomPainter {
 
     final path = Path()
       ..addRRect(RRect.fromRectAndRadius(
-          Rect.fromLTWH(0, 0, size.width, size.height), Radius.circular(radius)));
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          Radius.circular(radius)));
 
     const dashWidth = 8.0;
     const dashSpace = 6.0;

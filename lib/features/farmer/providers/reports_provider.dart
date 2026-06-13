@@ -46,7 +46,8 @@ class ReportsProvider extends ChangeNotifier {
     // Skip if already loading or already loaded (unless forced by pull-to-refresh).
     if (_isLoading) return;
     if (_hasLoadedOnce && !force) {
-      ProductionLogger.reports('reports already loaded, skipping duplicate call');
+      ProductionLogger.reports(
+          'reports already loaded, skipping duplicate call');
       return;
     }
     _isLoading = true;
@@ -72,8 +73,10 @@ class ReportsProvider extends ChangeNotifier {
             final date = DateTime.parse(r.date);
             if (period == 'month') {
               return date.isAfter(now.subtract(const Duration(days: 30)));
-            } else if (period == 'quarter') {
-              return date.isAfter(now.subtract(const Duration(days: 90)));
+            } else if (period == 'year') {
+              return date.isAfter(now.subtract(const Duration(days: 365)));
+            } else if (period == 'week') {
+              return date.isAfter(now.subtract(const Duration(days: 7)));
             }
           } catch (_) {}
           return true;

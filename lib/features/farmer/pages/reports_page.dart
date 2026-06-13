@@ -25,7 +25,7 @@ class _ReportsPageState extends State<ReportsPage> {
     super.didChangeDependencies();
     if (_selectedDateRange == null) {
       final l10n = AppLocalizations.of(context)!;
-      _selectedDateRange = l10n.all_time;
+      _selectedDateRange = l10n.last_month;
     }
   }
 
@@ -162,9 +162,10 @@ class _ReportsPageState extends State<ReportsPage> {
                             icon: Icon(Icons.keyboard_arrow_down_rounded,
                                 color: colorScheme.primary),
                             items: [
-                              l10n.all_time,
                               l10n.last_month,
-                              l10n.last_3_months
+                              l10n.last_year,
+                              l10n.last_7_days,
+                              l10n.all_time,
                             ]
                                 .map<DropdownMenuItem<String>>(
                                     (String s) => DropdownMenuItem<String>(
@@ -179,9 +180,10 @@ class _ReportsPageState extends State<ReportsPage> {
                               if (v != null) {
                                 setState(() => _selectedDateRange = v);
                                 // Map label to API period
-                                String period = 'all';
-                                if (v == l10n.last_month) period = 'month';
-                                if (v == l10n.last_3_months) period = 'quarter';
+                                String period = 'month';
+                                if (v == l10n.last_year) period = 'year';
+                                if (v == l10n.last_7_days) period = 'week';
+                                if (v == l10n.all_time) period = 'all';
                                 prov.load(force: true, period: period);
                               }
                             },
